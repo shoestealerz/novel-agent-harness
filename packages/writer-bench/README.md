@@ -17,10 +17,17 @@ The package is independent of OpenCode's runtime. A target is any command that a
 - Importers for WritingBench JSONL and ConStory-Bench prompt exports.
 - Real adapters for an OpenAI-compatible raw model and stock non-interactive OpenCode.
 - A small native smoke suite that demonstrates evidence, intentional exceptions, scoped revision, and causal planning.
+- A validated synthetic pilot corpus, `Harbor Light`, with stable passages, gold story state, planted defects, deliberate exceptions, and twelve native tasks.
 
 The smoke suite verifies the runner. It is not the finished research corpus.
 
 See [TARGETS.md](TARGETS.md) to configure the first real raw-model versus stock-OpenCode run.
+
+Validate the pilot corpus with:
+
+```sh
+bun run corpus:validate
+```
 
 ## Quick start
 
