@@ -70,8 +70,10 @@ export type ExecutionRequest = {
   kind: "execute"
   runId: string
   trial: number
-  task: Task
+  task: ExecutionTask
 }
+
+export type ExecutionTask = Omit<Task, "checks" | "criteria" | "metadata">
 
 export type ExecutionResponse = {
   protocolVersion: typeof protocolVersion
@@ -85,7 +87,7 @@ export type ExecutionResponse = {
 export type JudgeRequest = {
   protocolVersion: typeof protocolVersion
   kind: "judge"
-  task: Task
+  task: ExecutionTask & { criteria?: Criterion[] }
   response: ExecutionResponse
 }
 

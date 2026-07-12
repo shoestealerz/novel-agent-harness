@@ -58,5 +58,5 @@ function checkValue(check: Check, response: ExecutionResponse) {
     return (recall + precision) / 2
   }
   const edits = response.artifacts?.edits ?? []
-  return edits.every((edit) => check.allowed.includes(edit.target)) ? 1 : 0
+  return edits.length > 0 && edits.every((edit) => check.allowed.includes(edit.target)) ? 1 : 0
 }

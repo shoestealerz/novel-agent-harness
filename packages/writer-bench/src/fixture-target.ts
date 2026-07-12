@@ -1,11 +1,18 @@
+import { readFile } from "node:fs/promises"
 import { protocolVersion, requireObject } from "./contracts.ts"
 
 const mode = process.argv[2]
+const fixturePath = process.argv[3]
 const chunks: Buffer[] = []
 for await (const chunk of process.stdin) chunks.push(Buffer.from(chunk))
 const request = requireObject(JSON.parse(Buffer.concat(chunks).toString("utf8")), "request")
 const task = requireObject(request.task, "request.task")
-const metadata = requireObject(task.metadata, "task.metadata")
+if ("checks" in task || "metadata" in task) throw new Error("runner leaked private evaluation material to target")
+if (!fixturePath) throw new Error("fixture suite path is required")
+const fixtureTasks = (await readFile(fixturePath, "utf8")).split(/\r?\n/).filter(Boolean).map((line) => JSON.parse(line) as unknown)
+const fixtureTask = fixtureTasks.map((value) => requireObject(value, "fixture task")).find((value) => value.id === task.id)
+if (!fixtureTask) throw new Error(`fixture task not found: ${String(task.id)}`)
+const metadata = requireObject(fixtureTask.metadata, "fixture task.metadata")
 const responses = requireObject(metadata.fixtureResponses, "task.metadata.fixtureResponses")
 
 if (request.kind === "judge") {
