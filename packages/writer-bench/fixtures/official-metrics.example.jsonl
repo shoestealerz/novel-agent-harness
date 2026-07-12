@@ -1,0 +1,4 @@
+{"targetId":"raw-model","suite":"constory-bench","metric":"ced","value":1.42,"direction":"lower","source":"ConStory-Checker"}
+{"targetId":"writer-harness","suite":"constory-bench","metric":"ced","value":1.18,"direction":"lower","source":"ConStory-Checker"}
+{"targetId":"raw-model","suite":"writingbench","metric":"official-score","value":72.4,"direction":"higher","source":"WritingBench official evaluator"}
+{"targetId":"writer-harness","suite":"writingbench","metric":"official-score","value":73.1,"direction":"higher","source":"WritingBench official evaluator"}

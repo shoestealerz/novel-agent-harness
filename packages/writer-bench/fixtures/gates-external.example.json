@@ -1,0 +1,8 @@
+{
+  "maxMeanRegression": 0,
+  "maxCandidateSafetyFailures": 0,
+  "externalMetrics": {
+    "constory-bench:ced": { "maxRegression": 0 },
+    "writingbench:official-score": { "maxRegression": 0.02 }
+  }
+}

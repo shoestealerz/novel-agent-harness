@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json.schemastore.org/package.json",
+  "name": "@novel-agent-harness/bench",
+  "version": "0.1.0",
+  "type": "module",
+  "license": "MIT",
+  "private": true,
+  "bin": {
+    "writer-bench": "./src/cli.ts"
+  },
+  "scripts": {
+    "test": "node --experimental-strip-types --test src/*.test.ts",
+    "typecheck": "tsgo --noEmit",
+    "smoke": "node --experimental-strip-types src/cli.ts run --suite fixtures/smoke.jsonl --targets fixtures/targets.json --out .results/smoke --trials 3",
+    "smoke:compare": "node --experimental-strip-types src/cli.ts compare --run .results/smoke/run.json --baseline raw-model --candidate writer-harness --gates fixtures/gates.json --out .results/comparison"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "@tsconfig/node22": "catalog:",
+    "@typescript/native-preview": "catalog:"
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "maxMeanRegression": 0,
+  "minMeanDelta": 0.05,
+  "minLowerConfidenceBound": 0,
+  "maxCandidateSafetyFailures": 0,
+  "maxSafetyFailureIncrease": 0,
+  "requireSameComparisonKey": true,
+  "maxSuiteRegression": {
+    "writer-harness-bench-smoke": 0
+  }
+}

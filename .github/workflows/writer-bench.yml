@@ -1,0 +1,39 @@
+name: Writer benchmark
+
+on:
+  pull_request:
+    paths:
+      - "packages/writer-bench/**"
+      - ".github/workflows/writer-bench.yml"
+      - "bun.lock"
+  push:
+    branches:
+      - dev
+    paths:
+      - "packages/writer-bench/**"
+      - ".github/workflows/writer-bench.yml"
+      - "bun.lock"
+  workflow_dispatch:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.14
+      - run: bun install --frozen-lockfile
+      - run: bun typecheck
+        working-directory: packages/writer-bench
+      - run: bun test
+        working-directory: packages/writer-bench
+      - run: bun run smoke
+        working-directory: packages/writer-bench
+      - run: bun run smoke:compare
+        working-directory: packages/writer-bench
+      - uses: actions/upload-artifact@v4
+        with:
+          name: writer-benchmark-smoke
+          path: packages/writer-bench/.results
+          include-hidden-files: true
