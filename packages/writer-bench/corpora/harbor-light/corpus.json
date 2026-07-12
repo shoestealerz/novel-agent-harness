@@ -1,0 +1,25 @@
+{
+  "id": "harbor-light",
+  "version": "0.1.0",
+  "title": "Harbor Light",
+  "status": "pilot",
+  "language": "en",
+  "license": "CC0-1.0",
+  "provenance": "Synthetic fiction written specifically for Writer Harness Bench. No user manuscript or copyrighted novel was used.",
+  "manuscript": [
+    "manuscript/ch01.md",
+    "manuscript/ch02.md",
+    "manuscript/ch03.md",
+    "manuscript/ch04.md"
+  ],
+  "gold": [
+    "gold/entities.jsonl",
+    "gold/facts.jsonl",
+    "gold/events.jsonl",
+    "gold/knowledge.jsonl",
+    "gold/intentions.jsonl",
+    "gold/errors.jsonl"
+  ],
+  "tasks": ["tasks/pilot.jsonl"],
+  "minimumWords": 2500
+}

@@ -1,0 +1,29 @@
+# Harbor Light pilot corpus
+
+`Harbor Light` is a synthetic, CC0 pilot novella for testing the Writer Harness Bench corpus format. It is intentionally small enough to audit by hand. It is not the planned 30,000–50,000-word production evaluation novella.
+
+The pilot validates:
+
+- stable passage references embedded as `<!-- ref: ch01:p001 -->` comments;
+- manuscript, fact, event, character-knowledge, author-intention, and planted-error records;
+- intentional ambiguities that should not be diagnosed as mistakes;
+- native tasks covering explanation, diagnosis, brainstorming, planning, revision, and synchronization;
+- deterministic evidence and proposal-scope checks;
+- validation that every gold/task reference resolves to the manuscript.
+
+## Canon policy
+
+Manuscript prose is authoritative for what appears on the page. `intentions.jsonl` is authoritative for off-page author intent and deliberate exceptions. Other gold files are evidence-linked annotations used for evaluation; they are not text the candidate system may silently add to the story.
+
+## Known planted defect
+
+The pilot contains a deliberate continuity error involving the silver observatory key. It also contains deliberately variable descriptions of the sea color. A good diagnostic system should identify the key error and avoid flagging the sea-color variation, which is part of Mara's unstable emotional perception.
+
+## Scaling gate
+
+Do not expand this into the production corpus until the validator, task protocol, and first real-model run have shown that:
+
+1. evidence references remain usable across all targets;
+2. gold annotations are sufficient to score errors without leaking answers into prompts;
+3. task writers can express both deterministic checks and subjective criteria cleanly;
+4. intentional exceptions measurably reduce false-positive diagnosis.

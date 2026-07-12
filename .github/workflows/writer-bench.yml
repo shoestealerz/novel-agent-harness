@@ -28,6 +28,8 @@ jobs:
         working-directory: packages/writer-bench
       - run: bun test
         working-directory: packages/writer-bench
+      - run: bun run corpus:validate
+        working-directory: packages/writer-bench
       - run: bun run smoke
         working-directory: packages/writer-bench
       - run: bun run smoke:compare
