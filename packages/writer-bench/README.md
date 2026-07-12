@@ -15,9 +15,12 @@ The package is independent of OpenCode's runtime. A target is any command that a
 - Paired baseline/candidate comparison with a deterministic 95% bootstrap confidence interval.
 - Hard regression gates, including per-suite gates and zero-tolerance safety checks.
 - Importers for WritingBench JSONL and ConStory-Bench prompt exports.
+- Real adapters for an OpenAI-compatible raw model and stock non-interactive OpenCode.
 - A small native smoke suite that demonstrates evidence, intentional exceptions, scoped revision, and causal planning.
 
 The smoke suite verifies the runner. It is not the finished research corpus.
+
+See [TARGETS.md](TARGETS.md) to configure the first real raw-model versus stock-OpenCode run.
 
 ## Quick start
 

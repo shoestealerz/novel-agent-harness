@@ -1,0 +1,23 @@
+{
+  "systems": [
+    {
+      "id": "raw-model",
+      "label": "Raw OpenAI-compatible model",
+      "command": ["{node}", "--experimental-strip-types", "src/targets/openai-compatible.ts"],
+      "baseModel": "replace-with-model-id",
+      "comparisonKey": "replace-with-model-and-settings-revision"
+    },
+    {
+      "id": "stock-opencode",
+      "label": "Stock OpenCode",
+      "command": ["{node}", "--experimental-strip-types", "src/targets/opencode-cli.ts"],
+      "baseModel": "replace-with-the-same-model-id",
+      "comparisonKey": "replace-with-the-same-model-and-settings-revision"
+    }
+  ],
+  "judge": {
+    "id": "independent-judge",
+    "command": ["{node}", "--experimental-strip-types", "src/targets/openai-compatible.ts"],
+    "baseModel": "replace-with-judge-model-id"
+  }
+}
