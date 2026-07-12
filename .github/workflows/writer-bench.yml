@@ -36,3 +36,4 @@ jobs:
         with:
           name: writer-benchmark-smoke
           path: packages/writer-bench/.results
+          include-hidden-files: true
