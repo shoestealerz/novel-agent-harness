@@ -1,0 +1,9 @@
+{"id":"event:ferry-arrival","order":10,"summary":"Mara returns to Aster Reach by ferry.","participants":["entity:mara"],"evidence":["ch01:p001"]}
+{"id":"event:second-bell-house","order":20,"summary":"Mara and Iven hear an apparent second bell from the cliff.","participants":["entity:mara","entity:iven"],"evidence":["ch01:p008"]}
+{"id":"event:key-locked","order":30,"summary":"Mara puts the silver key in the observatory safe and leaves without it.","participants":["entity:mara","entity:silver-key"],"evidence":["ch02:p004"]}
+{"id":"event:ledger-found","order":40,"summary":"Mara discovers ledger entries bearing Orin's initials after his disappearance.","participants":["entity:mara","entity:orin"],"evidence":["ch02:p007"]}
+{"id":"event:tunnel-entry","order":50,"summary":"Mara enters the customs tunnel carrying the silver key without retrieving it on-page.","participants":["entity:mara","entity:silver-key"],"evidence":["ch03:p001","ch03:p002"]}
+{"id":"event:iven-confession","order":60,"summary":"Iven admits giving Orin's sketch to Hadrin and delaying contact with Mara.","participants":["entity:iven","entity:mara","entity:hadrin"],"evidence":["ch03:p006"]}
+{"id":"event:reflections-escape","order":70,"summary":"The shortened bell interval releases retained reflections into town.","participants":["entity:glass-tide","entity:echo-chamber"],"evidence":["ch03:p008","ch04:p005"]}
+{"id":"event:voice-answers","order":80,"summary":"A voice behind the lighthouse door answers Orin's private ledger phrase.","participants":["entity:mara","entity:orin"],"evidence":["ch04:p007"]}
+{"id":"event:mara-pulls-once","order":90,"summary":"Mara pulls the bell once before deciding whether to open the door.","participants":["entity:mara","entity:echo-chamber"],"evidence":["ch04:p008"]}

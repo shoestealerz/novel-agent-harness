@@ -1,0 +1,8 @@
+{"id":"entity:mara","kind":"character","name":"Mara Vale","aliases":["Mara"],"evidence":["ch01:p001"]}
+{"id":"entity:orin","kind":"character","name":"Orin Vale","aliases":["Orin","Mara's father"],"evidence":["ch01:p002"]}
+{"id":"entity:iven","kind":"character","name":"Iven Saye","aliases":["Iven","the harbor clerk"],"evidence":["ch01:p003"]}
+{"id":"entity:hadrin","kind":"character","name":"Councilor Hadrin","aliases":["Hadrin"],"evidence":["ch02:p003"]}
+{"id":"entity:lighthouse","kind":"location","name":"Aster Reach lighthouse","aliases":["the lighthouse","the dead light"],"evidence":["ch01:p001","ch04:p006"]}
+{"id":"entity:echo-chamber","kind":"artifact","name":"Echo chamber","aliases":["the mechanism"],"evidence":["ch03:p003"]}
+{"id":"entity:glass-tide","kind":"phenomenon","name":"Glass tide","aliases":["retained reflections"],"evidence":["ch02:p002","ch03:p008"]}
+{"id":"entity:silver-key","kind":"artifact","name":"Silver observatory key","aliases":["the silver key"],"evidence":["ch02:p003"]}
