@@ -1,0 +1,22 @@
+{
+  "systems": [
+    {
+      "id": "raw-model",
+      "label": "Raw model baseline",
+      "command": ["{node}", "--experimental-strip-types", "src/fixture-target.ts", "baseline"],
+      "comparisonKey": "fixture-model-v1",
+      "baseModel": "fixture-model"
+    },
+    {
+      "id": "writer-harness",
+      "label": "Writer harness candidate",
+      "command": ["{node}", "--experimental-strip-types", "src/fixture-target.ts", "candidate"],
+      "comparisonKey": "fixture-model-v1",
+      "baseModel": "fixture-model"
+    }
+  ],
+  "judge": {
+    "id": "fixture-judge",
+    "command": ["{node}", "--experimental-strip-types", "src/fixture-target.ts", "judge"]
+  }
+}
