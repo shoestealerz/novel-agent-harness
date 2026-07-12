@@ -1,0 +1,9 @@
+{"id":"fact:light-dark-eight-years","subject":"entity:lighthouse","predicate":"dark_since","object":"winter flood eight years earlier","status":"asserted","evidence":["ch01:p001","ch01:p004"]}
+{"id":"fact:orin-missing","subject":"entity:orin","predicate":"missing_since","object":"winter flood aftermath","status":"asserted","evidence":["ch01:p006"]}
+{"id":"fact:no-body","subject":"entity:orin","predicate":"body_found","object":false,"status":"asserted","evidence":["ch01:p006"]}
+{"id":"fact:glass-tide-new-moon","subject":"entity:glass-tide","predicate":"can_occur_during","object":"moonless new-moon turn","status":"world_rule","evidence":["ch02:p002"]}
+{"id":"fact:moonlight-dissolves","subject":"entity:glass-tide","predicate":"dissolved_by","object":"direct moonlight","status":"world_rule","evidence":["ch04:p001"]}
+{"id":"fact:echo-confines-tide","subject":"entity:echo-chamber","predicate":"function","object":"paired bell tones confine retained reflections to northern inlet","status":"asserted","evidence":["ch03:p003"]}
+{"id":"fact:iven-betrayed-mara","subject":"entity:iven","predicate":"withheld_and_diverted","object":"Orin's final sketch and instructions","status":"asserted","evidence":["ch03:p006"]}
+{"id":"fact:orin-left-hand","subject":"entity:orin","predicate":"left_hand","object":"bent after press accident","status":"asserted","evidence":["ch04:p006"]}
+{"id":"fact:voice-identity","subject":"entity:orin","predicate":"identity_behind_door","object":"likely but not proven","status":"uncertain","evidence":["ch04:p007","ch04:p008"]}

@@ -12,7 +12,8 @@
     "test": "node --experimental-strip-types --test src/*.test.ts",
     "typecheck": "tsgo --noEmit",
     "smoke": "node --experimental-strip-types src/cli.ts run --suite fixtures/smoke.jsonl --targets fixtures/targets.json --out .results/smoke --trials 3",
-    "smoke:compare": "node --experimental-strip-types src/cli.ts compare --run .results/smoke/run.json --baseline raw-model --candidate writer-harness --gates fixtures/gates.json --out .results/comparison"
+    "smoke:compare": "node --experimental-strip-types src/cli.ts compare --run .results/smoke/run.json --baseline raw-model --candidate writer-harness --gates fixtures/gates.json --out .results/comparison",
+    "corpus:validate": "node --experimental-strip-types src/cli.ts corpus validate --corpus corpora/harbor-light"
   },
   "devDependencies": {
     "@types/node": "catalog:",

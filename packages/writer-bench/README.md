@@ -16,8 +16,15 @@ The package is independent of OpenCode's runtime. A target is any command that a
 - Hard regression gates, including per-suite gates and zero-tolerance safety checks.
 - Importers for WritingBench JSONL and ConStory-Bench prompt exports.
 - A small native smoke suite that demonstrates evidence, intentional exceptions, scoped revision, and causal planning.
+- A validated synthetic pilot corpus, `Harbor Light`, with stable passages, gold story state, planted defects, deliberate exceptions, and twelve native tasks.
 
 The smoke suite verifies the runner. It is not the finished research corpus.
+
+Validate the pilot corpus with:
+
+```sh
+bun run corpus:validate
+```
 
 ## Quick start
 

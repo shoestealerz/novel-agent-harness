@@ -6,15 +6,17 @@ import { readJson, readJsonl, writeJson } from "./io.ts"
 import { renderComparisonReport } from "./report.ts"
 import { runBenchmark } from "./runner.ts"
 import { compareRun } from "./stats.ts"
+import { validateCorpus } from "./corpus.ts"
 
 const [command, subcommand] = process.argv.slice(2)
-const args = parseArgs(process.argv.slice(command === "import" ? 4 : 3))
+const args = parseArgs(process.argv.slice(command === "import" || command === "corpus" ? 4 : 3))
 
 if (command === "run") await run()
 else if (command === "compare") await compare()
 else if (command === "import" && subcommand === "writingbench") await importWriting()
 else if (command === "import" && subcommand === "constory") await importStory()
 else if (command === "attach-metrics") await attachMetrics()
+else if (command === "corpus" && subcommand === "validate") await corpusValidate()
 else if (command === "doctor") doctor()
 else usage(1)
 
@@ -79,6 +81,10 @@ async function attachMetrics() {
   console.log(`Attached ${metrics.length} metric records`)
 }
 
+async function corpusValidate() {
+  console.log(JSON.stringify(await validateCorpus(required(args, "corpus")), null, 2))
+}
+
 function doctor() {
   console.log(JSON.stringify({ node: process.version, protocolVersion: 1, platform: process.platform }, null, 2))
 }
@@ -128,6 +134,7 @@ function usage(code: number): never {
   import writingbench --source benchmark_all.jsonl --out writing.jsonl [--domain "Literature & Art"] [--language en]
   import constory --source prompts.jsonl --out constory.jsonl [--language en]
   attach-metrics --run results/run.json --source official-metrics.jsonl --out results/run-with-metrics.json
+  corpus validate --corpus corpora/harbor-light
   doctor`)
   process.exit(code)
 }
