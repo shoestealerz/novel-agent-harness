@@ -7,14 +7,14 @@ Status: not run.
 | Field | Value |
 | --- | --- |
 | Run ID | pending |
-| Base model | pending |
-| Direct endpoint | pending |
-| OpenCode model | pending |
+| Base model | DeepSeek V4 Pro (`deepseek-v4-pro`) planned |
+| Direct endpoint | `https://api.deepseek.com` planned |
+| OpenCode model | `deepseek/deepseek-v4-pro` planned |
 | OpenCode commit | pending |
 | Temperature | 0.2 planned |
 | Maximum output | 4096 tokens planned |
 | Trials | 3 planned |
-| Judge model | pending |
+| Judge model | none for initial baseline |
 
 ## Results
 
