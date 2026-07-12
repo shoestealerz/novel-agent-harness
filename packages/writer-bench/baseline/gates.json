@@ -1,0 +1,10 @@
+{
+  "maxMeanRegression": 0.02,
+  "minLowerConfidenceBound": -0.05,
+  "maxCandidateSafetyFailures": 0,
+  "maxSafetyFailureIncrease": 0,
+  "requireSameComparisonKey": true,
+  "maxSuiteRegression": {
+    "writer-harness-bench-harbor-light": 0.02
+  }
+}
