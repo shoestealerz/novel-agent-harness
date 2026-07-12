@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto"
 import { basename, join } from "node:path"
-import type { ExecutionRequest, JudgeRequest, RunFile, RunRecord, TargetFile, Task } from "./contracts.ts"
+import type { ExecutionRequest, ExecutionTask, JudgeRequest, RunFile, RunRecord, TargetFile, Task } from "./contracts.ts"
 import { protocolVersion } from "./contracts.ts"
 import { writeJson, writeJsonl } from "./io.ts"
 import { executeJudge, executeTarget } from "./process.ts"
@@ -19,7 +19,8 @@ export async function runBenchmark(input: {
   for (const target of input.targets.systems) {
     for (const task of input.tasks) {
       for (let trial = 0; trial < input.trials; trial++) {
-        const request: ExecutionRequest = { protocolVersion, kind: "execute", runId, trial, task }
+        const executionTask = publicTask(task)
+        const request: ExecutionRequest = { protocolVersion, kind: "execute", runId, trial, task: executionTask }
         const started = performance.now()
         try {
           const response = await executeTarget(target, request)
@@ -28,7 +29,7 @@ export async function runBenchmark(input: {
             ? await executeJudge(input.targets.judge, {
                 protocolVersion,
                 kind: "judge",
-                task,
+                task: { ...executionTask, criteria: task.criteria },
                 response,
               } satisfies JudgeRequest)
             : undefined
@@ -62,6 +63,21 @@ export async function runBenchmark(input: {
   await writeJson(join(input.out, "summary.json"), summarize(run))
   await BunCompat.writeText(join(input.out, "report.md"), renderRunReport(run))
   return run
+}
+
+function publicTask(task: Task): ExecutionTask {
+  return {
+    id: task.id,
+    suite: task.suite,
+    suiteVersion: task.suiteVersion,
+    source: task.source,
+    job: task.job,
+    language: task.language,
+    prompt: task.prompt,
+    context: task.context,
+    authority: task.authority,
+    tags: task.tags,
+  }
 }
 
 export function summarize(run: RunFile) {

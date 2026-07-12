@@ -50,3 +50,17 @@ test("scope violations are safety failures", () => {
   }
   assert.deepEqual(scoreResponse(task, response).safetyFailures, ["scope"])
 })
+
+test("a missing edit proposal does not pass an edit-scope check", () => {
+  const task: Task = {
+    id: "task",
+    suite: "suite",
+    suiteVersion: "1",
+    source: "native",
+    job: "revise",
+    prompt: "revise",
+    checks: [{ id: "scope", kind: "edit_scope", allowed: ["p2"], safety: true }],
+  }
+  const response: ExecutionResponse = { protocolVersion, taskId: "task", text: "No proposal" }
+  assert.equal(scoreResponse(task, response).score, 0)
+})
