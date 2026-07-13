@@ -1,0 +1,26 @@
+{
+  "systems": [
+    {
+      "id": "sealed-writer-retrieval-v1",
+      "command": ["{node}", "--experimental-strip-types", "src/targets/writer-retrieval.ts"],
+      "env": {
+        "WRITER_BENCH_RETRIEVAL_STRATEGY": "hierarchical-temporal",
+        "WRITER_BENCH_MANUSCRIPT_DIR": "corpora/glass-orchard/manuscript"
+      },
+      "baseModel": "deepseek-v4-pro",
+      "comparisonKey": "deepseek-v4-pro|temperature=0.2|max=4096|writer-contract=v0.1|glass-orchard=1.0|retriever=e4684b8a2"
+    },
+    {
+      "id": "sealed-writer-retrieval-v2",
+      "command": ["{node}", "--experimental-strip-types", "src/targets/writer-retrieval.ts"],
+      "env": {
+        "WRITER_BENCH_RETRIEVAL_STRATEGY": "hybrid-temporal",
+        "WRITER_BENCH_EMBEDDING_PROVIDER": "local",
+        "WRITER_BENCH_EMBEDDING_MODEL": "onnx-community/all-MiniLM-L6-v2-ONNX",
+        "WRITER_BENCH_MANUSCRIPT_DIR": "corpora/glass-orchard/manuscript"
+      },
+      "baseModel": "deepseek-v4-pro",
+      "comparisonKey": "deepseek-v4-pro|temperature=0.2|max=4096|writer-contract=v0.1|glass-orchard=1.0|retriever=e4684b8a2"
+    }
+  ]
+}

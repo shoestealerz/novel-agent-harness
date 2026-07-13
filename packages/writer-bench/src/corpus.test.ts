@@ -19,3 +19,12 @@ test("validates the preregistered Quiet Meridian held-out corpus", async () => {
   assert.equal(result.tasks, 12)
   assert.equal(result.jobs.revise, 2)
 })
+
+test("validates the preregistered Glass Orchard sealed corpus", async () => {
+  const result = await validateCorpus("corpora/glass-orchard")
+  assert.equal(result.corpus, "glass-orchard")
+  assert.ok(result.wordCount >= 5000)
+  assert.equal(result.passages, 56)
+  assert.equal(result.tasks, 12)
+  assert.equal(result.jobs.revise, 1)
+})

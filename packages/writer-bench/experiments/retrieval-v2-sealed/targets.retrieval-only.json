@@ -1,0 +1,36 @@
+{
+  "systems": [
+    {
+      "id": "sealed-retrieval-v1",
+      "command": ["{node}", "--experimental-strip-types", "src/targets/retrieval-only.ts"],
+      "env": {
+        "WRITER_BENCH_RETRIEVAL_STRATEGY": "hierarchical-temporal",
+        "WRITER_BENCH_MANUSCRIPT_DIR": "corpora/glass-orchard/manuscript"
+      },
+      "metadata": { "mode": "retrieval-only" },
+      "comparisonKey": "glass-orchard-1.0|retrieval-sealed|topk=task|retriever=e4684b8a2"
+    },
+    {
+      "id": "sealed-retrieval-v2-coverage",
+      "command": ["{node}", "--experimental-strip-types", "src/targets/retrieval-only.ts"],
+      "env": {
+        "WRITER_BENCH_RETRIEVAL_STRATEGY": "coverage-temporal",
+        "WRITER_BENCH_MANUSCRIPT_DIR": "corpora/glass-orchard/manuscript"
+      },
+      "metadata": { "mode": "retrieval-only" },
+      "comparisonKey": "glass-orchard-1.0|retrieval-sealed|topk=task|retriever=e4684b8a2"
+    },
+    {
+      "id": "sealed-retrieval-v2",
+      "command": ["{node}", "--experimental-strip-types", "src/targets/retrieval-only.ts"],
+      "env": {
+        "WRITER_BENCH_RETRIEVAL_STRATEGY": "hybrid-temporal",
+        "WRITER_BENCH_EMBEDDING_PROVIDER": "local",
+        "WRITER_BENCH_EMBEDDING_MODEL": "onnx-community/all-MiniLM-L6-v2-ONNX",
+        "WRITER_BENCH_MANUSCRIPT_DIR": "corpora/glass-orchard/manuscript"
+      },
+      "metadata": { "mode": "retrieval-only" },
+      "comparisonKey": "glass-orchard-1.0|retrieval-sealed|topk=task|retriever=e4684b8a2"
+    }
+  ]
+}

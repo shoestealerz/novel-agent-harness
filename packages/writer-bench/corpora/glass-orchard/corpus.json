@@ -1,0 +1,21 @@
+{
+  "id": "glass-orchard",
+  "version": "1.0.0",
+  "title": "The Glass Orchard",
+  "status": "sealed-preregistered",
+  "language": "en",
+  "license": "CC0-1.0",
+  "provenance": "Synthetic fiction written specifically as a one-shot sealed retrieval-v2 validation corpus. No user manuscript or copyrighted novel was used.",
+  "manuscript": [
+    "manuscript/ch01.md",
+    "manuscript/ch02.md",
+    "manuscript/ch03.md",
+    "manuscript/ch04.md",
+    "manuscript/ch05.md",
+    "manuscript/ch06.md",
+    "manuscript/ch07.md"
+  ],
+  "gold": [],
+  "tasks": ["tasks/retrieval.jsonl"],
+  "minimumWords": 5000
+}
