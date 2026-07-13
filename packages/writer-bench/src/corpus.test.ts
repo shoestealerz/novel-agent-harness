@@ -10,3 +10,12 @@ test("validates the Harbor Light pilot, context, and retrieval corpus", async ()
   assert.equal(result.tasks, 26)
   assert.equal(result.jobs.diagnose, 7)
 })
+
+test("validates the preregistered Quiet Meridian held-out corpus", async () => {
+  const result = await validateCorpus("corpora/quiet-meridian")
+  assert.equal(result.corpus, "quiet-meridian")
+  assert.ok(result.wordCount >= 5000)
+  assert.equal(result.passages, 64)
+  assert.equal(result.tasks, 12)
+  assert.equal(result.jobs.revise, 2)
+})
