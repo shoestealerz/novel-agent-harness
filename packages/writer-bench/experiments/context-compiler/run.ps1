@@ -1,6 +1,8 @@
 param(
   [ValidateRange(1, 5)]
   [int]$Trials = 1,
+  [ValidateRange(1, 5)]
+  [int]$Concurrency = 1,
   [switch]$ContextOnly
 )
 
@@ -34,7 +36,7 @@ $MaximumGates = if ($ContextOnly) { "experiments/context-compiler/gates-context-
 
 Push-Location $PackageRoot
 try {
-  & $Bun src/cli.ts run @Suites --targets experiments/context-compiler/targets.json --out $RunDirectory --trials $Trials
+  & $Bun src/cli.ts run @Suites --targets experiments/context-compiler/targets.json --out $RunDirectory --trials $Trials --concurrency $Concurrency
   if ($LASTEXITCODE -ne 0) { throw "One or more benchmark executions failed. Review $RunDirectory." }
 
   & $Bun src/cli.ts compare --run (Join-Path $RunDirectory "run.json") --baseline writer-context-supplied --candidate writer-context-compiled --gates $SuppliedGates --out "$RunDirectory-vs-supplied"

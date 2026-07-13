@@ -170,6 +170,7 @@ export type RunFile = {
   targets: Target[]
   judge?: Target
   trials: number
+  concurrency?: number
   records: RunRecord[]
   resumedFromRunId?: string
   metrics?: MetricRecord[]

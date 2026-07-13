@@ -13,6 +13,7 @@ export function renderRunReport(run: RunFile) {
 - Created: ${run.createdAt}
 - Suites: ${run.suiteFiles.join(", ")}
 - Trials: ${run.trials}
+- Concurrency: ${run.concurrency ?? 1}
 
 | Target | Completed | Mean score | Safety failures | Tokens | Cost |
 | --- | ---: | ---: | ---: | ---: | ---: |

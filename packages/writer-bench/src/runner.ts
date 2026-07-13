@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto"
 import { basename, join } from "node:path"
-import type { ExecutionRequest, ExecutionTask, JudgeRequest, RunFile, RunRecord, TargetFile, Task } from "./contracts.ts"
+import type { ExecutionRequest, ExecutionTask, JudgeRequest, RunFile, RunRecord, Target, TargetFile, Task } from "./contracts.ts"
 import { protocolVersion } from "./contracts.ts"
 import { writeJson, writeJsonl } from "./io.ts"
 import { executeJudge, executeTarget } from "./process.ts"
@@ -12,49 +12,16 @@ export async function runBenchmark(input: {
   suiteFiles: string[]
   targets: TargetFile
   trials: number
+  concurrency?: number
   out: string
   resume?: RunFile
 }) {
   validateResume(input)
   const runId = `${new Date().toISOString().replaceAll(/[:.]/g, "-")}-${randomUUID().slice(0, 8)}`
-  const records: RunRecord[] = []
-  for (const target of input.targets.systems) {
-    for (const task of input.tasks) {
-      for (let trial = 0; trial < input.trials; trial++) {
-        const previous = input.resume?.records.find((record) => record.targetId === target.id && record.task.id === task.id && record.trial === trial)
-        if (previous?.response && !previous.error) {
-          records.push({ task, targetId: target.id, trial, response: previous.response, ...scoreResponse(task, previous.response) })
-          continue
-        }
-        const executionTask = publicTask(task)
-        const request: ExecutionRequest = { protocolVersion, kind: "execute", runId, trial, task: executionTask }
-        const started = performance.now()
-        try {
-          const response = await executeTarget(target, request)
-          response.usage = { ...response.usage, latencyMs: response.usage?.latencyMs ?? performance.now() - started }
-          const judgment = input.targets.judge && task.criteria?.length
-            ? await executeJudge(input.targets.judge, {
-                protocolVersion,
-                kind: "judge",
-                task: { ...executionTask, criteria: task.criteria },
-                response,
-              } satisfies JudgeRequest)
-            : undefined
-          records.push({ task, targetId: target.id, trial, response, ...scoreResponse(task, response, judgment) })
-        } catch (error) {
-          records.push({
-            task,
-            targetId: target.id,
-            trial,
-            components: [],
-            score: null,
-            safetyFailures: [],
-            error: error instanceof Error ? error.message : String(error),
-          })
-        }
-      }
-    }
-  }
+  const cells = input.targets.systems.flatMap((target) => input.tasks.flatMap((task) =>
+    Array.from({ length: input.trials }, (_, trial) => ({ target, task, trial })),
+  ))
+  const records = await mapConcurrent(cells, input.concurrency ?? 1, (cell) => executeCell(input, runId, cell))
   const run: RunFile = {
     formatVersion: 1,
     runId,
@@ -63,6 +30,7 @@ export async function runBenchmark(input: {
     targets: input.targets.systems.map((target) => ({ ...target, env: undefined })),
     judge: input.targets.judge ? { ...input.targets.judge, env: undefined } : undefined,
     trials: input.trials,
+    concurrency: input.concurrency ?? 1,
     records,
     resumedFromRunId: input.resume?.runId,
     metrics: nativeMetrics(records),
@@ -74,12 +42,68 @@ export async function runBenchmark(input: {
   return run
 }
 
+async function executeCell(
+  input: { targets: TargetFile; resume?: RunFile },
+  runId: string,
+  cell: { target: Target; task: Task; trial: number },
+) {
+  const previous = input.resume?.records.find((record) =>
+    record.targetId === cell.target.id && record.task.id === cell.task.id && record.trial === cell.trial)
+  if (previous?.response && !previous.error) {
+    return { task: cell.task, targetId: cell.target.id, trial: cell.trial, response: previous.response, ...scoreResponse(cell.task, previous.response) }
+  }
+  const executionTask = publicTask(cell.task)
+  const request: ExecutionRequest = { protocolVersion, kind: "execute", runId, trial: cell.trial, task: executionTask }
+  const started = performance.now()
+  try {
+    const response = await executeTarget(cell.target, request)
+    response.usage = { ...response.usage, latencyMs: response.usage?.latencyMs ?? performance.now() - started }
+    const judgment = input.targets.judge && cell.task.criteria?.length
+      ? await executeJudge(input.targets.judge, {
+          protocolVersion,
+          kind: "judge",
+          task: { ...executionTask, criteria: cell.task.criteria },
+          response,
+        } satisfies JudgeRequest)
+      : undefined
+    return { task: cell.task, targetId: cell.target.id, trial: cell.trial, response, ...scoreResponse(cell.task, response, judgment) }
+  } catch (error) {
+    return {
+      task: cell.task,
+      targetId: cell.target.id,
+      trial: cell.trial,
+      components: [],
+      score: null,
+      safetyFailures: [],
+      error: error instanceof Error ? error.message : String(error),
+    }
+  }
+}
+
+async function mapConcurrent<T, R>(values: T[], requested: number, execute: (value: T) => Promise<R>) {
+  const queue = values.map((value, index) => ({ value, index }))
+  const workers = Math.min(Math.max(1, Math.floor(requested)), Math.max(queue.length, 1))
+  const lanes = await Promise.all(Array.from({ length: workers }, async () => {
+    const output: { index: number; result: R }[] = []
+    while (queue.length) {
+      const item = queue.shift()!
+      output.push({ index: item.index, result: await execute(item.value) })
+    }
+    return output
+  }))
+  return lanes.flat().sort((left, right) => left.index - right.index).map((item) => item.result)
+}
+
 function validateResume(input: {
   tasks: Task[]
   targets: TargetFile
   trials: number
+  concurrency?: number
   resume?: RunFile
 }) {
+  if (input.concurrency !== undefined && (!Number.isInteger(input.concurrency) || input.concurrency < 1)) {
+    throw new Error("concurrency must be a positive integer")
+  }
   if (!input.resume) return
   if (input.targets.judge || input.resume.judge) throw new Error("resume is not supported for judged runs")
   if (input.resume.trials !== input.trials) throw new Error("resume trials must match the requested trials")

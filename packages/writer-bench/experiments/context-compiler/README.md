@@ -21,7 +21,7 @@ Run the seven context stress tasks first:
 Run the context suite together with the 12-task Writer Contract regression suite before graduation:
 
 ```powershell
-./experiments/context-compiler/run.ps1 -Trials 3
+./experiments/context-compiler/run.ps1 -Trials 3 -Concurrency 3
 ```
 
 Passing this experiment means the compiled packet improves missing-context recall over supplied context, retains the Writer Contract regression score and zero-safety target, and matches maximum-context reliability with materially less context. It does not establish automated retrieval quality or literary preference.
