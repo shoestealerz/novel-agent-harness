@@ -18,6 +18,15 @@ export type ContextSpec = {
   throughRef?: string
 }
 
+export type RetrievalSpec = {
+  topK: number
+  query?: string
+  focusRefs?: string[]
+  preservationRefs?: string[]
+  preservationLiterals?: { ref: string; text: string }[]
+  throughRef?: string
+}
+
 export type CheckMetric = "context_recall" | "grounding" | "unsupported_claim_avoidance"
 
 export type Check = {
@@ -54,6 +63,7 @@ export type Task = {
   prompt: string
   context?: ContextItem[]
   contextSpec?: ContextSpec
+  retrievalSpec?: RetrievalSpec
   authority?: "read" | "propose"
   checks?: Check[]
   criteria?: Criterion[]

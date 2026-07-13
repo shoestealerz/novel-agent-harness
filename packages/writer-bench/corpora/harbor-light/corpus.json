@@ -1,6 +1,6 @@
 {
   "id": "harbor-light",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "title": "Harbor Light",
   "status": "pilot",
   "language": "en",
@@ -20,6 +20,6 @@
     "gold/intentions.jsonl",
     "gold/errors.jsonl"
   ],
-  "tasks": ["tasks/pilot.jsonl", "tasks/context.jsonl"],
+  "tasks": ["tasks/pilot.jsonl", "tasks/context.jsonl", "tasks/retrieval.jsonl"],
   "minimumWords": 2500
 }

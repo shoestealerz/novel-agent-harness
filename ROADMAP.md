@@ -48,7 +48,7 @@ Implemented Writer Harness Bench with versioned tasks, command targets, determin
 
 ### Phase 4: Pilot benchmark corpus
 
-Created `Harbor Light`, a synthetic CC0 pilot containing 2,527 words, 32 stable passages, 41 gold records, 12 initial tasks, one planted defect, and deliberate ambiguity/motif exceptions. Phase 7 experiment 2 added seven context stress tasks, bringing the corpus to 19 tasks.
+Created `Harbor Light`, a synthetic CC0 pilot containing 2,527 words, 32 stable passages, 41 gold records, 12 initial tasks, one planted defect, and deliberate ambiguity/motif exceptions. Phase 7 experiments 2 and 3 added seven context and seven retrieval stress tasks, bringing the corpus to 26 tasks.
 
 ### Phase 5: Real evaluation targets
 
@@ -109,7 +109,9 @@ Writer Task Contract v0.1 graduated on Harbor Light 0.2.0 after a three-trial, 1
 
 Completed experiment 2: task-aware context compilation versus task-supplied and maximum available context under Writer Task Contract v0.1. Across 63 final scored cells, compiled context scored **0.9888 with zero safety failures**, compared with **0.7032 and six safety failures** for supplied context and **0.8704 and 14 safety failures** for maximum context. It used 209 context words on average versus 2,527 for maximum context, improved grounding from 0.7458 to 1.0000, and passed every gate. See `packages/writer-bench/experiments/context-compiler/RESULTS.md`.
 
-Current experiment 3: retrieval into the graduated context compiler. Compare lexical, embedding, hierarchical, and hierarchical-plus-temporal retrieval while measuring retrieval recall/precision independently from downstream grounding, safety, tokens, latency, and task score.
+Completed development experiment 3: retrieval into the graduated context compiler. On seven Harbor Light development tasks, hierarchical-temporal retrieval achieved **0.9524 retrieval recall, 0.7024 precision, and 1.0000 temporal safety**, versus 0.6905, 0.5714, and 0.7143 for lexical retrieval. Its DeepSeek downstream score was **0.9345 with three safety failures**, versus 0.8016 with five failures for lexical retrieval, while using 31% fewer total tokens. Both checked-in comparisons passed. Harbor Light was inspected during development, so a sealed held-out corpus is required before graduation or generalization claims. Embedding retrieval is implemented as a provider seam but remains unrun because DeepSeek currently exposes no embedding model. See `packages/writer-bench/experiments/retrieval/RESULTS.md`.
+
+Current experiment 4: compare free-form prose with immutable structured edit proposals, retaining the graduated Writer Contract, context compiler, and hierarchical-temporal retriever as fixed controls. In parallel, create a sealed held-out retrieval manuscript before treating experiment 3 as graduated.
 
 ## Later phases
 
@@ -140,3 +142,4 @@ Build the private UI only after the harness protocol stabilizes: agent chat, man
 - PR #9: Writer Task Contract v0 experiment; merged.
 - PR #10: illustrated Writer Task Contract experiment explainer; merged.
 - PR #11: corrected Writer Task Contract v0.1 and official three-trial result; merged.
+- PR #12: task-aware context compiler and official three-trial result; merged.

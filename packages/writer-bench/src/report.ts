@@ -7,6 +7,9 @@ export function renderRunReport(run: RunFile) {
     `| ${summary.targetId} | ${summary.completed}/${summary.completed + summary.failed} | ${format(summary.meanScore)} | ${summary.safetyFailures} | ${summary.inputTokens + summary.outputTokens} | $${summary.costUsd.toFixed(4)} |`,
   )
   const failures = run.records.filter((record) => record.error)
+  const retrieval = run.metrics?.some((metric) => metric.metric.startsWith("retrieval_"))
+    ? `\n## Retrieval metrics\n\n| Target | Recall | Precision | Temporal safety | Mean items | Retrieval latency |\n| --- | ---: | ---: | ---: | ---: | ---: |\n${run.targets.map((target) => `| ${target.id} | ${format(metric(run, target.id, "retrieval_recall"))} | ${format(metric(run, target.id, "retrieval_precision"))} | ${format(metric(run, target.id, "retrieval_temporal_safety"))} | ${format(metric(run, target.id, "retrieval_items"))} | ${format(metric(run, target.id, "retrieval_latency_ms"))} ms |`).join("\n")}\n`
+    : ""
   return `# Writer benchmark run
 
 - Run: \`${run.runId}\`
@@ -24,11 +27,17 @@ ${rows.join("\n")}
 | Target | Context recall | Grounding | Unsupported-claim avoidance | Mean context items | Mean context words | Mean latency |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
 ${summaries.map((summary) => `| ${summary.targetId} | ${format(summary.metrics.context_recall)} | ${format(summary.metrics.grounding)} | ${format(summary.metrics.unsupported_claim_avoidance)} | ${format(summary.contextItems)} | ${format(summary.contextWords)} | ${format(summary.latencyMs / Math.max(summary.completed, 1))} ms |`).join("\n")}
+${retrieval}
 
 ## Execution failures
 
 ${failures.length ? failures.map((record) => `- ${record.targetId} / ${record.task.id} / trial ${record.trial}: ${record.error}`).join("\n") : "None."}
 `
+}
+
+function metric(run: RunFile, targetId: string, name: string) {
+  const values = run.metrics?.filter((item) => item.targetId === targetId && item.metric === name).map((item) => item.value) ?? []
+  return values.length ? values.reduce((total, value) => total + value, 0) / values.length : undefined
 }
 
 export function renderComparisonReport(comparison: ReturnType<typeof import("./stats.ts").compareRun>) {

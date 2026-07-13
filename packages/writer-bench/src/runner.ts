@@ -52,7 +52,7 @@ async function executeCell(
     record.targetId === cell.target.id && record.task.id === cell.task.id && record.trial === cell.trial)
   const rerun = input.rerunCells?.includes(`${cell.target.id}:${cell.task.id}`)
   if (previous?.response && !previous.error && !rerun) {
-    return { task: cell.task, targetId: cell.target.id, trial: cell.trial, response: previous.response, ...scoreResponse(cell.task, previous.response) }
+    return { task: cell.task, targetId: cell.target.id, trial: cell.trial, response: previous.response, ...evaluateResponse(cell.target, cell.task, previous.response) }
   }
   const executionTask = publicTask(cell.task)
   const request: ExecutionRequest = { protocolVersion, kind: "execute", runId, trial: cell.trial, task: executionTask }
@@ -68,7 +68,7 @@ async function executeCell(
           response,
         } satisfies JudgeRequest)
       : undefined
-    return { task: cell.task, targetId: cell.target.id, trial: cell.trial, response, ...scoreResponse(cell.task, response, judgment) }
+    return { task: cell.task, targetId: cell.target.id, trial: cell.trial, response, ...evaluateResponse(cell.target, cell.task, response, judgment) }
   } catch (error) {
     return {
       task: cell.task,
@@ -140,6 +140,7 @@ function publicTask(task: Task): ExecutionTask {
     prompt: task.prompt,
     context: task.context,
     contextSpec: task.contextSpec,
+    retrievalSpec: task.retrievalSpec,
     authority: task.authority,
     tags: task.tags,
   }
@@ -211,7 +212,41 @@ function nativeMetrics(records: RunRecord[]) {
       ...(latency.length ? [{ targetId, suite, metric: "latency_ms", value: average(latency), direction: "lower" as const, source: "writer-bench:provider-usage" }] : []),
     ]
   })
-  return [...checks, ...operational]
+  return [...checks, ...operational, ...retrievalMetrics(records)]
+}
+
+function evaluateResponse(target: Target, task: Task, response: RunRecord["response"], judgment?: Parameters<typeof scoreResponse>[2]) {
+  if (target.metadata?.mode === "retrieval-only") return { components: [], score: null, safetyFailures: [] }
+  return scoreResponse(task, response!, judgment)
+}
+
+function retrievalMetrics(records: RunRecord[]) {
+  const values = records.flatMap((record) => {
+    const gold = record.task.metadata?.retrievalGold
+    const trace = record.response?.metadata?.retrievalTrace
+    if (!gold || typeof gold !== "object" || Array.isArray(gold) || !trace || typeof trace !== "object" || Array.isArray(trace)) return []
+    const required = stringArray((gold as Record<string, unknown>).requiredRefs)
+    const relevant = stringArray((gold as Record<string, unknown>).relevantRefs)
+    const selected = stringArray((trace as Record<string, unknown>).selectedRefs)
+    const through = record.task.retrievalSpec?.throughRef
+    const recall = required.length ? required.filter((ref) => selected.includes(ref)).length / required.length : 1
+    const precision = selected.length ? selected.filter((ref) => relevant.includes(ref)).length / selected.length : 0
+    const temporal = through ? selected.filter((ref) => referenceOrder(ref) > referenceOrder(through)).length === 0 ? 1 : 0 : 1
+    const latency = (trace as Record<string, unknown>).latencyMs
+    return [{ targetId: record.targetId, suite: record.task.suite, recall, precision, temporal, selected: selected.length, latency }]
+  })
+  return unique(values.map((value) => `${value.targetId}\u0000${value.suite}`)).flatMap((key) => {
+    const [targetId, suite] = key.split("\u0000") as [string, string]
+    const matching = values.filter((value) => value.targetId === targetId && value.suite === suite)
+    const latency = matching.flatMap((value) => typeof value.latency === "number" ? [value.latency] : [])
+    return [
+      { targetId, suite, metric: "retrieval_recall", value: average(matching.map((value) => value.recall)), direction: "higher" as const, source: "writer-bench:hidden-relevance" },
+      { targetId, suite, metric: "retrieval_precision", value: average(matching.map((value) => value.precision)), direction: "higher" as const, source: "writer-bench:hidden-relevance" },
+      { targetId, suite, metric: "retrieval_temporal_safety", value: average(matching.map((value) => value.temporal)), direction: "higher" as const, source: "writer-bench:public-boundary" },
+      { targetId, suite, metric: "retrieval_items", value: average(matching.map((value) => value.selected)), direction: "lower" as const, source: "writer-bench:retrieval-trace" },
+      ...(latency.length ? [{ targetId, suite, metric: "retrieval_latency_ms", value: average(latency), direction: "lower" as const, source: "writer-bench:retrieval-trace" }] : []),
+    ]
+  })
 }
 
 function metadataNumber(record: RunRecord, key: string) {
@@ -223,6 +258,15 @@ function metadataNumber(record: RunRecord, key: string) {
 
 function average(values: number[]) {
   return values.length ? values.reduce((total, value) => total + value, 0) / values.length : 0
+}
+
+function stringArray(value: unknown) {
+  return Array.isArray(value) ? value.filter((item): item is string => typeof item === "string") : []
+}
+
+function referenceOrder(ref: string) {
+  const match = /^ch(\d+):p(\d+)$/.exec(ref)
+  return match ? Number(match[1]) * 1_000_000 + Number(match[2]) : Number.POSITIVE_INFINITY
 }
 
 function unique(values: string[]) {

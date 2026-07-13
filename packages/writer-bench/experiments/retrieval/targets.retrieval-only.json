@@ -1,0 +1,34 @@
+{
+  "systems": [
+    {
+      "id": "retrieval-lexical",
+      "command": ["{node}", "--experimental-strip-types", "src/targets/retrieval-only.ts"],
+      "env": {
+        "WRITER_BENCH_RETRIEVAL_STRATEGY": "lexical",
+        "WRITER_BENCH_MANUSCRIPT_DIR": "corpora/harbor-light/manuscript"
+      },
+      "metadata": { "mode": "retrieval-only" },
+      "comparisonKey": "harbor-light-0.4|retrieval-only|topk=task"
+    },
+    {
+      "id": "retrieval-hierarchical",
+      "command": ["{node}", "--experimental-strip-types", "src/targets/retrieval-only.ts"],
+      "env": {
+        "WRITER_BENCH_RETRIEVAL_STRATEGY": "hierarchical",
+        "WRITER_BENCH_MANUSCRIPT_DIR": "corpora/harbor-light/manuscript"
+      },
+      "metadata": { "mode": "retrieval-only" },
+      "comparisonKey": "harbor-light-0.4|retrieval-only|topk=task"
+    },
+    {
+      "id": "retrieval-hierarchical-temporal",
+      "command": ["{node}", "--experimental-strip-types", "src/targets/retrieval-only.ts"],
+      "env": {
+        "WRITER_BENCH_RETRIEVAL_STRATEGY": "hierarchical-temporal",
+        "WRITER_BENCH_MANUSCRIPT_DIR": "corpora/harbor-light/manuscript"
+      },
+      "metadata": { "mode": "retrieval-only" },
+      "comparisonKey": "harbor-light-0.4|retrieval-only|topk=task"
+    }
+  ]
+}
