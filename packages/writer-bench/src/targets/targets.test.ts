@@ -2,7 +2,7 @@ import assert from "node:assert/strict"
 import test from "node:test"
 import type { ExecutionTask } from "../contracts.ts"
 import { parseOpenCodeEvents } from "./opencode-events.ts"
-import { citedEvidence, renderTask } from "./shared.ts"
+import { citedEvidence, parseJsonText, renderTask } from "./shared.ts"
 
 const task: ExecutionTask = {
   id: "task",
@@ -31,4 +31,9 @@ test("parses completed OpenCode JSON events", () => {
     text: "Answer [ch01:p001]",
     usage: { inputTokens: 10, outputTokens: 4, costUsd: 0.01 },
   })
+})
+
+test("extracts one JSON object from fenced or trailing model text", () => {
+  assert.deepEqual(parseJsonText('```json\n{"answer":"brace } in a string"}\n```'), { answer: "brace } in a string" })
+  assert.deepEqual(parseJsonText('Result:\n{"answer":"ok"}\nSchema notes follow.'), { answer: "ok" })
 })

@@ -65,7 +65,7 @@ Run the corrected contract and Harbor Light 0.2.0 benchmark with:
 .\baseline\run-deepseek.ps1 -Experiment writer-contract-v01 -Trials 1
 ```
 
-v0.1 gives each structured finding a human-readable statement, scores finding meaning without requiring the model to guess hidden gold identifiers, checks exact preservation literals in both the answer and structured receipt, measures revision length on the proposed replacement text, and accepts common numbered-option headings. Any task/schema correction creates a new benchmark version, so all three targets rerun on Harbor Light 0.2.0.
+v0.1 gives each structured finding a human-readable statement, scores finding meaning without requiring the model to guess hidden gold identifiers, checks exact preservation literals in both the answer and structured receipt, measures revision length on the proposed replacement text, and accepts common numbered-option headings. It requests the provider's JSON-output mode and retains deterministic extraction for fenced or trailing text. Any task/schema correction creates a new benchmark version, so all three targets rerun on Harbor Light 0.2.0.
 
 ## Configure another provider
 

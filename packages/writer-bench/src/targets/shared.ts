@@ -36,5 +36,31 @@ export function requiredEnvironment(name: string) {
 
 export function parseJsonText(value: string) {
   const cleaned = value.trim().replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "")
-  return requireObject(JSON.parse(cleaned), "model JSON response")
+  try {
+    return requireObject(JSON.parse(cleaned), "model JSON response")
+  } catch (error) {
+    const object = firstJsonObject(cleaned)
+    if (object && object !== cleaned) return requireObject(JSON.parse(object), "model JSON response")
+    throw error
+  }
+}
+
+function firstJsonObject(value: string) {
+  const start = value.indexOf("{")
+  if (start < 0) return
+  let depth = 0
+  let quoted = false
+  let escaped = false
+  for (let index = start; index < value.length; index++) {
+    const character = value[index]!
+    if (quoted) {
+      if (escaped) escaped = false
+      else if (character === "\\") escaped = true
+      else if (character === '"') quoted = false
+      continue
+    }
+    if (character === '"') quoted = true
+    else if (character === "{") depth++
+    else if (character === "}" && --depth === 0) return value.slice(start, index + 1)
+  }
 }

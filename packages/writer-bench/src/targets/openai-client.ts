@@ -4,6 +4,7 @@ import { requiredEnvironment } from "./shared.ts"
 export async function completion(
   messages: Array<{ role: string; content: string }>,
   model = requiredEnvironment("WRITER_BENCH_MODEL"),
+  options: { json?: boolean } = {},
 ) {
   const base = (process.env.WRITER_BENCH_BASE_URL ?? "https://api.openai.com/v1").replace(/\/$/, "")
   const headers = new Headers({ "content-type": "application/json" })
@@ -18,14 +19,16 @@ export async function completion(
       temperature: Number(process.env.WRITER_BENCH_TEMPERATURE ?? "0.2"),
       max_tokens: Number(process.env.WRITER_BENCH_MAX_TOKENS ?? "4096"),
       seed: process.env.WRITER_BENCH_SEED ? Number(process.env.WRITER_BENCH_SEED) : undefined,
+      response_format: options.json ? { type: "json_object" } : undefined,
     }),
   })
   if (!response.ok) throw new Error(`model endpoint returned ${response.status}: ${await response.text()}`)
   const body = requireObject(await response.json(), "chat completion")
   const choices = Array.isArray(body.choices) ? body.choices : []
   const first = requireObject(choices[0], "chat completion choice")
+  if (options.json && first.finish_reason === "length") throw new Error("JSON completion reached the output-token limit")
   const message = requireObject(first.message, "chat completion message")
-  if (typeof message.content !== "string") throw new Error("chat completion did not return text content")
+  if (typeof message.content !== "string" || !message.content.trim()) throw new Error("chat completion did not return text content")
   const usage = body.usage ? requireObject(body.usage, "chat completion usage") : {}
   return {
     text: message.content,
