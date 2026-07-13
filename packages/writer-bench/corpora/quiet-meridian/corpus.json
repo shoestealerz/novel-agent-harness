@@ -1,0 +1,22 @@
+{
+  "id": "quiet-meridian",
+  "version": "1.0.0",
+  "title": "The Quiet Meridian",
+  "status": "heldout-preregistered",
+  "language": "en",
+  "license": "CC0-1.0",
+  "provenance": "Synthetic fiction written specifically as a frozen-retriever held-out corpus. No user manuscript or copyrighted novel was used.",
+  "manuscript": [
+    "manuscript/ch01.md",
+    "manuscript/ch02.md",
+    "manuscript/ch03.md",
+    "manuscript/ch04.md",
+    "manuscript/ch05.md",
+    "manuscript/ch06.md",
+    "manuscript/ch07.md",
+    "manuscript/ch08.md"
+  ],
+  "gold": [],
+  "tasks": ["tasks/retrieval.jsonl"],
+  "minimumWords": 5000
+}

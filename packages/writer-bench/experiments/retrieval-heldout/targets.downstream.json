@@ -1,0 +1,24 @@
+{
+  "systems": [
+    {
+      "id": "heldout-writer-retrieval-lexical",
+      "command": ["{node}", "--experimental-strip-types", "src/targets/writer-retrieval.ts"],
+      "env": {
+        "WRITER_BENCH_RETRIEVAL_STRATEGY": "lexical",
+        "WRITER_BENCH_MANUSCRIPT_DIR": "corpora/quiet-meridian/manuscript"
+      },
+      "baseModel": "deepseek-v4-pro",
+      "comparisonKey": "deepseek-v4-pro|temperature=0.2|max=4096|writer-contract=v0.1|quiet-meridian=1.0|retriever=394884ec7"
+    },
+    {
+      "id": "heldout-writer-retrieval-hierarchical-temporal",
+      "command": ["{node}", "--experimental-strip-types", "src/targets/writer-retrieval.ts"],
+      "env": {
+        "WRITER_BENCH_RETRIEVAL_STRATEGY": "hierarchical-temporal",
+        "WRITER_BENCH_MANUSCRIPT_DIR": "corpora/quiet-meridian/manuscript"
+      },
+      "baseModel": "deepseek-v4-pro",
+      "comparisonKey": "deepseek-v4-pro|temperature=0.2|max=4096|writer-contract=v0.1|quiet-meridian=1.0|retriever=394884ec7"
+    }
+  ]
+}
