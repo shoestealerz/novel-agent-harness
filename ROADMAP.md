@@ -84,7 +84,7 @@ Exit criteria:
 4. Manual review confirms that intentional exceptions are scored correctly.
 5. Variance and cost are understood well enough to set production thresholds.
 
-Current blocker: this development environment has no configured model-provider variables, OpenCode credential store, or installed OpenCode executable. See `packages/writer-bench/baseline/README.md`.
+Current status: DeepSeek V4 Pro and OpenCode 1.17.18 are configured. A one-trial smoke baseline completed 24/24 executions and exposed a significant stock-OpenCode regression. The full three-trial run, independent review, and production gate calibration remain before Phase 6 exits. See `packages/writer-bench/baseline/RESULTS.md`.
 
 ## Next phases
 
@@ -122,3 +122,5 @@ Build the private UI only after the harness protocol stabilizes: agent chat, man
 - PR #3: Writer Harness Bench; merged.
 - PR #4: Harbor Light pilot corpus; merged.
 - PR #5: real model and stock-OpenCode targets; merged.
+- PR #6: roadmap and baseline protocol; merged.
+- PR #7: DeepSeek baseline configuration and smoke results; in progress.
