@@ -5,7 +5,7 @@ const opencode = await available(executable)
 const rawModel = Boolean(process.env.WRITER_BENCH_MODEL)
 const opencodeModel = Boolean(process.env.WRITER_BENCH_OPENCODE_MODEL)
 const baseUrl = Boolean(process.env.WRITER_BENCH_BASE_URL)
-const apiKey = Boolean(process.env.WRITER_BENCH_API_KEY)
+const apiKey = Boolean(process.env.WRITER_BENCH_API_KEY ?? process.env.DEEPSEEK_API_KEY)
 const sameModel = rawModel && opencodeModel && process.env.WRITER_BENCH_MODEL === modelPart(process.env.WRITER_BENCH_OPENCODE_MODEL!)
 const report = {
   ready: opencode && rawModel && opencodeModel && sameModel,
@@ -20,7 +20,7 @@ const report = {
     ...(!opencodeModel ? ["Set WRITER_BENCH_OPENCODE_MODEL."] : []),
     ...(rawModel && opencodeModel && !sameModel ? ["Raw and OpenCode model identifiers do not match."] : []),
     ...(!baseUrl ? ["WRITER_BENCH_BASE_URL will use the adapter default."] : []),
-    ...(!apiKey ? ["No raw-target API key is present; this is valid only for an unauthenticated local endpoint."] : []),
+    ...(!apiKey ? ["No WRITER_BENCH_API_KEY or DEEPSEEK_API_KEY is present; this is valid only for an unauthenticated local endpoint."] : []),
   ],
 }
 

@@ -1,6 +1,6 @@
 # Phase 6: Harbor Light baseline
 
-Status: **blocked on local provider configuration**.
+Status: **configured for DeepSeek; awaiting a user-supplied API key and paid execution**.
 
 This experiment compares the same model through direct prompting and stock OpenCode. It does not evaluate a writer-specific harness yet.
 
@@ -14,18 +14,40 @@ bun run baseline:doctor
 
 The doctor reports only presence/readiness and never prints credential values.
 
-The current machine needs:
+The DeepSeek baseline uses `deepseek-v4-pro` through both the direct API and stock OpenCode. The checked-in configuration contains no credentials. The machine needs:
 
 1. an installed `opencode` executable or `WRITER_BENCH_OPENCODE_BIN` path;
 2. a provider configured for OpenCode;
-3. `WRITER_BENCH_MODEL` for the OpenAI-compatible target;
-4. `WRITER_BENCH_OPENCODE_MODEL` pointing to the same model revision;
-5. `WRITER_BENCH_BASE_URL` and, when required, `WRITER_BENCH_API_KEY`;
+3. a DeepSeek API key supplied at run time;
+4. `WRITER_BENCH_MODEL` and `WRITER_BENCH_OPENCODE_MODEL` pointing to the same model revision;
+5. `WRITER_BENCH_BASE_URL` and either `DEEPSEEK_API_KEY` or `WRITER_BENCH_API_KEY`;
 6. optionally, a distinct `WRITER_BENCH_JUDGE_MODEL`.
 
 Do not commit `targets.local.json`, credentials, or provider auth files.
 
-## Configure
+## DeepSeek quick start
+
+From PowerShell, run:
+
+```powershell
+.\baseline\run-deepseek.ps1
+```
+
+If `DEEPSEEK_API_KEY` is not already set, the launcher opens a masked credential prompt and keeps the key only for the process. The default is one trial: 24 paid system executions across 12 tasks and two targets. After that succeeds, run the planned baseline with:
+
+```powershell
+.\baseline\run-deepseek.ps1 -Trials 3
+```
+
+The full pilot makes 72 paid system executions. The launcher does not configure a model judge: deterministic checks and human review remain independent of DeepSeek for this baseline.
+
+The launcher pins temperature `0.2` and a 4096-token output ceiling on both paths. It restores every environment variable it changes when the run ends.
+
+Stock OpenCode runs in a fresh temporary workspace outside the benchmark repository. It receives the same task-provided passages as the raw target but cannot discover corpus files, hidden checks, gold annotations, or benchmark implementation details through filesystem tools.
+
+The noninteractive stock agent denies external-directory and question permissions instead of pausing for user approval. Each task is capped at 12 provider turns and a five-minute process timeout to bound latency and cost while retaining OpenCode's normal tool loop inside the isolated workspace.
+
+## Configure another provider
 
 Copy `../fixtures/targets.real.example.json` to `targets.local.json`, which is ignored by Git. Replace every placeholder. Both systems must use the same `comparisonKey`.
 
@@ -38,7 +60,7 @@ maximum output: 4096 tokens
 seed: fixed if supported, otherwise record unsupported
 ```
 
-## Run
+## Manual run
 
 From `packages/writer-bench`:
 

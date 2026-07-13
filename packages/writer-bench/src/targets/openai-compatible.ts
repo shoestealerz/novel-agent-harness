@@ -57,7 +57,8 @@ async function judge() {
 async function completion(messages: Array<{ role: string; content: string }>, model = requiredEnvironment("WRITER_BENCH_MODEL")) {
   const base = (process.env.WRITER_BENCH_BASE_URL ?? "https://api.openai.com/v1").replace(/\/$/, "")
   const headers = new Headers({ "content-type": "application/json" })
-  if (process.env.WRITER_BENCH_API_KEY) headers.set("authorization", `Bearer ${process.env.WRITER_BENCH_API_KEY}`)
+  const apiKey = process.env.WRITER_BENCH_API_KEY ?? process.env.DEEPSEEK_API_KEY
+  if (apiKey) headers.set("authorization", `Bearer ${apiKey}`)
   const response = await fetch(`${base}/chat/completions`, {
     method: "POST",
     headers,
