@@ -48,7 +48,7 @@ Implemented Writer Harness Bench with versioned tasks, command targets, determin
 
 ### Phase 4: Pilot benchmark corpus
 
-Created `Harbor Light`, a synthetic CC0 pilot containing 2,527 words, 32 stable passages, 41 gold records, 12 tasks, one planted defect, and deliberate ambiguity/motif exceptions.
+Created `Harbor Light`, a synthetic CC0 pilot containing 2,527 words, 32 stable passages, 41 gold records, 12 initial tasks, one planted defect, and deliberate ambiguity/motif exceptions. Phase 7 experiment 2 added seven context stress tasks, bringing the corpus to 19 tasks.
 
 ### Phase 5: Real evaluation targets
 
@@ -107,7 +107,9 @@ Writer Task Contract v0 one-trial result: 36/36 executions completed. The writer
 
 Writer Task Contract v0.1 graduated on Harbor Light 0.2.0 after a three-trial, 108-cell evaluation. It scored **1.0000 with zero safety failures**, compared with **0.7766 and 23 safety failures** for raw DeepSeek and **0.6748 and 29 safety failures** for stock OpenCode. The paired delta was +0.2234 versus raw (95% CI +0.0694 to +0.3958) and +0.3252 versus stock (95% CI +0.1667 to +0.5162). See `packages/writer-bench/experiments/writer-contract-v01/RESULTS.md`.
 
-Current experiment 2: task-aware context compilation versus task-supplied and maximum available context, all using Writer Task Contract v0.1. Preserve the v0.1 zero-safety target and measure grounding, context recall, unsupported claims, token use, and latency before adding retrieval ranking.
+Completed experiment 2: task-aware context compilation versus task-supplied and maximum available context under Writer Task Contract v0.1. Across 63 final scored cells, compiled context scored **0.9888 with zero safety failures**, compared with **0.7032 and six safety failures** for supplied context and **0.8704 and 14 safety failures** for maximum context. It used 209 context words on average versus 2,527 for maximum context, improved grounding from 0.7458 to 1.0000, and passed every gate. See `packages/writer-bench/experiments/context-compiler/RESULTS.md`.
+
+Current experiment 3: retrieval into the graduated context compiler. Compare lexical, embedding, hierarchical, and hierarchical-plus-temporal retrieval while measuring retrieval recall/precision independently from downstream grounding, safety, tokens, latency, and task score.
 
 ## Later phases
 
@@ -137,3 +139,4 @@ Build the private UI only after the harness protocol stabilizes: agent chat, man
 - PR #8: official three-trial DeepSeek baseline; merged.
 - PR #9: Writer Task Contract v0 experiment; merged.
 - PR #10: illustrated Writer Task Contract experiment explainer; merged.
+- PR #11: corrected Writer Task Contract v0.1 and official three-trial result; merged.

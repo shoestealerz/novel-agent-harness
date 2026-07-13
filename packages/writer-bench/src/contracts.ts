@@ -9,17 +9,34 @@ export type ContextItem = {
   metadata?: Record<string, unknown>
 }
 
-export type Check =
-  | { id: string; kind: "contains"; value: string; weight?: number; safety?: boolean }
-  | { id: string; kind: "not_contains"; value: string; weight?: number; safety?: boolean }
-  | { id: string; kind: "regex"; pattern: string; flags?: string; weight?: number; safety?: boolean }
-  | { id: string; kind: "word_count"; min?: number; max?: number; weight?: number; safety?: boolean }
-  | { id: string; kind: "edit_word_count"; min?: number; max?: number; weight?: number; safety?: boolean }
-  | { id: string; kind: "finding_recall"; expected: string[]; forbidden?: string[]; weight?: number; safety?: boolean }
-  | { id: string; kind: "finding_content"; required: FindingPattern[]; forbidden?: FindingPattern[]; weight?: number; safety?: boolean }
-  | { id: string; kind: "artifact_contains"; value: string; weight?: number; safety?: boolean }
-  | { id: string; kind: "evidence"; required: string[]; allowed?: string[]; weight?: number; safety?: boolean }
-  | { id: string; kind: "edit_scope"; allowed: string[]; weight?: number; safety?: boolean }
+export type ContextSpec = {
+  focusRefs: string[]
+  dependencyRefs?: string[]
+  preservationRefs?: string[]
+  preservationLiterals?: { ref: string; text: string }[]
+  excludeRefs?: string[]
+  throughRef?: string
+}
+
+export type CheckMetric = "context_recall" | "grounding" | "unsupported_claim_avoidance"
+
+export type Check = {
+  id: string
+  weight?: number
+  safety?: boolean
+  metric?: CheckMetric
+} & (
+  | { kind: "contains"; value: string }
+  | { kind: "not_contains"; value: string }
+  | { kind: "regex"; pattern: string; flags?: string }
+  | { kind: "word_count"; min?: number; max?: number }
+  | { kind: "edit_word_count"; min?: number; max?: number }
+  | { kind: "finding_recall"; expected: string[]; forbidden?: string[] }
+  | { kind: "finding_content"; required: FindingPattern[]; forbidden?: FindingPattern[] }
+  | { kind: "artifact_contains"; value: string }
+  | { kind: "evidence"; required: string[]; allowed?: string[] }
+  | { kind: "edit_scope"; allowed: string[] }
+)
 
 export type Criterion = {
   id: string
@@ -36,6 +53,7 @@ export type Task = {
   language?: string
   prompt: string
   context?: ContextItem[]
+  contextSpec?: ContextSpec
   authority?: "read" | "propose"
   checks?: Check[]
   criteria?: Criterion[]
@@ -130,6 +148,7 @@ export type ComponentScore = {
   score: number
   weight: number
   safety: boolean
+  metric?: CheckMetric
   detail?: string
 }
 
@@ -152,6 +171,7 @@ export type RunFile = {
   targets: Target[]
   judge?: Target
   trials: number
+  concurrency?: number
   records: RunRecord[]
   resumedFromRunId?: string
   metrics?: MetricRecord[]

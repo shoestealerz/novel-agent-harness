@@ -1,0 +1,40 @@
+{
+  "systems": [
+    {
+      "id": "writer-context-supplied",
+      "label": "Writer Contract v0.1 with supplied context",
+      "command": ["{node}", "--experimental-strip-types", "src/targets/writer-context.ts"],
+      "env": {
+        "WRITER_BENCH_CONTEXT_STRATEGY": "supplied",
+        "WRITER_BENCH_MANUSCRIPT_DIR": "corpora/harbor-light/manuscript"
+      },
+      "baseModel": "deepseek-v4-pro",
+      "comparisonKey": "deepseek-v4-pro|temperature=0.2|max=4096|writer-contract=v0.1|context-experiment=1",
+      "metadata": { "mechanism": "supplied-context-control" }
+    },
+    {
+      "id": "writer-context-maximum",
+      "label": "Writer Contract v0.1 with maximum manuscript context",
+      "command": ["{node}", "--experimental-strip-types", "src/targets/writer-context.ts"],
+      "env": {
+        "WRITER_BENCH_CONTEXT_STRATEGY": "maximum",
+        "WRITER_BENCH_MANUSCRIPT_DIR": "corpora/harbor-light/manuscript"
+      },
+      "baseModel": "deepseek-v4-pro",
+      "comparisonKey": "deepseek-v4-pro|temperature=0.2|max=4096|writer-contract=v0.1|context-experiment=1",
+      "metadata": { "mechanism": "maximum-context-control" }
+    },
+    {
+      "id": "writer-context-compiled",
+      "label": "Writer Contract v0.1 with task-aware context",
+      "command": ["{node}", "--experimental-strip-types", "src/targets/writer-context.ts"],
+      "env": {
+        "WRITER_BENCH_CONTEXT_STRATEGY": "task-aware",
+        "WRITER_BENCH_MANUSCRIPT_DIR": "corpora/harbor-light/manuscript"
+      },
+      "baseModel": "deepseek-v4-pro",
+      "comparisonKey": "deepseek-v4-pro|temperature=0.2|max=4096|writer-contract=v0.1|context-experiment=1",
+      "metadata": { "mechanism": "task-aware-context-compiler-v0" }
+    }
+  ]
+}

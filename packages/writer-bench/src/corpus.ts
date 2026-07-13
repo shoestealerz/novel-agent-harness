@@ -63,6 +63,20 @@ export async function validateCorpus(path: string) {
       if (taskIds.has(task.id)) throw new Error(`duplicate task id: ${task.id}`)
       taskIds.add(task.id)
       task.context?.forEach((item) => requirePassage(passages, item.ref, `${relative}:${task.id}`))
+      task.contextSpec?.focusRefs.forEach((ref) => requirePassage(passages, ref, `${relative}:${task.id}`))
+      task.contextSpec?.dependencyRefs?.forEach((ref) => requirePassage(passages, ref, `${relative}:${task.id}`))
+      task.contextSpec?.preservationRefs?.forEach((ref) => requirePassage(passages, ref, `${relative}:${task.id}`))
+      task.contextSpec?.preservationLiterals?.forEach((literal) => {
+        requirePassage(passages, literal.ref, `${relative}:${task.id}`)
+        if (!task.contextSpec?.preservationRefs?.includes(literal.ref)) {
+          throw new Error(`${relative}:${task.id} exact preservation literal must use a preservation reference`)
+        }
+        if (!passageText.get(literal.ref)?.includes(literal.text)) {
+          throw new Error(`${relative}:${task.id} exact preservation literal is absent from ${literal.ref}`)
+        }
+      })
+      task.contextSpec?.excludeRefs?.forEach((ref) => requirePassage(passages, ref, `${relative}:${task.id}`))
+      if (task.contextSpec?.throughRef) requirePassage(passages, task.contextSpec.throughRef, `${relative}:${task.id}`)
       if (task.job === "revise") {
         task.context?.filter((item) => item.kind === "manuscript").forEach((item) => {
           if (item.text.trim() !== passageText.get(item.ref)) {

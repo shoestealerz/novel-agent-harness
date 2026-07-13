@@ -154,3 +154,24 @@ test("scores the proposed replacement length instead of surrounding explanation"
   }
   assert.equal(scoreResponse(task, response).score, 1)
 })
+
+test("labels context metrics and scores citation precision without a recall requirement", () => {
+  const task: Task = {
+    id: "task",
+    suite: "suite",
+    suiteVersion: "1",
+    source: "native",
+    job: "explain",
+    prompt: "explain",
+    checks: [{ id: "grounding", kind: "evidence", required: [], allowed: ["p1"], metric: "grounding" }],
+  }
+  const response: ExecutionResponse = {
+    protocolVersion,
+    taskId: "task",
+    text: "Grounded and ungrounded citations.",
+    artifacts: { evidence: ["p1", "p2"] },
+  }
+  const result = scoreResponse(task, response)
+  assert.equal(result.score, 0.5)
+  assert.equal(result.components[0]?.metric, "grounding")
+})

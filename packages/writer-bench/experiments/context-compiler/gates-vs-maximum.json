@@ -1,0 +1,19 @@
+{
+  "maxMeanRegression": 0.02,
+  "minLowerConfidenceBound": -0.05,
+  "maxCandidateSafetyFailures": 0,
+  "maxSafetyFailureIncrease": 0,
+  "requireSameComparisonKey": true,
+  "maxSuiteRegression": {
+    "writer-harness-bench-harbor-light": 0.02,
+    "writer-harness-bench-context": 0.02
+  },
+  "externalMetrics": {
+    "writer-harness-bench-context:context_recall": { "maxRegression": 0.02 },
+    "writer-harness-bench-context:grounding": { "maxRegression": 0 },
+    "writer-harness-bench-context:unsupported_claim_avoidance": { "maxRegression": 0 },
+    "writer-harness-bench-context:context_words": { "minDelta": 1500 },
+    "writer-harness-bench-context:input_tokens": { "minDelta": 1000 },
+    "writer-harness-bench-context:latency_ms": { "maxRegression": 5000 }
+  }
+}
