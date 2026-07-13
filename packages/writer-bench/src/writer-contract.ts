@@ -20,6 +20,7 @@ const requirements = {
     "Return calibrated story-state findings with evidence.",
     "Use fact:<subject>-<predicate> for supported story facts and knowledge:<character>-<topic>-<status> for character knowledge.",
     "Distinguish observation, strong inference, and unresolved state; never promote uncertainty to canon.",
+    "Account for every supplied context item in findings or data unless the author explicitly excludes it.",
   ],
   generate: ["Generate only within supplied authority and constraints."],
   translate: ["Preserve meaning, voice, uncertainty, and named constraints."],

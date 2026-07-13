@@ -11,7 +11,7 @@ The pilot validates:
 - deterministic evidence and proposal-scope checks;
 - validation that every gold/task reference resolves to the manuscript.
 
-Version 0.2.0 replaces private exact-ID recall with hidden semantic checks over human-readable finding statements, measures revision length on edit replacements rather than surrounding explanation, and corrects overly narrow option-format matching. Exact identifiers remain appropriate only when a real application supplies them as part of a public interoperability contract.
+Version 0.2.0 replaces private exact-ID recall with hidden semantic checks over human-readable finding statements, measures revision length on edit replacements rather than surrounding explanation, supplies exact manuscript prose for revision tasks, and corrects overly narrow option-format matching. The validator rejects summarized manuscript context for revision jobs. Exact identifiers remain appropriate only when a real application supplies them as part of a public interoperability contract.
 
 ## Canon policy
 

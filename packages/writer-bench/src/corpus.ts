@@ -20,6 +20,7 @@ export async function validateCorpus(path: string) {
   const root = resolve(path)
   const manifest = parseManifest(await readJson(resolve(root, "corpus.json")))
   const passages = new Set<string>()
+  const passageText = new Map<string, string>()
   let wordCount = 0
   for (const relative of manifest.manuscript) {
     const content = await readFile(resolve(root, relative), "utf8")
@@ -29,6 +30,9 @@ export async function validateCorpus(path: string) {
       if (passages.has(ref)) throw new Error(`duplicate passage reference: ${ref}`)
       passages.add(ref)
     })
+    for (const match of content.matchAll(/<!--\s*ref:\s*([^\s]+)\s*-->\s*\r?\n(?<text>.*?)(?=\r?\n\r?\n<!--\s*ref:|\s*$)/gs)) {
+      passageText.set(match[1]!, match.groups!.text.trim())
+    }
     wordCount += content
       .replaceAll(/<!--.*?-->/gs, " ")
       .replaceAll(/^#.*$/gm, " ")
@@ -59,6 +63,13 @@ export async function validateCorpus(path: string) {
       if (taskIds.has(task.id)) throw new Error(`duplicate task id: ${task.id}`)
       taskIds.add(task.id)
       task.context?.forEach((item) => requirePassage(passages, item.ref, `${relative}:${task.id}`))
+      if (task.job === "revise") {
+        task.context?.filter((item) => item.kind === "manuscript").forEach((item) => {
+          if (item.text.trim() !== passageText.get(item.ref)) {
+            throw new Error(`${relative}:${task.id} must supply exact manuscript text for revision context ${item.ref}`)
+          }
+        })
+      }
       task.checks?.flatMap(checkRefs).forEach((ref) => requirePassage(passages, ref, `${relative}:${task.id}`))
       tasks.push(task)
     }
