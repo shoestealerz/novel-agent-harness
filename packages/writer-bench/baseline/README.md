@@ -1,6 +1,6 @@
-# Phase 6: Harbor Light baseline
+# Harbor Light DeepSeek experiments
 
-Status: **configured for DeepSeek; awaiting a user-supplied API key and paid execution**.
+Status: **Phase 6 baseline complete; Writer Task Contract v0 experiment ready**.
 
 This experiment compares the same model through direct prompting and stock OpenCode. It does not evaluate a writer-specific harness yet.
 
@@ -14,7 +14,7 @@ bun run baseline:doctor
 
 The doctor reports only presence/readiness and never prints credential values.
 
-The DeepSeek baseline uses `deepseek-v4-pro` through both the direct API and stock OpenCode. The checked-in configuration contains no credentials. The machine needs:
+The DeepSeek experiments use `deepseek-v4-pro` through the direct API, stock OpenCode, and writer-specific targets. The checked-in configuration contains no credentials. The machine needs:
 
 1. an installed `opencode` executable or `WRITER_BENCH_OPENCODE_BIN` path;
 2. a provider configured for OpenCode;
@@ -46,6 +46,16 @@ The launcher pins temperature `0.2` and a 4096-token output ceiling on both path
 Stock OpenCode runs in a fresh temporary workspace outside the benchmark repository. It receives the same task-provided passages as the raw target but cannot discover corpus files, hidden checks, gold annotations, or benchmark implementation details through filesystem tools.
 
 The noninteractive stock agent denies external-directory and question permissions instead of pausing for user approval. Each task is capped at 12 provider turns and a five-minute process timeout to bound latency and cost while retaining OpenCode's normal tool loop inside the isolated workspace.
+
+## Writer Task Contract v0
+
+Run the first Phase 7 experiment with:
+
+```powershell
+.\baseline\run-deepseek.ps1 -Experiment writer-contract -Trials 1
+```
+
+This runs 36 paid executions: raw DeepSeek, stock OpenCode, and Writer Task Contract v0 across all 12 tasks. It generates comparisons against both baselines. The writer target changes only the task contract and structured response adapter; it does not add retrieval, memory, critic agents, or OpenCode core changes.
 
 ## Configure another provider
 
