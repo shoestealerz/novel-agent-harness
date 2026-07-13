@@ -2,6 +2,7 @@ import assert from "node:assert/strict"
 import test from "node:test"
 import type { ContextItem, ExecutionTask } from "./contracts.ts"
 import { compileContext } from "./context-compiler.ts"
+import { renderWriterContract } from "./writer-contract.ts"
 
 const catalog: ContextItem[] = [
   { ref: "ch01:p001", text: "one", kind: "manuscript" },
@@ -51,6 +52,7 @@ test("task-aware context without a specification preserves the v0.1 control prom
   const input = task()
   const result = compileContext(input, catalog, "task-aware")
   assert.deepEqual(result.task.context, input.context)
+  assert.equal(renderWriterContract(result.task, 2), renderWriterContract(input, 2))
 })
 
 test("task-aware context rejects unknown declared references", () => {

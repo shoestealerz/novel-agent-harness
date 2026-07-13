@@ -1,6 +1,6 @@
 # Task-aware context compiler experiment
 
-Status: **implementation and one-trial validity testing**.
+Status: **graduated as the declarative context-packet baseline**. See [RESULTS.md](RESULTS.md).
 
 This experiment keeps DeepSeek V4 Pro, Writer Task Contract v0.1, temperature, and output budget fixed. It changes only how public manuscript context is assembled:
 
@@ -18,10 +18,10 @@ Run the seven context stress tasks first:
 ./experiments/context-compiler/run.ps1 -Trials 1 -ContextOnly
 ```
 
-Run the context suite together with the 12-task Writer Contract regression suite before graduation:
+Run the context suite together with the 12-task Writer Contract regression suite when changing the no-op path or shared writer runtime:
 
 ```powershell
 ./experiments/context-compiler/run.ps1 -Trials 3 -Concurrency 3
 ```
 
-Passing this experiment means the compiled packet improves missing-context recall over supplied context, retains the Writer Contract regression score and zero-safety target, and matches maximum-context reliability with materially less context. It does not establish automated retrieval quality or literary preference.
+The graduated result improves missing-context recall over supplied context, retains zero safety failures, and exceeds maximum-context reliability with materially less context. It does not establish automated retrieval quality or literary preference.
