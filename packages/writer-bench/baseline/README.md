@@ -43,6 +43,10 @@ The full pilot makes 72 paid system executions. The launcher does not configure 
 
 The launcher pins temperature `0.2` and a 4096-token output ceiling on both paths. It restores every environment variable it changes when the run ends.
 
+Stock OpenCode runs in a fresh temporary workspace outside the benchmark repository. It receives the same task-provided passages as the raw target but cannot discover corpus files, hidden checks, gold annotations, or benchmark implementation details through filesystem tools.
+
+The noninteractive stock agent denies external-directory and question permissions instead of pausing for user approval. Each task is capped at 12 provider turns and a five-minute process timeout to bound latency and cost while retaining OpenCode's normal tool loop inside the isolated workspace.
+
 ## Configure another provider
 
 Copy `../fixtures/targets.real.example.json` to `targets.local.json`, which is ignored by Git. Replace every placeholder. Both systems must use the same `comparisonKey`.

@@ -12,7 +12,8 @@
       "label": "Stock OpenCode with DeepSeek V4 Pro",
       "command": ["{node}", "--experimental-strip-types", "src/targets/opencode-cli.ts"],
       "baseModel": "deepseek-v4-pro",
-      "comparisonKey": "deepseek-v4-pro|temperature=0.2|max=4096|renderer=v1"
+      "comparisonKey": "deepseek-v4-pro|temperature=0.2|max=4096|renderer=v1",
+      "timeoutMs": 300000
     }
   ]
 }

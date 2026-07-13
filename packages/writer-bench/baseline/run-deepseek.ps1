@@ -15,6 +15,7 @@ $EnvironmentNames = @(
   "WRITER_BENCH_TEMPERATURE",
   "WRITER_BENCH_MAX_TOKENS",
   "WRITER_BENCH_OPENCODE_BIN",
+  "WRITER_BENCH_OPENCODE_DIR",
   "OPENCODE_CONFIG_CONTENT",
   "OPENCODE_EXPERIMENTAL_OUTPUT_TOKEN_MAX"
 )
@@ -45,12 +46,16 @@ $env:WRITER_BENCH_BASE_URL = "https://api.deepseek.com"
 $env:WRITER_BENCH_TEMPERATURE = "0.2"
 $env:WRITER_BENCH_MAX_TOKENS = "4096"
 $env:WRITER_BENCH_OPENCODE_BIN = $OpenCode
-$env:OPENCODE_CONFIG_CONTENT = '{"agent":{"build":{"temperature":0.2}}}'
+$env:OPENCODE_CONFIG_CONTENT = '{"permission":{"external_directory":"deny","question":"deny"},"agent":{"build":{"temperature":0.2,"steps":12}}}'
 $env:OPENCODE_EXPERIMENTAL_OUTPUT_TOKEN_MAX = "4096"
 
 $Timestamp = Get-Date -Format "yyyyMMdd-HHmmss"
 $RunDirectory = Join-Path $PackageRoot ".results\deepseek-baseline-$Timestamp"
 $ComparisonDirectory = "$RunDirectory-comparison"
+$OpenCodeWorkspaceRoot = Join-Path ([IO.Path]::GetTempPath()) "writer-bench-opencode"
+$OpenCodeDirectory = Join-Path $OpenCodeWorkspaceRoot $Timestamp
+New-Item -ItemType Directory -Path $OpenCodeDirectory -Force | Out-Null
+$env:WRITER_BENCH_OPENCODE_DIR = $OpenCodeDirectory
 
 Push-Location $PackageRoot
 try {
@@ -81,5 +86,10 @@ finally {
   Pop-Location
   foreach ($Name in $EnvironmentNames) {
     [Environment]::SetEnvironmentVariable($Name, $PreviousEnvironment[$Name], "Process")
+  }
+  $WorkspaceRoot = [IO.Path]::GetFullPath($OpenCodeWorkspaceRoot).TrimEnd("\") + "\"
+  $Workspace = [IO.Path]::GetFullPath($OpenCodeDirectory)
+  if ($Workspace.StartsWith($WorkspaceRoot, [StringComparison]::OrdinalIgnoreCase)) {
+    Remove-Item -LiteralPath $Workspace -Recurse -Force -ErrorAction SilentlyContinue
   }
 }
