@@ -26,7 +26,7 @@ Status: one-trial smoke baseline complete; three-trial baseline pending.
 | Raw DeepSeek | 12/12 | 0.7847 | 6 | 1,977 | 11,995 | 17.2 s |
 | Stock OpenCode | 12/12 | 0.6319 | 9 | 17,029 | 6,919 | 26.8 s |
 
-Paired mean delta for stock OpenCode versus raw DeepSeek: **-0.1528**, with a one-trial paired bootstrap 95% confidence interval of **-0.2917 to -0.0417**. Task outcomes were 0 wins, 8 ties, and 4 losses. All regression gates failed. Stock OpenCode reported $0.0232 of model cost; the direct adapter does not yet calculate provider-specific cost.
+Paired mean delta for stock OpenCode versus raw DeepSeek: **-0.1528**, with a one-trial paired bootstrap 95% confidence interval of **-0.2917 to -0.0417**. Task outcomes were 0 wins, 8 ties, and 4 losses. All regression gates failed. Stock OpenCode reported $0.0232 of model cost; the direct adapter does not yet calculate provider-specific cost. The DeepSeek account balance decreased by approximately $0.22 across connectivity verification, two aborted integrity/limit probes, and the successful smoke run; $4.31 remained afterward.
 
 This is a smoke characterization, not the Phase 6 final baseline. One trial is insufficient for variance estimates or a go/no-go product claim.
 
