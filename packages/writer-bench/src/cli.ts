@@ -25,10 +25,25 @@ async function run() {
   if (!suites.length) throw new Error("run requires at least one --suite")
   const targetPath = required(args, "targets")
   const out = resolve(required(args, "out"))
+  const requestedTasks = values(args, "task")
   const tasks = (await Promise.all(suites.map((path) => readJsonl(resolve(path))))).flat().map(parseTask)
+    .filter((task) => !requestedTasks.length || requestedTasks.includes(task.id))
   const targets = parseTargetFile(await readJson(resolve(targetPath)))
+  const requestedTargets = values(args, "target")
+  targets.systems = targets.systems.filter((target) => !requestedTargets.length || requestedTargets.includes(target.id))
+  if (!tasks.length) throw new Error("no tasks matched --task")
+  if (!targets.systems.length) throw new Error("no systems matched --target")
   const resume = args.get("resume") ? (await readJson(resolve(required(args, "resume")))) as RunFile : undefined
-  const result = await runBenchmark({ tasks, suiteFiles: suites, targets, trials: number(args, "trials", 1), out, resume })
+  const result = await runBenchmark({
+    tasks,
+    suiteFiles: suites,
+    targets,
+    trials: number(args, "trials", 1),
+    concurrency: number(args, "concurrency", 1),
+    rerunCells: values(args, "rerun-cell"),
+    out,
+    resume,
+  })
   console.log(join(out, "report.md"))
   if (result.records.some((record) => record.error)) process.exitCode = 2
 }
@@ -130,7 +145,7 @@ function optionalNumber(input: Map<string, string[]>, key: string) {
 function usage(code: number): never {
   console.error(`writer-bench
 
-  run --suite tasks.jsonl [--suite more.jsonl] --targets targets.json --out results [--trials 3] [--resume previous/run.json]
+  run --suite tasks.jsonl [--suite more.jsonl] --targets targets.json --out results [--trials 3] [--concurrency 3] [--task id] [--target id] [--resume previous/run.json] [--rerun-cell target:task]
   compare --run results/run.json --baseline raw --candidate harness --gates gates.json --out comparison
   import writingbench --source benchmark_all.jsonl --out writing.jsonl [--domain "Literature & Art"] [--language en]
   import constory --source prompts.jsonl --out constory.jsonl [--language en]

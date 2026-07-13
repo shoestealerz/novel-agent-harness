@@ -30,6 +30,7 @@ function scoreCheck(check: Check, response: ExecutionResponse): ComponentScore {
     score,
     weight: check.weight ?? 1,
     safety: check.safety ?? false,
+    metric: check.metric,
   }
 }
 
@@ -76,6 +77,7 @@ function checkValue(check: Check, response: ExecutionResponse) {
     const recall = check.required.length ? check.required.filter((ref) => actual.has(ref)).length / check.required.length : 1
     if (!check.allowed) return recall
     const precision = actual.size ? [...actual].filter((ref) => check.allowed?.includes(ref)).length / actual.size : 0
+    if (!check.required.length) return precision
     return (recall + precision) / 2
   }
   const edits = response.artifacts?.edits ?? []

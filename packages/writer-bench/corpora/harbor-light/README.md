@@ -13,6 +13,8 @@ The pilot validates:
 
 Version 0.2.0 replaces private exact-ID recall with hidden semantic checks over human-readable finding statements, measures revision length on edit replacements rather than surrounding explanation, supplies exact manuscript prose for revision tasks, and corrects overly narrow option-format matching. The validator rejects summarized manuscript context for revision jobs. Exact identifiers remain appropriate only when a real application supplies them as part of a public interoperability contract.
 
+Version 0.3.0 adds seven context stress tasks and public context specifications for focus, dependency, preservation, exclusion, exact literals, and story-time boundaries. The corpus now contains 19 tasks. These declarations are inputs to the context compiler, never hidden evaluation answers.
+
 ## Canon policy
 
 Manuscript prose is authoritative for what appears on the page. `intentions.jsonl` is authoritative for off-page author intent and deliberate exceptions. Other gold files are evidence-linked annotations used for evaluation; they are not text the candidate system may silently add to the story.
