@@ -2,6 +2,8 @@
 
 Status: one-trial Phase 7 experiment complete; promising, not graduated.
 
+For a reader-friendly explanation of the architecture and representative before-and-after outputs, see [EXPLAINER.md](./EXPLAINER.md).
+
 ## Configuration
 
 | Field | Value |
