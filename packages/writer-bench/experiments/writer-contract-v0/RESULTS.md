@@ -4,6 +4,8 @@ Status: one-trial Phase 7 experiment complete; promising, not graduated.
 
 For a reader-friendly explanation of the architecture and representative before-and-after outputs, see [EXPLAINER.md](./EXPLAINER.md).
 
+Successor: [Writer Task Contract v0.1](../writer-contract-v01/RESULTS.md) corrected the benchmark interface, cleared the safety gates, and graduated as the protocol baseline.
+
 ## Configuration
 
 | Field | Value |
