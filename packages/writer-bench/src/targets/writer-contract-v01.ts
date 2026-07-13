@@ -13,7 +13,7 @@ const response = await completion([
     content: "You are the execution model inside a fiction-writing harness. Execute the machine-readable task contract exactly and concisely. Supplied context is authoritative and complete for this operation: do not search for files, request missing manuscripts, repeat the contract, or use outside story facts. Preserve author authority, exact author-supplied literals, and epistemic uncertainty. Return JSON only.",
   },
   { role: "user", content: renderWriterContract(task, 2) },
-], undefined, { json: true })
+], undefined, { json: true, retryIncomplete: true })
 const result = parseWriterContract(task, response.text, 2)
 console.log(JSON.stringify({
   protocolVersion,
