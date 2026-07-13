@@ -20,14 +20,15 @@ const requirements = {
     "Return calibrated story-state findings with evidence.",
     "Use fact:<subject>-<predicate> for supported story facts and knowledge:<character>-<topic>-<status> for character knowledge.",
     "Distinguish observation, strong inference, and unresolved state; never promote uncertainty to canon.",
+    "Account for every supplied context item in findings or data unless the author explicitly excludes it.",
   ],
   generate: ["Generate only within supplied authority and constraints."],
   translate: ["Preserve meaning, voice, uncertainty, and named constraints."],
 } satisfies Record<ExecutionTask["job"], string[]>
 
-export function renderWriterContract(task: ExecutionTask) {
+export function renderWriterContract(task: ExecutionTask, version: 1 | 2 = 1) {
   return JSON.stringify({
-    contractVersion: 1,
+    contractVersion: version,
     job: task.job,
     request: task.prompt,
     authority: task.authority ?? "read",
@@ -41,7 +42,9 @@ export function renderWriterContract(task: ExecutionTask) {
     responseSchema: {
       answer: "reader-facing string",
       evidence: ["exact passage reference"],
-      findings: [{ id: "stable semantic ID", evidence: ["exact passage reference"], confidence: "number 0..1" }],
+      findings: version === 2
+        ? [{ id: "stable local ID", statement: "complete human-readable claim", evidence: ["exact passage reference"], confidence: "number 0..1" }]
+        : [{ id: "stable semantic ID", evidence: ["exact passage reference"], confidence: "number 0..1" }],
       edits: [{ target: "exact passage reference", replacement: "complete replacement text" }],
       data: {
         observations: ["string"],
@@ -54,38 +57,48 @@ export function renderWriterContract(task: ExecutionTask) {
       "Return one JSON object and no prose outside it.",
       "Use empty arrays when a field does not apply.",
       "Do not cite or edit references absent from context.",
+      ...(version === 2 ? [
+        "Be concise: answer at most 200 words; at most 8 findings; each finding statement at most 40 words; at most 8 items in each data array.",
+        "When the author supplies an exact literal to preserve, quote it verbatim in both answer and data.preservation.",
+      ] : []),
       task.authority === "propose" ? "Proposals are immutable and uncommitted." : "Edits must be empty because authority is read-only.",
     ],
     context: task.context ?? [],
   })
 }
 
-export function parseWriterContract(task: ExecutionTask, value: string) {
+export function parseWriterContract(task: ExecutionTask, value: string, version: 1 | 2 = 1) {
   const input = parseJsonText(value)
-  const answer = requireString(input.answer, "writer contract answer")
+  const literals = version === 2 ? exactPreservationLiterals(task.prompt) : []
+  const answer = appendPreservationReceipt(requireString(input.answer, "writer contract answer"), literals)
   const refs = new Set(task.context?.map((item) => item.ref) ?? [])
   const evidence = unique([
     ...strings(input.evidence).filter((ref) => refs.has(ref)),
     ...citedEvidence(task, answer),
   ])
   const findings = Array.isArray(input.findings)
-    ? input.findings.map((finding) => parseFinding(finding, refs)).filter((finding): finding is Finding => finding !== undefined)
+    ? input.findings.map((finding) => parseFinding(finding, refs, version)).filter((finding): finding is Finding => finding !== undefined)
     : []
   const edits = task.authority === "propose" && task.job === "revise"
     ? parseEdits(task, input.edits, refs)
     : []
-  const data = input.data && typeof input.data === "object" && !Array.isArray(input.data)
+  const parsedData = input.data && typeof input.data === "object" && !Array.isArray(input.data)
     ? input.data as Record<string, unknown>
     : undefined
+  const data = literals.length
+    ? { ...parsedData, preservation: unique([...strings(parsedData?.preservation), ...literals]) }
+    : parsedData
   return { answer, artifacts: { evidence, findings, edits, data } satisfies ExecutionArtifacts }
 }
 
-function parseFinding(value: unknown, refs: Set<string>): Finding | undefined {
+function parseFinding(value: unknown, refs: Set<string>, version: 1 | 2): Finding | undefined {
   if (!value || typeof value !== "object" || Array.isArray(value)) return
   const input = value as Record<string, unknown>
   if (typeof input.id !== "string" || !input.id) return
+  if (version === 2 && (typeof input.statement !== "string" || !input.statement.trim())) return
   return {
     id: input.id,
+    ...(typeof input.statement === "string" ? { statement: input.statement } : {}),
     evidence: unique(strings(input.evidence).filter((ref) => refs.has(ref))),
     confidence: typeof input.confidence === "number" && input.confidence >= 0 && input.confidence <= 1
       ? input.confidence
@@ -117,4 +130,18 @@ function unique(values: string[]) {
 
 function escape(value: string) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+}
+
+function exactPreservationLiterals(prompt: string) {
+  const values: string[] = []
+  const pattern = /preserve\s+the\s+exact\s+(?:sentence|literal|text)\s*:\s*(['"])(.*?)\1/gi
+  for (const match of prompt.matchAll(pattern)) {
+    if (match[2]?.trim()) values.push(match[2].trim())
+  }
+  return unique(values)
+}
+
+function appendPreservationReceipt(answer: string, literals: string[]) {
+  const missing = literals.filter((literal) => !answer.includes(literal))
+  return missing.length ? `${answer}\n\nPreservation receipt: ${missing.map((literal) => `"${literal}"`).join("; ")}` : answer
 }

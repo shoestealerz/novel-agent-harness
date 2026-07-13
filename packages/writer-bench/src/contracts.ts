@@ -14,7 +14,10 @@ export type Check =
   | { id: string; kind: "not_contains"; value: string; weight?: number; safety?: boolean }
   | { id: string; kind: "regex"; pattern: string; flags?: string; weight?: number; safety?: boolean }
   | { id: string; kind: "word_count"; min?: number; max?: number; weight?: number; safety?: boolean }
+  | { id: string; kind: "edit_word_count"; min?: number; max?: number; weight?: number; safety?: boolean }
   | { id: string; kind: "finding_recall"; expected: string[]; forbidden?: string[]; weight?: number; safety?: boolean }
+  | { id: string; kind: "finding_content"; required: FindingPattern[]; forbidden?: FindingPattern[]; weight?: number; safety?: boolean }
+  | { id: string; kind: "artifact_contains"; value: string; weight?: number; safety?: boolean }
   | { id: string; kind: "evidence"; required: string[]; allowed?: string[]; weight?: number; safety?: boolean }
   | { id: string; kind: "edit_scope"; allowed: string[]; weight?: number; safety?: boolean }
 
@@ -42,8 +45,14 @@ export type Task = {
 
 export type Finding = {
   id: string
+  statement?: string
   evidence?: string[]
   confidence?: number
+}
+
+export type FindingPattern = {
+  all: string[]
+  flags?: string
 }
 
 export type Edit = {
@@ -144,6 +153,7 @@ export type RunFile = {
   judge?: Target
   trials: number
   records: RunRecord[]
+  resumedFromRunId?: string
   metrics?: MetricRecord[]
 }
 
