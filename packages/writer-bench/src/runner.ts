@@ -65,6 +65,7 @@ export async function runBenchmark(input: {
     trials: input.trials,
     records,
     resumedFromRunId: input.resume?.runId,
+    metrics: nativeMetrics(records),
   }
   await writeJson(join(input.out, "run.json"), run)
   await writeJsonl(join(input.out, "records.jsonl"), records)
@@ -104,6 +105,7 @@ function publicTask(task: Task): ExecutionTask {
     language: task.language,
     prompt: task.prompt,
     context: task.context,
+    contextSpec: task.contextSpec,
     authority: task.authority,
     tags: task.tags,
   }
@@ -124,12 +126,71 @@ export function summarize(run: RunFile) {
       outputTokens: sumUsage(records, "outputTokens"),
       costUsd: sumUsage(records, "costUsd"),
       latencyMs: sumUsage(records, "latencyMs"),
+      contextItems: averageMetadata(records, "contextItems"),
+      contextWords: averageMetadata(records, "contextWords"),
+      metrics: Object.fromEntries(
+        [...new Set(records.flatMap((record) => record.components.flatMap((component) => component.metric ?? [])))].map((metric) => {
+          const components = records.flatMap((record) => record.components).filter((component) => component.metric === metric)
+          return [metric, components.reduce((total, component) => total + component.score, 0) / components.length]
+        }),
+      ),
     }
   })
 }
 
+function averageMetadata(records: RunRecord[], key: "contextItems" | "contextWords") {
+  const values = records.flatMap((record) => {
+    const trace = record.response?.metadata?.contextTrace
+    if (!trace || typeof trace !== "object" || Array.isArray(trace)) return []
+    const value = (trace as Record<string, unknown>)[key]
+    return typeof value === "number" ? [value] : []
+  })
+  return values.length ? values.reduce((total, value) => total + value, 0) / values.length : 0
+}
+
 function sumUsage(records: RunRecord[], key: "inputTokens" | "outputTokens" | "costUsd" | "latencyMs") {
   return records.reduce((total, record) => total + (record.response?.usage?.[key] ?? 0), 0)
+}
+
+function nativeMetrics(records: RunRecord[]) {
+  const keys = unique(records.flatMap((record) => record.components.flatMap((component) => component.metric
+    ? [`${record.targetId}\u0000${record.task.suite}\u0000${component.metric}`]
+    : [])))
+  const checks = keys.map((key) => {
+    const [targetId, suite, metric] = key.split("\u0000") as [string, string, NonNullable<RunRecord["components"][number]["metric"]>]
+    const values = records.flatMap((record) => record.targetId === targetId && record.task.suite === suite
+      ? record.components.filter((component) => component.metric === metric).map((component) => component.score)
+      : [])
+    return { targetId, suite, metric, value: average(values), direction: "higher" as const, source: "writer-bench:deterministic-checks" }
+  })
+  const operational = unique(records.map((record) => `${record.targetId}\u0000${record.task.suite}`)).flatMap((key) => {
+    const [targetId, suite] = key.split("\u0000") as [string, string]
+    const matching = records.filter((record) => record.targetId === targetId && record.task.suite === suite)
+    const contextWords = matching.flatMap((record) => metadataNumber(record, "contextWords"))
+    const inputTokens = matching.flatMap((record) => typeof record.response?.usage?.inputTokens === "number" ? [record.response.usage.inputTokens] : [])
+    const latency = matching.flatMap((record) => typeof record.response?.usage?.latencyMs === "number" ? [record.response.usage.latencyMs] : [])
+    return [
+      ...(contextWords.length ? [{ targetId, suite, metric: "context_words", value: average(contextWords), direction: "lower" as const, source: "writer-bench:context-trace" }] : []),
+      ...(inputTokens.length ? [{ targetId, suite, metric: "input_tokens", value: average(inputTokens), direction: "lower" as const, source: "writer-bench:provider-usage" }] : []),
+      ...(latency.length ? [{ targetId, suite, metric: "latency_ms", value: average(latency), direction: "lower" as const, source: "writer-bench:provider-usage" }] : []),
+    ]
+  })
+  return [...checks, ...operational]
+}
+
+function metadataNumber(record: RunRecord, key: string) {
+  const trace = record.response?.metadata?.contextTrace
+  if (!trace || typeof trace !== "object" || Array.isArray(trace)) return []
+  const value = (trace as Record<string, unknown>)[key]
+  return typeof value === "number" ? [value] : []
+}
+
+function average(values: number[]) {
+  return values.length ? values.reduce((total, value) => total + value, 0) / values.length : 0
+}
+
+function unique(values: string[]) {
+  return [...new Set(values)]
 }
 
 const BunCompat = {

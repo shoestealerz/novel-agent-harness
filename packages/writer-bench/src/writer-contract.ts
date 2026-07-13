@@ -27,6 +27,10 @@ const requirements = {
 } satisfies Record<ExecutionTask["job"], string[]>
 
 export function renderWriterContract(task: ExecutionTask, version: 1 | 2 = 1) {
+  const taskAwarePacket = task.context?.some((item) => {
+    const roles = item.metadata?.contextRoles
+    return Array.isArray(roles) && roles.some((role) => ["focus", "dependency", "preservation"].includes(String(role)))
+  })
   return JSON.stringify({
     contractVersion: version,
     job: task.job,
@@ -37,6 +41,9 @@ export function renderWriterContract(task: ExecutionTask, version: 1 | 2 = 1) {
       filesystemDiscovery: "forbidden",
       unsupportedClaims: "mark unresolved or omit",
       citations: "use exact supplied passage references",
+      ...(taskAwarePacket ? {
+        selectedPacket: "Every focus, dependency, and preservation passage was deliberately selected. Account for each with evidence or explicitly state why it does not apply.",
+      } : {}),
     },
     requirements: requirements[task.job],
     responseSchema: {

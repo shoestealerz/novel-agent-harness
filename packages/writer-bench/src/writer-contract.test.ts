@@ -76,3 +76,11 @@ test("v0.1 requires finding statements and exact-literal receipts", () => {
   assert.match(result.answer, /The bell rang\./)
   assert.deepEqual(result.artifacts.data?.preservation, ["The bell rang."])
 })
+
+test("task-aware packets require accounting for every selected passage", () => {
+  const contract = JSON.parse(renderWriterContract({
+    ...task,
+    context: [{ ref: "p1", text: "Relevant evidence.", metadata: { contextRoles: ["dependency"] } }],
+  }, 2))
+  assert.match(contract.contextPolicy.selectedPacket, /Account for each/)
+})

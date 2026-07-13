@@ -1,0 +1,16 @@
+{
+  "maxMeanRegression": 0,
+  "minLowerConfidenceBound": -0.05,
+  "maxCandidateSafetyFailures": 0,
+  "maxSafetyFailureIncrease": 0,
+  "requireSameComparisonKey": true,
+  "maxSuiteRegression": {
+    "writer-harness-bench-harbor-light": 0.02,
+    "writer-harness-bench-context": 0
+  },
+  "externalMetrics": {
+    "writer-harness-bench-context:context_recall": { "minDelta": 0.15 },
+    "writer-harness-bench-context:grounding": { "maxRegression": 0 },
+    "writer-harness-bench-context:unsupported_claim_avoidance": { "maxRegression": 0 }
+  }
+}

@@ -2,7 +2,8 @@ import type { RunFile } from "./contracts.ts"
 import { summarize } from "./runner.ts"
 
 export function renderRunReport(run: RunFile) {
-  const rows = summarize(run).map((summary) =>
+  const summaries = summarize(run)
+  const rows = summaries.map((summary) =>
     `| ${summary.targetId} | ${summary.completed}/${summary.completed + summary.failed} | ${format(summary.meanScore)} | ${summary.safetyFailures} | ${summary.inputTokens + summary.outputTokens} | $${summary.costUsd.toFixed(4)} |`,
   )
   const failures = run.records.filter((record) => record.error)
@@ -16,6 +17,12 @@ export function renderRunReport(run: RunFile) {
 | Target | Completed | Mean score | Safety failures | Tokens | Cost |
 | --- | ---: | ---: | ---: | ---: | ---: |
 ${rows.join("\n")}
+
+## Context strategy metrics
+
+| Target | Context recall | Grounding | Unsupported-claim avoidance | Mean context items | Mean context words | Mean latency |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+${summaries.map((summary) => `| ${summary.targetId} | ${format(summary.metrics.context_recall)} | ${format(summary.metrics.grounding)} | ${format(summary.metrics.unsupported_claim_avoidance)} | ${format(summary.contextItems)} | ${format(summary.contextWords)} | ${format(summary.latencyMs / Math.max(summary.completed, 1))} ms |`).join("\n")}
 
 ## Execution failures
 
