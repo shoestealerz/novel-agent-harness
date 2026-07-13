@@ -103,6 +103,10 @@ Each mechanism must beat the Phase 6 baselines on its intended metrics without v
 
 Current experiment: Writer Task Contract v0 versus unstructured raw-model and stock-OpenCode prompting.
 
+Writer Task Contract v0 one-trial result: 36/36 executions completed. The writer contract scored **0.8681**, compared with **0.7847** for raw DeepSeek and **0.6215** for stock OpenCode. It recorded no task-level losses, but four deterministic safety failures prevent graduation. Three are exact hidden-identifier mismatches despite correct semantic content; the fourth requires an exact preservation literal in the human-readable response as well as the structured artifact. See `packages/writer-bench/experiments/writer-contract-v0/RESULTS.md`.
+
+Next experiment: Writer Task Contract v0.1 will expose stable public artifact identifiers (or remove private label identity from semantic scoring), strengthen exact-literal preservation receipts, and rerun the three-way comparison. Do not hard-code hidden gold identifiers. Run the full three-trial matrix only after the smoke comparison clears deterministic safety gates.
+
 ## Later phases
 
 ### Phase 8: Public writing harness MVP
@@ -128,3 +132,4 @@ Build the private UI only after the harness protocol stabilizes: agent chat, man
 - PR #5: real model and stock-OpenCode targets; merged.
 - PR #6: roadmap and baseline protocol; merged.
 - PR #7: DeepSeek baseline configuration and smoke results; merged.
+- PR #8: official three-trial DeepSeek baseline; merged.
