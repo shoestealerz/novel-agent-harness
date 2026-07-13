@@ -49,3 +49,24 @@ test("drops edits for read-only work", () => {
   }))
   assert.deepEqual(result.artifacts.edits, [])
 })
+
+test("v0.1 requires finding statements and exact-literal receipts", () => {
+  const contract = renderWriterContract(task, 2)
+  assert.match(contract, /complete human-readable claim/)
+  assert.match(contract, /quote it verbatim in both answer and data\.preservation/)
+
+  const result = parseWriterContract(task, JSON.stringify({
+    answer: "Proposal",
+    findings: [
+      { id: "missing-statement", evidence: ["ch01:p001"] },
+      { id: "fact:bell", statement: "The bell rang.", evidence: ["ch01:p001"] },
+    ],
+    edits: [],
+  }), 2)
+  assert.deepEqual(result.artifacts.findings, [{
+    id: "fact:bell",
+    statement: "The bell rang.",
+    evidence: ["ch01:p001"],
+    confidence: undefined,
+  }])
+})

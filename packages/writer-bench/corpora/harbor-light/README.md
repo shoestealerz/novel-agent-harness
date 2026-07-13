@@ -11,6 +11,8 @@ The pilot validates:
 - deterministic evidence and proposal-scope checks;
 - validation that every gold/task reference resolves to the manuscript.
 
+Version 0.2.0 replaces private exact-ID recall with hidden semantic checks over human-readable finding statements, measures revision length on edit replacements rather than surrounding explanation, and corrects overly narrow option-format matching. Exact identifiers remain appropriate only when a real application supplies them as part of a public interoperability contract.
+
 ## Canon policy
 
 Manuscript prose is authoritative for what appears on the page. `intentions.jsonl` is authoritative for off-page author intent and deliberate exceptions. Other gold files are evidence-linked annotations used for evaluation; they are not text the candidate system may silently add to the story.

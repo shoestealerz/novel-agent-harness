@@ -1,8 +1,8 @@
 # Harbor Light DeepSeek experiments
 
-Status: **Phase 6 baseline complete; Writer Task Contract v0 experiment ready**.
+Status: **Phase 6 baseline and Writer Task Contract v0 complete; v0.1 ready**.
 
-This experiment compares the same model through direct prompting and stock OpenCode. It does not evaluate a writer-specific harness yet.
+These experiments compare the same model through direct prompting, stock OpenCode, and isolated writer-specific mechanisms.
 
 ## Readiness
 
@@ -56,6 +56,16 @@ Run the first Phase 7 experiment with:
 ```
 
 This runs 36 paid executions: raw DeepSeek, stock OpenCode, and Writer Task Contract v0 across all 12 tasks. It generates comparisons against both baselines. The writer target changes only the task contract and structured response adapter; it does not add retrieval, memory, critic agents, or OpenCode core changes.
+
+## Writer Task Contract v0.1
+
+Run the corrected contract and Harbor Light 0.2.0 benchmark with:
+
+```powershell
+.\baseline\run-deepseek.ps1 -Experiment writer-contract-v01 -Trials 1
+```
+
+v0.1 gives each structured finding a human-readable statement, scores finding meaning without requiring the model to guess hidden gold identifiers, checks exact preservation literals in both the answer and structured receipt, measures revision length on the proposed replacement text, and accepts common numbered-option headings. Any task/schema correction creates a new benchmark version, so all three targets rerun on Harbor Light 0.2.0.
 
 ## Configure another provider
 

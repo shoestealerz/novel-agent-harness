@@ -25,9 +25,9 @@ const requirements = {
   translate: ["Preserve meaning, voice, uncertainty, and named constraints."],
 } satisfies Record<ExecutionTask["job"], string[]>
 
-export function renderWriterContract(task: ExecutionTask) {
+export function renderWriterContract(task: ExecutionTask, version: 1 | 2 = 1) {
   return JSON.stringify({
-    contractVersion: 1,
+    contractVersion: version,
     job: task.job,
     request: task.prompt,
     authority: task.authority ?? "read",
@@ -41,7 +41,9 @@ export function renderWriterContract(task: ExecutionTask) {
     responseSchema: {
       answer: "reader-facing string",
       evidence: ["exact passage reference"],
-      findings: [{ id: "stable semantic ID", evidence: ["exact passage reference"], confidence: "number 0..1" }],
+      findings: version === 2
+        ? [{ id: "stable local ID", statement: "complete human-readable claim", evidence: ["exact passage reference"], confidence: "number 0..1" }]
+        : [{ id: "stable semantic ID", evidence: ["exact passage reference"], confidence: "number 0..1" }],
       edits: [{ target: "exact passage reference", replacement: "complete replacement text" }],
       data: {
         observations: ["string"],
@@ -54,13 +56,14 @@ export function renderWriterContract(task: ExecutionTask) {
       "Return one JSON object and no prose outside it.",
       "Use empty arrays when a field does not apply.",
       "Do not cite or edit references absent from context.",
+      ...(version === 2 ? ["When the author supplies an exact literal to preserve, quote it verbatim in both answer and data.preservation."] : []),
       task.authority === "propose" ? "Proposals are immutable and uncommitted." : "Edits must be empty because authority is read-only.",
     ],
     context: task.context ?? [],
   })
 }
 
-export function parseWriterContract(task: ExecutionTask, value: string) {
+export function parseWriterContract(task: ExecutionTask, value: string, version: 1 | 2 = 1) {
   const input = parseJsonText(value)
   const answer = requireString(input.answer, "writer contract answer")
   const refs = new Set(task.context?.map((item) => item.ref) ?? [])
@@ -69,7 +72,7 @@ export function parseWriterContract(task: ExecutionTask, value: string) {
     ...citedEvidence(task, answer),
   ])
   const findings = Array.isArray(input.findings)
-    ? input.findings.map((finding) => parseFinding(finding, refs)).filter((finding): finding is Finding => finding !== undefined)
+    ? input.findings.map((finding) => parseFinding(finding, refs, version)).filter((finding): finding is Finding => finding !== undefined)
     : []
   const edits = task.authority === "propose" && task.job === "revise"
     ? parseEdits(task, input.edits, refs)
@@ -80,12 +83,14 @@ export function parseWriterContract(task: ExecutionTask, value: string) {
   return { answer, artifacts: { evidence, findings, edits, data } satisfies ExecutionArtifacts }
 }
 
-function parseFinding(value: unknown, refs: Set<string>): Finding | undefined {
+function parseFinding(value: unknown, refs: Set<string>, version: 1 | 2): Finding | undefined {
   if (!value || typeof value !== "object" || Array.isArray(value)) return
   const input = value as Record<string, unknown>
   if (typeof input.id !== "string" || !input.id) return
+  if (version === 2 && (typeof input.statement !== "string" || !input.statement.trim())) return
   return {
     id: input.id,
+    ...(typeof input.statement === "string" ? { statement: input.statement } : {}),
     evidence: unique(strings(input.evidence).filter((ref) => refs.has(ref))),
     confidence: typeof input.confidence === "number" && input.confidence >= 0 && input.confidence <= 1
       ? input.confidence

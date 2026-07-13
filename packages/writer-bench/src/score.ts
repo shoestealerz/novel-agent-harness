@@ -1,4 +1,4 @@
-import type { Check, ComponentScore, ExecutionResponse, JudgeResponse, Task } from "./contracts.ts"
+import type { Check, ComponentScore, ExecutionResponse, Finding, JudgeResponse, Task } from "./contracts.ts"
 
 export function scoreResponse(task: Task, response: ExecutionResponse, judgment?: JudgeResponse) {
   const components = (task.checks ?? []).map((check) => scoreCheck(check, response))
@@ -41,11 +41,29 @@ function checkValue(check: Check, response: ExecutionResponse) {
     const count = response.text.trim() ? response.text.trim().split(/\s+/).length : 0
     return (check.min === undefined || count >= check.min) && (check.max === undefined || count <= check.max) ? 1 : 0
   }
+  if (check.kind === "edit_word_count") {
+    const edits = response.artifacts?.edits ?? []
+    if (!edits.length || edits.some((edit) => typeof edit.replacement !== "string" || !edit.replacement.trim())) return 0
+    return edits.every((edit) => {
+      const count = edit.replacement!.trim().split(/\s+/).length
+      return (check.min === undefined || count >= check.min) && (check.max === undefined || count <= check.max)
+    }) ? 1 : 0
+  }
+  if (check.kind === "artifact_contains") return JSON.stringify(response.artifacts ?? {}).includes(check.value) ? 1 : 0
   if (check.kind === "finding_recall") {
     const actual = new Set(response.artifacts?.findings?.map((finding) => finding.id) ?? [])
     const expected = check.expected.length ? check.expected.filter((id) => actual.has(id)).length / check.expected.length : 1
     const forbidden = check.forbidden?.some((id) => actual.has(id)) ? 0 : 1
     return (expected + forbidden) / 2
+  }
+  if (check.kind === "finding_content") {
+    const findings = response.artifacts?.findings ?? []
+    const required = check.required.length
+      ? check.required.filter((pattern) => findings.some((finding) => matchesFinding(finding, pattern))).length / check.required.length
+      : 1
+    if (!check.forbidden?.length) return required
+    const forbidden = check.forbidden.some((pattern) => findings.some((finding) => matchesFinding(finding, pattern))) ? 0 : 1
+    return (required + forbidden) / 2
   }
   if (check.kind === "evidence") {
     const actual = new Set([
@@ -59,4 +77,9 @@ function checkValue(check: Check, response: ExecutionResponse) {
   }
   const edits = response.artifacts?.edits ?? []
   return edits.length > 0 && edits.every((edit) => check.allowed.includes(edit.target)) ? 1 : 0
+}
+
+function matchesFinding(finding: Finding, pattern: { all: string[]; flags?: string }) {
+  const content = `${finding.id}\n${finding.statement ?? ""}`
+  return pattern.all.every((source) => new RegExp(source, pattern.flags ?? "i").test(content))
 }
