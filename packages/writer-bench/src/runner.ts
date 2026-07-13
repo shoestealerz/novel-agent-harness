@@ -13,12 +13,19 @@ export async function runBenchmark(input: {
   targets: TargetFile
   trials: number
   out: string
+  resume?: RunFile
 }) {
+  validateResume(input)
   const runId = `${new Date().toISOString().replaceAll(/[:.]/g, "-")}-${randomUUID().slice(0, 8)}`
   const records: RunRecord[] = []
   for (const target of input.targets.systems) {
     for (const task of input.tasks) {
       for (let trial = 0; trial < input.trials; trial++) {
+        const previous = input.resume?.records.find((record) => record.targetId === target.id && record.task.id === task.id && record.trial === trial)
+        if (previous?.response && !previous.error) {
+          records.push({ task, targetId: target.id, trial, response: previous.response, ...scoreResponse(task, previous.response) })
+          continue
+        }
         const executionTask = publicTask(task)
         const request: ExecutionRequest = { protocolVersion, kind: "execute", runId, trial, task: executionTask }
         const started = performance.now()
@@ -57,12 +64,34 @@ export async function runBenchmark(input: {
     judge: input.targets.judge ? { ...input.targets.judge, env: undefined } : undefined,
     trials: input.trials,
     records,
+    resumedFromRunId: input.resume?.runId,
   }
   await writeJson(join(input.out, "run.json"), run)
   await writeJsonl(join(input.out, "records.jsonl"), records)
   await writeJson(join(input.out, "summary.json"), summarize(run))
   await BunCompat.writeText(join(input.out, "report.md"), renderRunReport(run))
   return run
+}
+
+function validateResume(input: {
+  tasks: Task[]
+  targets: TargetFile
+  trials: number
+  resume?: RunFile
+}) {
+  if (!input.resume) return
+  if (input.targets.judge || input.resume.judge) throw new Error("resume is not supported for judged runs")
+  if (input.resume.trials !== input.trials) throw new Error("resume trials must match the requested trials")
+  for (const target of input.targets.systems) {
+    const previous = input.resume.targets.find((item) => item.id === target.id)
+    if (!previous || previous.comparisonKey !== target.comparisonKey || previous.baseModel !== target.baseModel) {
+      throw new Error(`resume target mismatch: ${target.id}`)
+    }
+  }
+  for (const task of input.tasks) {
+    const previous = input.resume.records.find((record) => record.task.id === task.id)
+    if (!previous || previous.task.suiteVersion !== task.suiteVersion) throw new Error(`resume task mismatch: ${task.id}`)
+  }
 }
 
 function publicTask(task: Task): ExecutionTask {

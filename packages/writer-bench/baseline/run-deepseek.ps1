@@ -1,7 +1,7 @@
 param(
   [ValidateRange(1, 5)]
   [int]$Trials = 1,
-  [ValidateSet("baseline", "writer-contract")]
+  [ValidateSet("baseline", "writer-contract", "writer-contract-v01")]
   [string]$Experiment = "baseline"
 )
 
@@ -52,10 +52,22 @@ $env:OPENCODE_CONFIG_CONTENT = '{"permission":{"external_directory":"deny","ques
 $env:OPENCODE_EXPERIMENTAL_OUTPUT_TOKEN_MAX = "4096"
 
 $Timestamp = Get-Date -Format "yyyyMMdd-HHmmss"
-$IsWriterContract = $Experiment -eq "writer-contract"
-$TargetFile = if ($IsWriterContract) { "baseline/targets.writer-contract.json" } else { "baseline/targets.deepseek.json" }
-$Candidate = if ($IsWriterContract) { "writer-contract-v0" } else { "stock-opencode" }
-$RunName = if ($IsWriterContract) { "writer-contract-v0" } else { "deepseek-baseline" }
+$IsWriterContract = $Experiment -ne "baseline"
+$TargetFile = switch ($Experiment) {
+  "writer-contract" { "baseline/targets.writer-contract.json" }
+  "writer-contract-v01" { "baseline/targets.writer-contract-v01.json" }
+  default { "baseline/targets.deepseek.json" }
+}
+$Candidate = switch ($Experiment) {
+  "writer-contract" { "writer-contract-v0" }
+  "writer-contract-v01" { "writer-contract-v01" }
+  default { "stock-opencode" }
+}
+$RunName = switch ($Experiment) {
+  "writer-contract" { "writer-contract-v0" }
+  "writer-contract-v01" { "writer-contract-v01" }
+  default { "deepseek-baseline" }
+}
 $RunDirectory = Join-Path $PackageRoot ".results\$RunName-$Timestamp"
 $RawComparisonDirectory = "$RunDirectory-vs-raw"
 $StockComparisonDirectory = "$RunDirectory-vs-stock"
@@ -88,7 +100,7 @@ try {
     & $Bun src/cli.ts compare `
       --run (Join-Path $RunDirectory "run.json") `
       --baseline stock-opencode `
-      --candidate writer-contract-v0 `
+      --candidate $Candidate `
       --gates baseline/gates.json `
       --out $StockComparisonDirectory
     $StockComparisonPassed = $LASTEXITCODE -eq 0

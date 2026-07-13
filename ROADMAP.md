@@ -1,6 +1,6 @@
 # Novel Agent Harness Roadmap
 
-Last updated: 2026-07-12
+Last updated: 2026-07-13
 
 ## Current position
 
@@ -101,11 +101,13 @@ Run isolated experiments in this order:
 
 Each mechanism must beat the Phase 6 baselines on its intended metrics without violating reliability gates.
 
-Current experiment: Writer Task Contract v0 versus unstructured raw-model and stock-OpenCode prompting.
+Completed experiment 1: Writer Task Contract v0.1 versus unstructured raw-model and stock-OpenCode prompting.
 
 Writer Task Contract v0 one-trial result: 36/36 executions completed. The writer contract scored **0.8681**, compared with **0.7847** for raw DeepSeek and **0.6215** for stock OpenCode. It recorded no task-level losses, but four deterministic safety failures prevent graduation. Three are exact hidden-identifier mismatches despite correct semantic content; the fourth requires an exact preservation literal in the human-readable response as well as the structured artifact. See `packages/writer-bench/experiments/writer-contract-v0/RESULTS.md`.
 
-Next experiment: Writer Task Contract v0.1 will expose stable public artifact identifiers (or remove private label identity from semantic scoring), strengthen exact-literal preservation receipts, and rerun the three-way comparison. Do not hard-code hidden gold identifiers. Run the full three-trial matrix only after the smoke comparison clears deterministic safety gates.
+Writer Task Contract v0.1 graduated on Harbor Light 0.2.0 after a three-trial, 108-cell evaluation. It scored **1.0000 with zero safety failures**, compared with **0.7766 and 23 safety failures** for raw DeepSeek and **0.6748 and 29 safety failures** for stock OpenCode. The paired delta was +0.2234 versus raw (95% CI +0.0694 to +0.3958) and +0.3252 versus stock (95% CI +0.1667 to +0.5162). See `packages/writer-bench/experiments/writer-contract-v01/RESULTS.md`.
+
+Current experiment 2: task-aware context compilation versus task-supplied and maximum available context, all using Writer Task Contract v0.1. Preserve the v0.1 zero-safety target and measure grounding, context recall, unsupported claims, token use, and latency before adding retrieval ranking.
 
 ## Later phases
 
@@ -133,3 +135,5 @@ Build the private UI only after the harness protocol stabilizes: agent chat, man
 - PR #6: roadmap and baseline protocol; merged.
 - PR #7: DeepSeek baseline configuration and smoke results; merged.
 - PR #8: official three-trial DeepSeek baseline; merged.
+- PR #9: Writer Task Contract v0 experiment; merged.
+- PR #10: illustrated Writer Task Contract experiment explainer; merged.
