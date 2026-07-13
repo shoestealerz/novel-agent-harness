@@ -1,4 +1,4 @@
-import type { Check, ComponentScore, ExecutionResponse, Finding, JudgeResponse, Task } from "./contracts.ts"
+import type { Check, ComponentScore, ExecutionResponse, JudgeResponse, Task } from "./contracts.ts"
 
 export function scoreResponse(task: Task, response: ExecutionResponse, judgment?: JudgeResponse) {
   const components = (task.checks ?? []).map((check) => scoreCheck(check, response))
@@ -57,12 +57,15 @@ function checkValue(check: Check, response: ExecutionResponse) {
     return (expected + forbidden) / 2
   }
   if (check.kind === "finding_content") {
-    const findings = response.artifacts?.findings ?? []
+    const content = JSON.stringify({
+      findings: response.artifacts?.findings ?? [],
+      data: response.artifacts?.data ?? {},
+    })
     const required = check.required.length
-      ? check.required.filter((pattern) => findings.some((finding) => matchesFinding(finding, pattern))).length / check.required.length
+      ? check.required.filter((pattern) => matchesContent(content, pattern)).length / check.required.length
       : 1
     if (!check.forbidden?.length) return required
-    const forbidden = check.forbidden.some((pattern) => findings.some((finding) => matchesFinding(finding, pattern))) ? 0 : 1
+    const forbidden = check.forbidden.some((pattern) => matchesContent(content, pattern)) ? 0 : 1
     return (required + forbidden) / 2
   }
   if (check.kind === "evidence") {
@@ -79,7 +82,6 @@ function checkValue(check: Check, response: ExecutionResponse) {
   return edits.length > 0 && edits.every((edit) => check.allowed.includes(edit.target)) ? 1 : 0
 }
 
-function matchesFinding(finding: Finding, pattern: { all: string[]; flags?: string }) {
-  const content = `${finding.id}\n${finding.statement ?? ""}`
+function matchesContent(content: string, pattern: { all: string[]; flags?: string }) {
   return pattern.all.every((source) => new RegExp(source, pattern.flags ?? "i").test(content))
 }

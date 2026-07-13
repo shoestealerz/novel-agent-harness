@@ -95,6 +95,28 @@ test("scores finding meaning without requiring a private identifier", () => {
   assert.equal(scoreResponse(task, response).score, 1)
 })
 
+test("scores semantic content across the complete structured artifact", () => {
+  const task: Task = {
+    id: "task",
+    suite: "suite",
+    suiteVersion: "1",
+    source: "native",
+    job: "diagnose",
+    prompt: "diagnose",
+    checks: [{ id: "error", kind: "finding_content", required: [{ all: ["key", "safe", "tunnel"] }] }],
+  }
+  const response: ExecutionResponse = {
+    protocolVersion,
+    taskId: "task",
+    text: "A contradiction exists.",
+    artifacts: {
+      findings: [{ id: "error:key", statement: "The key's possession conflicts.", evidence: ["p1", "p2"] }],
+      data: { observations: ["It remains in the safe.", "She carries it into the tunnel."] },
+    },
+  }
+  assert.equal(scoreResponse(task, response).score, 1)
+})
+
 test("scores exact literals in structured preservation receipts", () => {
   const task: Task = {
     id: "task",
