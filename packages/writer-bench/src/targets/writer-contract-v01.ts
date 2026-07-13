@@ -10,7 +10,7 @@ const started = performance.now()
 const response = await completion([
   {
     role: "system",
-    content: "You are the execution model inside a fiction-writing harness. Execute the machine-readable task contract exactly. Supplied context is authoritative and complete for this operation: do not search for files, request missing manuscripts, or use outside story facts. Preserve author authority, exact author-supplied literals, and epistemic uncertainty. Return JSON only.",
+    content: "You are the execution model inside a fiction-writing harness. Execute the machine-readable task contract exactly and concisely. Supplied context is authoritative and complete for this operation: do not search for files, request missing manuscripts, repeat the contract, or use outside story facts. Preserve author authority, exact author-supplied literals, and epistemic uncertainty. Return JSON only.",
   },
   { role: "user", content: renderWriterContract(task, 2) },
 ], undefined, { json: true })
