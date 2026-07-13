@@ -1,6 +1,8 @@
 param(
   [ValidateRange(1, 5)]
-  [int]$Trials = 1
+  [int]$Trials = 1,
+  [ValidateSet("baseline", "writer-contract")]
+  [string]$Experiment = "baseline"
 )
 
 $ErrorActionPreference = "Stop"
@@ -50,8 +52,13 @@ $env:OPENCODE_CONFIG_CONTENT = '{"permission":{"external_directory":"deny","ques
 $env:OPENCODE_EXPERIMENTAL_OUTPUT_TOKEN_MAX = "4096"
 
 $Timestamp = Get-Date -Format "yyyyMMdd-HHmmss"
-$RunDirectory = Join-Path $PackageRoot ".results\deepseek-baseline-$Timestamp"
-$ComparisonDirectory = "$RunDirectory-comparison"
+$IsWriterContract = $Experiment -eq "writer-contract"
+$TargetFile = if ($IsWriterContract) { "baseline/targets.writer-contract.json" } else { "baseline/targets.deepseek.json" }
+$Candidate = if ($IsWriterContract) { "writer-contract-v0" } else { "stock-opencode" }
+$RunName = if ($IsWriterContract) { "writer-contract-v0" } else { "deepseek-baseline" }
+$RunDirectory = Join-Path $PackageRoot ".results\$RunName-$Timestamp"
+$RawComparisonDirectory = "$RunDirectory-vs-raw"
+$StockComparisonDirectory = "$RunDirectory-vs-stock"
 $OpenCodeWorkspaceRoot = Join-Path ([IO.Path]::GetTempPath()) "writer-bench-opencode"
 $OpenCodeDirectory = Join-Path $OpenCodeWorkspaceRoot $Timestamp
 New-Item -ItemType Directory -Path $OpenCodeDirectory -Force | Out-Null
@@ -64,7 +71,7 @@ try {
 
   & $Bun src/cli.ts run `
     --suite corpora/harbor-light/tasks/pilot.jsonl `
-    --targets baseline/targets.deepseek.json `
+    --targets $TargetFile `
     --out $RunDirectory `
     --trials $Trials
   if ($LASTEXITCODE -ne 0) { throw "One or more benchmark executions failed. Review $RunDirectory." }
@@ -72,14 +79,26 @@ try {
   & $Bun src/cli.ts compare `
     --run (Join-Path $RunDirectory "run.json") `
     --baseline raw-model `
-    --candidate stock-opencode `
+    --candidate $Candidate `
     --gates baseline/gates.json `
-    --out $ComparisonDirectory
+    --out $RawComparisonDirectory
+  $RawComparisonPassed = $LASTEXITCODE -eq 0
+
+  if ($IsWriterContract) {
+    & $Bun src/cli.ts compare `
+      --run (Join-Path $RunDirectory "run.json") `
+      --baseline stock-opencode `
+      --candidate writer-contract-v0 `
+      --gates baseline/gates.json `
+      --out $StockComparisonDirectory
+    $StockComparisonPassed = $LASTEXITCODE -eq 0
+  }
 
   Write-Host "Run: $RunDirectory"
-  Write-Host "Comparison: $ComparisonDirectory"
-  if ($LASTEXITCODE -ne 0) {
-    Write-Warning "The comparison did not pass all gates. That is a valid baseline result; inspect comparison.md."
+  Write-Host "Raw comparison: $RawComparisonDirectory"
+  if ($IsWriterContract) { Write-Host "Stock comparison: $StockComparisonDirectory" }
+  if (-not $RawComparisonPassed -or ($IsWriterContract -and -not $StockComparisonPassed)) {
+    Write-Warning "At least one comparison did not pass all gates. Inspect the generated comparison reports."
   }
 }
 finally {
