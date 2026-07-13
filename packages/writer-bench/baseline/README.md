@@ -67,6 +67,12 @@ Run the corrected contract and Harbor Light 0.2.0 benchmark with:
 
 v0.1 gives each structured finding a human-readable statement, scores finding meaning without requiring the model to guess hidden gold identifiers, checks exact preservation literals in both the answer and structured receipt, measures revision length on the proposed replacement text, and accepts common numbered-option headings. It requests the provider's JSON-output mode, retains deterministic extraction for fenced or trailing text, and makes one bounded same-settings recovery attempt for empty or token-truncated JSON while accounting for both calls. Any task/schema correction creates a new benchmark version, so all three targets rerun on Harbor Light 0.2.0.
 
+Interrupted or partially failed unjudged runs can resume only their failed cells while rescoring retained responses against the current checks:
+
+```powershell
+bun src/cli.ts run --suite corpora/harbor-light/tasks/pilot.jsonl --targets baseline/targets.writer-contract-v01.json --out .results/resumed --trials 1 --resume .results/previous/run.json
+```
+
 ## Configure another provider
 
 Copy `../fixtures/targets.real.example.json` to `targets.local.json`, which is ignored by Git. Replace every placeholder. Both systems must use the same `comparisonKey`.

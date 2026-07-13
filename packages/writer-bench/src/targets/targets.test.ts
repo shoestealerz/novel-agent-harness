@@ -59,3 +59,23 @@ test("retries incomplete JSON once and accounts for both calls", async () => {
     globalThis.fetch = originalFetch
   }
 })
+
+test("retries syntactically invalid JSON when a validator rejects it", async () => {
+  const originalFetch = globalThis.fetch
+  const responses = [
+    { choices: [{ finish_reason: "stop", message: { content: '{"answer": number}' } }], usage: { prompt_tokens: 2, completion_tokens: 3 } },
+    { choices: [{ finish_reason: "stop", message: { content: '{"answer":"ok"}' } }], usage: { prompt_tokens: 4, completion_tokens: 2 } },
+  ]
+  globalThis.fetch = (async () => new Response(JSON.stringify(responses.shift()), { status: 200 })) as typeof fetch
+  try {
+    const result = await completion([{ role: "system", content: "Return JSON." }], "model", {
+      json: true,
+      retryIncomplete: true,
+      validate: (text) => parseJsonText(text),
+    })
+    assert.equal(result.text, '{"answer":"ok"}')
+    assert.deepEqual(result.usage, { inputTokens: 6, outputTokens: 5 })
+  } finally {
+    globalThis.fetch = originalFetch
+  }
+})

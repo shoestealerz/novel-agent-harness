@@ -27,7 +27,8 @@ async function run() {
   const out = resolve(required(args, "out"))
   const tasks = (await Promise.all(suites.map((path) => readJsonl(resolve(path))))).flat().map(parseTask)
   const targets = parseTargetFile(await readJson(resolve(targetPath)))
-  const result = await runBenchmark({ tasks, suiteFiles: suites, targets, trials: number(args, "trials", 1), out })
+  const resume = args.get("resume") ? (await readJson(resolve(required(args, "resume")))) as RunFile : undefined
+  const result = await runBenchmark({ tasks, suiteFiles: suites, targets, trials: number(args, "trials", 1), out, resume })
   console.log(join(out, "report.md"))
   if (result.records.some((record) => record.error)) process.exitCode = 2
 }
@@ -129,7 +130,7 @@ function optionalNumber(input: Map<string, string[]>, key: string) {
 function usage(code: number): never {
   console.error(`writer-bench
 
-  run --suite tasks.jsonl [--suite more.jsonl] --targets targets.json --out results [--trials 3]
+  run --suite tasks.jsonl [--suite more.jsonl] --targets targets.json --out results [--trials 3] [--resume previous/run.json]
   compare --run results/run.json --baseline raw --candidate harness --gates gates.json --out comparison
   import writingbench --source benchmark_all.jsonl --out writing.jsonl [--domain "Literature & Art"] [--language en]
   import constory --source prompts.jsonl --out constory.jsonl [--language en]

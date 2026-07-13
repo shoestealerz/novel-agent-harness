@@ -4,7 +4,7 @@ import { requiredEnvironment } from "./shared.ts"
 export async function completion(
   messages: Array<{ role: string; content: string }>,
   model = requiredEnvironment("WRITER_BENCH_MODEL"),
-  options: { json?: boolean; retryIncomplete?: boolean } = {},
+  options: { json?: boolean; retryIncomplete?: boolean; validate?: (text: string) => void } = {},
 ) {
   const base = (process.env.WRITER_BENCH_BASE_URL ?? "https://api.openai.com/v1").replace(/\/$/, "")
   const headers = new Headers({ "content-type": "application/json" })
@@ -43,8 +43,14 @@ export async function completion(
     const content = typeof message.content === "string" ? message.content : ""
     const incomplete = options.json && (first.finish_reason === "length" || !content.trim())
     if (incomplete && attempt + 1 < attempts) continue
-    if (first.finish_reason === "length") throw new Error("JSON completion reached the output-token limit after recovery")
+    if (options.json && first.finish_reason === "length") throw new Error("JSON completion reached the output-token limit after recovery")
     if (!content.trim()) throw new Error("chat completion did not return text content after recovery")
+    try {
+      options.validate?.(content)
+    } catch (error) {
+      if (attempt + 1 < attempts) continue
+      throw error
+    }
     return { text: content, usage }
   }
   throw new Error("chat completion recovery exhausted")
