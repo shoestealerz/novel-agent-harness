@@ -13,6 +13,7 @@ export type ContextSpec = {
   focusRefs: string[]
   dependencyRefs?: string[]
   preservationRefs?: string[]
+  preservationLiterals?: { ref: string; text: string }[]
   excludeRefs?: string[]
   throughRef?: string
 }

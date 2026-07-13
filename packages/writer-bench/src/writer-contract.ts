@@ -43,6 +43,7 @@ export function renderWriterContract(task: ExecutionTask, version: 1 | 2 = 1) {
       citations: "use exact supplied passage references",
       ...(taskAwarePacket ? {
         selectedPacket: "Every focus, dependency, and preservation passage was deliberately selected. Account for each with evidence or explicitly state why it does not apply.",
+        exactPreservationLiterals: task.contextSpec?.preservationLiterals ?? [],
       } : {}),
     },
     requirements: requirements[task.job],
@@ -76,7 +77,9 @@ export function renderWriterContract(task: ExecutionTask, version: 1 | 2 = 1) {
 
 export function parseWriterContract(task: ExecutionTask, value: string, version: 1 | 2 = 1) {
   const input = parseJsonText(value)
-  const literals = version === 2 ? exactPreservationLiterals(task.prompt) : []
+  const literals = version === 2
+    ? unique([...exactPreservationLiterals(task.prompt), ...(task.contextSpec?.preservationLiterals?.map((literal) => literal.text) ?? [])])
+    : []
   const answer = appendPreservationReceipt(requireString(input.answer, "writer contract answer"), literals)
   const refs = new Set(task.context?.map((item) => item.ref) ?? [])
   const evidence = unique([

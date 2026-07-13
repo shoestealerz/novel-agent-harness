@@ -40,7 +40,7 @@ export function compileContext(task: ExecutionTask, catalog: ContextItem[], stra
   const selectedRefs = new Set(selected.map((item) => item.ref))
   const suppliedRefs = task.context?.map((item) => item.ref) ?? []
   return {
-    task: { ...task, context: selected },
+    task: { ...task, context: selected, contextSpec: strategy === "task-aware" ? task.contextSpec : undefined },
     trace: {
       strategy,
       suppliedRefs,
@@ -74,6 +74,14 @@ function taskAwareContext(task: ExecutionTask, catalog: ContextItem[]) {
   const requested = [...roles.keys()]
   const unknown = requested.filter((ref) => !catalogByRef.has(ref))
   if (unknown.length) throw new Error(`context specification references missing passages: ${unknown.join(", ")}`)
+  task.contextSpec.preservationLiterals?.forEach((literal) => {
+    if (!task.contextSpec?.preservationRefs?.includes(literal.ref)) {
+      throw new Error(`exact preservation literal must reference a preservation passage: ${literal.ref}`)
+    }
+    if (!catalogByRef.get(literal.ref)?.text.includes(literal.text)) {
+      throw new Error(`exact preservation literal is absent from ${literal.ref}`)
+    }
+  })
   const through = task.contextSpec.throughRef ? referenceOrder(task.contextSpec.throughRef) : undefined
   const excluded = new Set(task.contextSpec.excludeRefs ?? [])
   const selectedRefs = new Set(requested.filter((ref) => !excluded.has(ref) && (through === undefined || referenceOrder(ref) <= through)))

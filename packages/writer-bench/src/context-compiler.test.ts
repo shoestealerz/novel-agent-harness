@@ -16,9 +16,10 @@ test("maximum context includes every manuscript passage", () => {
 })
 
 test("supplied context remains byte-for-byte unchanged", () => {
-  const input = task()
+  const input = { ...task(), contextSpec: { focusRefs: ["ch01:p001"] } }
   const result = compileContext(input, catalog, "supplied")
   assert.deepEqual(result.task.context, input.context)
+  assert.equal(result.task.contextSpec, undefined)
   assert.equal(result.trace.contextItems, 1)
 })
 
@@ -57,6 +58,17 @@ test("task-aware context rejects unknown declared references", () => {
     ...task(),
     contextSpec: { focusRefs: ["ch99:p999"] },
   }, catalog, "task-aware"), /missing passages/)
+})
+
+test("task-aware context validates exact preservation literals against their passage", () => {
+  assert.throws(() => compileContext({
+    ...task(),
+    contextSpec: {
+      focusRefs: ["ch01:p001"],
+      preservationRefs: ["ch01:p002"],
+      preservationLiterals: [{ ref: "ch01:p002", text: "missing words" }],
+    },
+  }, catalog, "task-aware"), /absent from ch01:p002/)
 })
 
 function task(): ExecutionTask {

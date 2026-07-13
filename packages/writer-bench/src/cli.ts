@@ -40,6 +40,7 @@ async function run() {
     targets,
     trials: number(args, "trials", 1),
     concurrency: number(args, "concurrency", 1),
+    rerunCells: values(args, "rerun-cell"),
     out,
     resume,
   })
@@ -144,7 +145,7 @@ function optionalNumber(input: Map<string, string[]>, key: string) {
 function usage(code: number): never {
   console.error(`writer-bench
 
-  run --suite tasks.jsonl [--suite more.jsonl] --targets targets.json --out results [--trials 3] [--concurrency 3] [--task id] [--target id] [--resume previous/run.json]
+  run --suite tasks.jsonl [--suite more.jsonl] --targets targets.json --out results [--trials 3] [--concurrency 3] [--task id] [--target id] [--resume previous/run.json] [--rerun-cell target:task]
   compare --run results/run.json --baseline raw --candidate harness --gates gates.json --out comparison
   import writingbench --source benchmark_all.jsonl --out writing.jsonl [--domain "Literature & Art"] [--language en]
   import constory --source prompts.jsonl --out constory.jsonl [--language en]

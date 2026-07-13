@@ -84,3 +84,18 @@ test("task-aware packets require accounting for every selected passage", () => {
   }, 2))
   assert.match(contract.contextPolicy.selectedPacket, /Account for each/)
 })
+
+test("task-aware exact preservation literals receive deterministic receipts", () => {
+  const exactTask = {
+    ...task,
+    contextSpec: {
+      focusRefs: ["ch01:p001"],
+      preservationRefs: ["ch01:p002"],
+      preservationLiterals: [{ ref: "ch01:p002", text: "She waited." }],
+    },
+    context: task.context!.map((item) => ({ ...item, metadata: { contextRoles: ["preservation"] } })),
+  }
+  const result = parseWriterContract(exactTask, JSON.stringify({ answer: "Proposal", edits: [], data: {} }), 2)
+  assert.match(result.answer, /She waited\./)
+  assert.deepEqual(result.artifacts.data?.preservation, ["She waited."])
+})

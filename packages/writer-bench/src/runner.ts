@@ -13,6 +13,7 @@ export async function runBenchmark(input: {
   targets: TargetFile
   trials: number
   concurrency?: number
+  rerunCells?: string[]
   out: string
   resume?: RunFile
 }) {
@@ -43,13 +44,14 @@ export async function runBenchmark(input: {
 }
 
 async function executeCell(
-  input: { targets: TargetFile; resume?: RunFile },
+  input: { targets: TargetFile; resume?: RunFile; rerunCells?: string[] },
   runId: string,
   cell: { target: Target; task: Task; trial: number },
 ) {
   const previous = input.resume?.records.find((record) =>
     record.targetId === cell.target.id && record.task.id === cell.task.id && record.trial === cell.trial)
-  if (previous?.response && !previous.error) {
+  const rerun = input.rerunCells?.includes(`${cell.target.id}:${cell.task.id}`)
+  if (previous?.response && !previous.error && !rerun) {
     return { task: cell.task, targetId: cell.target.id, trial: cell.trial, response: previous.response, ...scoreResponse(cell.task, previous.response) }
   }
   const executionTask = publicTask(cell.task)
@@ -99,11 +101,19 @@ function validateResume(input: {
   targets: TargetFile
   trials: number
   concurrency?: number
+  rerunCells?: string[]
   resume?: RunFile
 }) {
   if (input.concurrency !== undefined && (!Number.isInteger(input.concurrency) || input.concurrency < 1)) {
     throw new Error("concurrency must be a positive integer")
   }
+  if (input.rerunCells?.length && !input.resume) throw new Error("rerun-cell requires --resume")
+  input.rerunCells?.forEach((cell) => {
+    const [targetId, taskId, extra] = cell.split(":")
+    if (!targetId || !taskId || extra || !input.targets.systems.some((target) => target.id === targetId) || !input.tasks.some((task) => task.id === taskId)) {
+      throw new Error(`rerun-cell must identify a configured target and task: ${cell}`)
+    }
+  })
   if (!input.resume) return
   if (input.targets.judge || input.resume.judge) throw new Error("resume is not supported for judged runs")
   if (input.resume.trials !== input.trials) throw new Error("resume trials must match the requested trials")
@@ -192,10 +202,12 @@ function nativeMetrics(records: RunRecord[]) {
     const matching = records.filter((record) => record.targetId === targetId && record.task.suite === suite)
     const contextWords = matching.flatMap((record) => metadataNumber(record, "contextWords"))
     const inputTokens = matching.flatMap((record) => typeof record.response?.usage?.inputTokens === "number" ? [record.response.usage.inputTokens] : [])
+    const outputTokens = matching.flatMap((record) => typeof record.response?.usage?.outputTokens === "number" ? [record.response.usage.outputTokens] : [])
     const latency = matching.flatMap((record) => typeof record.response?.usage?.latencyMs === "number" ? [record.response.usage.latencyMs] : [])
     return [
       ...(contextWords.length ? [{ targetId, suite, metric: "context_words", value: average(contextWords), direction: "lower" as const, source: "writer-bench:context-trace" }] : []),
       ...(inputTokens.length ? [{ targetId, suite, metric: "input_tokens", value: average(inputTokens), direction: "lower" as const, source: "writer-bench:provider-usage" }] : []),
+      ...(outputTokens.length ? [{ targetId, suite, metric: "output_tokens", value: average(outputTokens), direction: "lower" as const, source: "writer-bench:provider-usage" }] : []),
       ...(latency.length ? [{ targetId, suite, metric: "latency_ms", value: average(latency), direction: "lower" as const, source: "writer-bench:provider-usage" }] : []),
     ]
   })
