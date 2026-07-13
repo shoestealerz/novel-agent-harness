@@ -4,7 +4,7 @@ Last updated: 2026-07-12
 
 ## Current position
 
-The project is in **Phase 6: establish real baselines**.
+The project is in **Phase 7: writer-specific experiments**.
 
 ```text
 Research and architecture                   complete
@@ -12,8 +12,8 @@ OpenCode runtime audit                      complete
 Benchmark runner and regression gates       complete
 Pilot fiction corpus and gold annotations   complete
 Raw-model and stock-OpenCode adapters        complete
-Real raw-model vs stock-OpenCode baseline    active
-Writer-specific experiments                 not started
+Real raw-model vs stock-OpenCode baseline    complete
+Writer-specific experiments                 active
 Public writing harness MVP                  not started
 Production benchmark expansion              not started
 Private web application                     deferred
@@ -54,7 +54,7 @@ Created `Harbor Light`, a synthetic CC0 pilot containing 2,527 words, 32 stable 
 
 Implemented an OpenAI-compatible direct-model adapter and a stock OpenCode non-interactive adapter. Isolated hidden evaluation material from both targets.
 
-## Active phase
+## Completed Phase 6
 
 ### Phase 6: Establish real baselines
 
@@ -84,9 +84,9 @@ Exit criteria:
 4. Manual review confirms that intentional exceptions are scored correctly.
 5. Variance and cost are understood well enough to set production thresholds.
 
-Current status: DeepSeek V4 Pro and OpenCode 1.17.18 are configured. A one-trial smoke baseline completed 24/24 executions and exposed a significant stock-OpenCode regression. The full three-trial run, independent review, and production gate calibration remain before Phase 6 exits. See `packages/writer-bench/baseline/RESULTS.md`.
+Result: 72/72 executions completed. Raw DeepSeek scored 0.7361 and stock OpenCode scored 0.6620, a -0.0741 paired delta with a 95% bootstrap interval of -0.1481 to -0.0069. Stock OpenCode increased safety failures from 19 to 27. The failed gates define the lower bound and concrete requirements for Phase 7. See `packages/writer-bench/baseline/RESULTS.md`.
 
-## Next phases
+## Active phase
 
 ### Phase 7: Writer-specific experiments
 
@@ -100,6 +100,10 @@ Run isolated experiments in this order:
 6. deterministic validation versus optional critic agents.
 
 Each mechanism must beat the Phase 6 baselines on its intended metrics without violating reliability gates.
+
+Current experiment: Writer Task Contract v0 versus unstructured raw-model and stock-OpenCode prompting.
+
+## Later phases
 
 ### Phase 8: Public writing harness MVP
 
@@ -123,4 +127,4 @@ Build the private UI only after the harness protocol stabilizes: agent chat, man
 - PR #4: Harbor Light pilot corpus; merged.
 - PR #5: real model and stock-OpenCode targets; merged.
 - PR #6: roadmap and baseline protocol; merged.
-- PR #7: DeepSeek baseline configuration and smoke results; in progress.
+- PR #7: DeepSeek baseline configuration and smoke results; merged.
