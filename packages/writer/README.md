@@ -32,6 +32,12 @@ The marker, rather than a paragraph's position or current wording, is its durabl
 
 `loadWriterWorkspace()` validates the manifest, prevents chapter paths from escaping the workspace, rejects duplicate or mismatched references, preserves exact passage text, and records a SHA-256 precondition for every passage.
 
+## Context and proposal boundary
+
+`compileContext()` builds a controlled packet from explicit focus, dependency, preservation, exclusion, and through-point declarations. Temporal order comes from the manifest and chapter source order, so references do not need numeric names. It validates every declared reference and exact preservation literal before model inference.
+
+`sealEditProposal()` accepts model-proposed replacement text but constructs the authoritative envelope in trusted harness code. The content-addressed envelope binds edits to source hashes, allowed targets, preservation receipts, and an explicitly uncommitted authority state. It never writes manuscript files.
+
 ## Boundary
 
 This package owns writer semantics. OpenCode continues to own sessions, model access, tools, permissions, events, persistence, and snapshots. Benchmark-only checks and hidden evaluation data remain in `@novel-agent-harness/bench`.

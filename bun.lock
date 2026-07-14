@@ -1070,6 +1070,9 @@
       "bin": {
         "writer-bench": "./src/cli.ts",
       },
+      "dependencies": {
+        "@novel-agent-harness/writer": "workspace:*",
+      },
       "devDependencies": {
         "@huggingface/transformers": "catalog:",
         "@tsconfig/node22": "catalog:",
