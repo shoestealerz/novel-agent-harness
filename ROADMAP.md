@@ -4,7 +4,7 @@ Last updated: 2026-07-14
 
 ## Current position
 
-The project has completed **Phase 7: writer-specific experiments** and is ready for **Phase 8: public writing harness MVP**.
+The project has completed **Phase 7: writer-specific experiments** and started **Phase 8: public writing harness MVP**.
 
 ```text
 Research and architecture                   complete
@@ -14,7 +14,7 @@ Pilot fiction corpus and gold annotations   complete
 Raw-model and stock-OpenCode adapters        complete
 Real raw-model vs stock-OpenCode baseline    complete
 Writer-specific experiments                 complete
-Public writing harness MVP                  next
+Public writing harness MVP                  active
 Production benchmark expansion              not started
 Private web application                     deferred
 ```
@@ -130,6 +130,8 @@ Completed experiment 7: integrated harness evaluation. Across 108 completed cell
 Build an embedded writer runtime around OpenCode with writer-owned contracts, narrative tools, story-state service, Git-backed novel workspaces, proposal review, and commit receipts.
 
 Initial supported jobs: Explain, Diagnose, Plan, and scoped Revise.
+
+First implementation slice: `packages/writer` defines the public writer-core package, Git-friendly `novel.json` manifest, explicit stable passage markers, path containment, and SHA-256 passage preconditions. Next, move the graduated context compiler and proposal sealer out of benchmark-only code and bind them to this workspace model.
 
 ### Phase 9: Production benchmark expansion
 
