@@ -17,6 +17,7 @@
     "baseline:doctor": "node --experimental-strip-types src/baseline-doctor.ts"
   },
   "devDependencies": {
+    "@huggingface/transformers": "catalog:",
     "@types/node": "catalog:",
     "@tsconfig/node22": "catalog:",
     "@typescript/native-preview": "catalog:"

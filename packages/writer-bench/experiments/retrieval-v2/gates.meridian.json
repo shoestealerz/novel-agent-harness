@@ -1,0 +1,9 @@
+{
+  "requireSameComparisonKey": true,
+  "externalMetrics": {
+    "writer-harness-bench-retrieval-heldout:retrieval_recall": { "minDelta": 0.1 },
+    "writer-harness-bench-retrieval-heldout:retrieval_precision": { "maxRegression": 0 },
+    "writer-harness-bench-retrieval-heldout:retrieval_temporal_safety": { "maxRegression": 0 },
+    "writer-harness-bench-retrieval-heldout:retrieval_items": { "maxRegression": 0 }
+  }
+}

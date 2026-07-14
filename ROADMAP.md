@@ -113,7 +113,7 @@ Completed development experiment 3A: retrieval into the graduated context compil
 
 Experiment 3B failed held-out graduation on Quiet Meridian. The frozen candidate achieved **0.6875 recall, 0.5496 precision, and 1.0000 temporal safety**, versus 0.5972, 0.4538, and 0.2500 for lexical retrieval. Across 72 DeepSeek cells, its downstream score was 0.7467 versus 0.7371, but safety failures increased from 21 to 26 and unsupported-claim avoidance fell from 1.0000 to 0.9048. The preregistered deterministic and downstream comparisons failed. Temporal filtering is retained as a mandatory invariant; the semantic retriever does not graduate. See `packages/writer-bench/experiments/retrieval-heldout/RESULTS.md`.
 
-Current experiment 3C: retrieval v2. Develop entity/relation indexing, query decomposition, hybrid semantic candidate generation, and coverage-aware selection against Harbor Light and Quiet Meridian while retaining the validated temporal cutoff. Evaluate once against a new sealed corpus. Experiment 4 remains blocked until retrieval graduates.
+Experiment 3C development is complete. Retrieval v2 adds query decomposition, entity/relation evidence, coverage-aware selection, and optional local semantic embeddings while retaining the validated temporal cutoff. On Harbor Light it improved recall from 0.9524 to 1.0000 and precision from 0.7024 to 0.7381. On Quiet Meridian it improved recall from 0.6875 to 0.8111 and precision from 0.5496 to 0.6399. Temporal safety remained 1.0000. The design is frozen for evaluation on a new sealed corpus; these development results do not graduate retrieval. See `packages/writer-bench/experiments/retrieval-v2/RESULTS.md`.
 
 ## Later phases
 
@@ -145,3 +145,5 @@ Build the private UI only after the harness protocol stabilizes: agent chat, man
 - PR #10: illustrated Writer Task Contract experiment explainer; merged.
 - PR #11: corrected Writer Task Contract v0.1 and official three-trial result; merged.
 - PR #12: task-aware context compiler and official three-trial result; merged.
+- PR #13: retrieval development experiment; open.
+- PR #14: preregistered Quiet Meridian held-out failure; open.
