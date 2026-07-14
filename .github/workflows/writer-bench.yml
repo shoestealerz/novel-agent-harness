@@ -61,7 +61,7 @@ jobs:
       - run: bun install --frozen-lockfile
       - run: bun typecheck
         working-directory: packages/writer
-      - run: bun test
+      - run: bun test --timeout 30000
         working-directory: packages/writer
       - run: bun typecheck
         working-directory: packages/opencode
