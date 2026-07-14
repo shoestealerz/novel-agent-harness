@@ -9,3 +9,5 @@ powershell -ExecutionPolicy Bypass -File .\experiments\integrated-harness\run.ps
 ```
 
 See [PREREGISTRATION.md](PREREGISTRATION.md) for the fixed inclusion list and gates.
+
+The completed three-trial result is recorded in [RESULTS.md](RESULTS.md).
