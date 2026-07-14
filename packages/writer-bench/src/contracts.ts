@@ -37,6 +37,8 @@ export type CheckMetric =
   | "proposal_authority"
   | "memory_recall"
   | "memory_safety"
+  | "critic_recall"
+  | "critic_precision"
 
 export type Check = {
   id: string
@@ -55,6 +57,8 @@ export type Check = {
   | { kind: "evidence"; required: string[]; allowed?: string[] }
   | { kind: "edit_scope"; allowed: string[] }
   | { kind: "proposal"; requirement: "valid" | "preconditions" | "preservation" | "uncommitted" }
+  | { kind: "no_edits" }
+  | { kind: "max_findings"; max: number }
 )
 
 export type Criterion = {

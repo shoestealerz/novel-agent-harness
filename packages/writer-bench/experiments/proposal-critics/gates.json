@@ -1,0 +1,12 @@
+{
+  "minMeanDelta": 0.35,
+  "minLowerConfidenceBound": 0.2,
+  "maxCandidateSafetyFailures": 0,
+  "requireSameComparisonKey": true,
+  "externalMetrics": {
+    "writer-harness-bench-critics:critic_recall": { "minDelta": 0.75 },
+    "writer-harness-bench-critics:critic_precision": { "maxRegression": 0 },
+    "writer-harness-bench-critics:grounding": { "minDelta": 0.75 },
+    "writer-harness-bench-critics:output_tokens": { "maxRegression": 1000 }
+  }
+}
