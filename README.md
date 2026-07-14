@@ -12,6 +12,7 @@ The project is currently building its public harness core. The private web appli
 - task-aware context packets with explicit focus, dependency, preservation, exclusion, and temporal boundaries
 - immutable, content-addressed edit proposals with source preconditions and preservation receipts
 - persisted proposal artifacts and stale-safe review diffs
+- typed, evidence-linked story state with immutable state-change proposals and temporal read filtering
 - Writer Harness Bench for deterministic reliability gates, paired comparisons, confidence intervals, cost/latency reporting, and optional qualitative judging
 - synthetic fiction corpora for development and sealed held-out evaluation
 
@@ -64,4 +65,4 @@ The repository history begins with that source snapshot as a single baseline com
 
 ## Status
 
-Phase 7 experiments are complete. Phase 8—the public writing-harness MVP—is active. The next runtime boundary is an author-confirmed commit operation that rechecks proposal hashes and records a Git-backed receipt before mutating manuscript text.
+Phase 7 experiments are complete. Phase 8—the public writing-harness MVP—is active. The next product slice is a usable CLI/headless workflow that connects workspace setup, Writer sessions, proposal review, explicit author confirmation, and commit receipts.

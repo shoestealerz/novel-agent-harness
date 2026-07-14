@@ -37,7 +37,13 @@ describe("WriterSession", () => {
     expect(input.format.type).toBe("json_schema")
     expect(input.parts[0]?.text).toContain("ch01:p001")
     expect(input.system).toContain("fiction-writing harness")
-    expect(input.tools).toEqual({ novel_list: false, novel_read: false, novel_context: false, novel_proposal: false })
+    expect(input.tools).toEqual({
+      novel_list: false,
+      novel_read: false,
+      novel_context: false,
+      novel_proposal: false,
+      novel_state: false,
+    })
   })
 
   test("seals and persists a structured revision response", async () => {

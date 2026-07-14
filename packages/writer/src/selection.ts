@@ -9,10 +9,11 @@ export type WriterContextSelection = WriterContextSpec & {
 
 export const writerSelectionSystemPrompt = [
   "Select manuscript context for a fiction-writing task before execution.",
-  "Use only the novel_list, novel_read, and novel_context tools to inspect the Git-backed novel.",
+  "Use only novel_list, novel_read, novel_context, and the read-only novel_state tool to inspect the Git-backed novel.",
   "Return stable passage references, not prose answers or edits.",
   "Choose the smallest packet that covers the focus, causal dependencies, and explicit preservation constraints.",
   "Set throughRef whenever the request has a story-time, chapter, scene, or character-knowledge boundary; never select later passages beyond it.",
+  "Use novel_state with the same throughRef to locate typed facts, events, relationships, and character knowledge, then select their cited manuscript evidence.",
   "Do not use novel_proposal unless the author asks about an existing proposal.",
 ].join(" ")
 

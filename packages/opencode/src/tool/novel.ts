@@ -1,8 +1,10 @@
 import {
   compileContext,
   loadEditProposal,
+  loadStoryState,
   loadWriterWorkspace,
   renderProposalDiff,
+  type StoryRecord,
   type WriterContextItem,
   type WriterWorkspace,
 } from "@novel-agent-harness/writer"
@@ -30,6 +32,15 @@ const ContextParameters = Schema.Struct({
 })
 const ProposalParameters = Schema.Struct({
   proposalId: Schema.String.annotate({ description: "The proposal's sha256: content address" }),
+})
+const StateParameters = Schema.Struct({
+  ids: Schema.optional(References).annotate({ description: "Optional exact story record IDs" }),
+  kinds: Schema.optional(
+    Schema.mutable(Schema.Array(Schema.Literals(["entity", "fact", "event", "knowledge", "relationship"]))),
+  ).annotate({ description: "Optional story record kinds" }),
+  throughRef: Schema.optional(Schema.String).annotate({
+    description: "Optional inclusive temporal boundary; state evidenced later is never returned",
+  }),
 })
 
 export const NovelListTool = Tool.define(
@@ -147,6 +158,54 @@ export const NovelProposalTool = Tool.define(
   }),
 )
 
+export const NovelStateTool = Tool.define(
+  "novel_state",
+  Effect.succeed({
+    description:
+      "Read typed, evidence-linked story state such as characters, facts, events, character knowledge, and relationships. This tool cannot change canon. Use throughRef to prevent later-story knowledge from leaking into an earlier scene.",
+    parameters: StateParameters,
+    execute: (params: Schema.Schema.Type<typeof StateParameters>, ctx: Tool.Context) =>
+      Effect.gen(function* () {
+        yield* ctx.ask({
+          permission: "novel_state",
+          patterns: params.ids?.length ? [...params.ids] : ["*"],
+          always: ["*"],
+          metadata: {},
+        })
+        const workspace = yield* writerWorkspace()
+        const loaded = yield* Effect.promise(() => loadStoryState(workspace.root))
+        const boundary = params.throughRef ? passageIndex(workspace, params.throughRef) : undefined
+        const ids = new Set(params.ids ?? [])
+        const kinds = new Set(params.kinds ?? [])
+        const records = loaded.state.records.filter(
+          (record) =>
+            (!ids.size || ids.has(record.id)) &&
+            (!kinds.size || kinds.has(record.kind)) &&
+            (boundary === undefined || recordRefs(record).every((ref) => passageIndex(workspace, ref) <= boundary)),
+        )
+        return {
+          title: `Read ${records.length} story-state records`,
+          output: JSON.stringify(
+            {
+              formatVersion: loaded.state.formatVersion,
+              sha256: loaded.sha256,
+              exists: loaded.exists,
+              records,
+              temporalBoundary: params.throughRef,
+            },
+            null,
+            2,
+          ),
+          metadata: {
+            stateSha256: loaded.sha256,
+            records: records.length,
+            excluded: loaded.state.records.length - records.length,
+          },
+        }
+      }).pipe(Effect.orDie),
+  }),
+)
+
 function writerWorkspace() {
   return Effect.gen(function* () {
     const instance = yield* InstanceState.context
@@ -163,4 +222,17 @@ function contextCatalog(workspace: WriterWorkspace): WriterContextItem[] {
       metadata: { chapterId: passage.chapterId, path: passage.path, sha256: passage.sha256 },
     })),
   )
+}
+
+function passageIndex(workspace: WriterWorkspace, ref: string) {
+  const index = [...workspace.passages.keys()].indexOf(ref)
+  if (index < 0) throw new Error(`unknown passage ref: ${ref}`)
+  return index
+}
+
+function recordRefs(record: StoryRecord) {
+  const refs = [...record.evidence]
+  if (record.kind === "event" || record.kind === "relationship") refs.push(record.atRef)
+  if (record.kind === "knowledge") refs.push(record.afterRef)
+  return [...new Set(refs)]
 }

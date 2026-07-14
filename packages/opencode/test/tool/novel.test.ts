@@ -1,10 +1,11 @@
 import { afterEach, describe, expect } from "bun:test"
+import { mkdir } from "node:fs/promises"
 import path from "path"
 import { Effect } from "effect"
 import { LayerNode } from "@opencode-ai/core/effect/layer-node"
 import { Agent } from "@/agent/agent"
 import { MessageID, SessionID } from "@/session/schema"
-import { NovelContextTool, NovelListTool, NovelProposalTool, NovelReadTool } from "@/tool/novel"
+import { NovelContextTool, NovelListTool, NovelProposalTool, NovelReadTool, NovelStateTool } from "@/tool/novel"
 import { Tool } from "@/tool/tool"
 import { Truncate } from "@/tool/truncate"
 import { createWriterTask, parseWriterResult, saveEditProposal } from "@novel-agent-harness/writer"
@@ -99,6 +100,52 @@ describe("novel tools", () => {
       const review = yield* provideInstance(test.directory)(tool.execute({ proposalId: proposal.id }, context))
       expect(review.output).toContain("diff --novel")
       expect(review.output).not.toMatch(/approve|commit/i)
+    }),
+  )
+
+  it.instance("reads typed story state without leaking records beyond a temporal boundary", () =>
+    Effect.gen(function* () {
+      const test = yield* TestInstance
+      yield* writeWorkspace(test.directory)
+      yield* Effect.promise(async () => {
+        await mkdir(path.join(test.directory, ".novel-agent"), { recursive: true })
+        await Bun.write(
+          path.join(test.directory, ".novel-agent", "story-state.json"),
+          JSON.stringify({
+            formatVersion: 1,
+            records: [
+              {
+                kind: "entity",
+                id: "entity:mara",
+                entityType: "character",
+                name: "Mara",
+                aliases: [],
+                evidence: ["ch01:p002"],
+              },
+              {
+                kind: "knowledge",
+                id: "knowledge:mara-knows-door",
+                character: "entity:mara",
+                claim: "The door opens at dawn.",
+                state: "knows",
+                afterRef: "ch01:p003",
+                evidence: ["ch01:p003"],
+              },
+            ],
+          }),
+        )
+      })
+      const info = yield* NovelStateTool
+      const tool = yield* info.init()
+      const bounded = yield* provideInstance(test.directory)(
+        tool.execute({ kinds: ["entity", "knowledge"], throughRef: "ch01:p002" }, context),
+      )
+      const boundedOutput = JSON.parse(bounded.output)
+      expect(boundedOutput.records.map((record: { id: string }) => record.id)).toEqual(["entity:mara"])
+      expect(bounded.metadata.excluded).toBe(1)
+
+      const full = yield* provideInstance(test.directory)(tool.execute({ ids: ["knowledge:mara-knows-door"] }, context))
+      expect(JSON.parse(full.output).records[0].claim).toBe("The door opens at dawn.")
     }),
   )
 })

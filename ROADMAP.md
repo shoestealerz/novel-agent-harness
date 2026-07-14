@@ -133,7 +133,9 @@ Initial supported jobs: Explain, Diagnose, Plan, and scoped Revise.
 
 Completed implementation slices: `packages/writer` now defines the public writer-core package, Git-friendly `novel.json` manifest, explicit stable passage markers, path containment, SHA-256 passage preconditions, the graduated controlled-context compiler, immutable proposal sealing, content-addressed proposal persistence, stale-safe review diffs, and an author-confirmed commit transaction with fresh contextual hash checks, exact Git staging, rollback before `HEAD` advances, and content-addressed Git-backed receipts. The production Writer Task Contract routes Explain, Diagnose, Plan, and scoped Revise, derives least authority from the job, validates structured evidence and edit scope, and seals valid revisions. OpenCode's Writer session adapter runs that contract through its existing session and structured-output services and persists valid proposals. Read-only narrative tools list structure, read stable passages, compile temporally bounded context, and review saved proposals. Unscoped requests use an isolated child session for structured context selection; only the trusted compiler's filtered packet enters the author-facing execution session, where narrative tools are disabled. Writer Harness Bench imports the production context and proposal implementations instead of maintaining experimental copies.
 
-Next, add the minimal typed, evidence-linked story-state service for characters, facts, events, chronology, and character knowledge. Story-state updates must remain validated proposals; confirmation and commit authority stay host-owned and unavailable to the model tool loop.
+The minimal story-state layer now stores typed characters, objects, locations, organizations, concepts, facts, events, character knowledge, and relationships. Every record cites stable manuscript evidence, cross-record and temporal references are validated, and uncertainty remains explicit. State changes are immutable, content-addressed proposals with base hashes and stale-safe review diffs; there is deliberately no model-facing state mutation tool. The read-only `novel_state` tool supports exact type/ID filters and excludes records evidenced after a requested temporal boundary.
+
+Next, connect the runtime into a usable CLI/headless workflow: initialize a novel workspace, run the four Writer jobs, inspect manuscript and story-state proposals, request explicit author confirmation, and return commit receipts without exposing commit authority to the model loop.
 
 ### Phase 9: Production benchmark expansion
 
@@ -172,3 +174,4 @@ Build the private UI only after the harness protocol stabilizes: agent chat, man
 - PR #25: repository owner maintainer registration; merged.
 - PR #26: author-confirmed proposal commits and Git-backed receipts; merged.
 - PR #27: production Writer Task Contract and OpenCode session adapter; merged.
+- PR #28: read-only narrative tools and isolated model-assisted context selection; merged.

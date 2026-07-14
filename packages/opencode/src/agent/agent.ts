@@ -317,6 +317,7 @@ const layer = Layer.effect(
               novel_read: "allow",
               novel_context: "allow",
               novel_proposal: "allow",
+              novel_state: "allow",
             }),
           )
         }

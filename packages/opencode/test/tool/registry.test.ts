@@ -118,6 +118,7 @@ describe("tool.registry", () => {
       expect(ids).toContain("novel_read")
       expect(ids).toContain("novel_context")
       expect(ids).toContain("novel_proposal")
+      expect(ids).toContain("novel_state")
       expect(ids).not.toContain("novel_commit")
       expect(ids).not.toContain("novel_confirm")
     }),
