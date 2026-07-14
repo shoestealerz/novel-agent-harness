@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto"
-import { readFile, realpath } from "node:fs/promises"
+import { link, readFile, realpath, rename, rm, stat, writeFile } from "node:fs/promises"
 import { isAbsolute, relative, resolve } from "node:path"
 
 export const writerWorkspaceFormatVersion = 1 as const
@@ -42,9 +42,19 @@ export type WriterWorkspace = {
   passages: ReadonlyMap<string, WriterPassage>
 }
 
+export type BootstrapWriterWorkspaceInput = {
+  title: string
+  chapters: ChapterManifest[]
+}
+
+export type BootstrapWriterWorkspaceResult = {
+  workspace: WriterWorkspace
+  chapters: { id: string; path: string; addedMarker: boolean }[]
+}
+
 const idPattern = /^[a-z][a-z0-9_-]*$/
 const markerPattern =
-  /^[\t ]*<!--\s*novel-agent:passage\s+([a-z][a-z0-9_-]*):([a-z][a-z0-9_-]*)\s*-->[\t ]*(?:\r?\n|$)/gm
+  /^(?:\uFEFF)?[\t ]*<!--\s*novel-agent:passage\s+([a-z][a-z0-9_-]*):([a-z][a-z0-9_-]*)\s*-->[\t ]*(?:\r?\n|$)/gm
 
 export async function loadWriterWorkspace(root: string, manifestName = "novel.json"): Promise<WriterWorkspace> {
   const workspaceRoot = await realpath(resolve(root))
@@ -72,6 +82,76 @@ export async function loadWriterWorkspace(root: string, manifestName = "novel.js
   }
 
   return { root: workspaceRoot, manifestPath, manifest, chapters, passages }
+}
+
+export async function bootstrapWriterWorkspace(
+  root: string,
+  input: BootstrapWriterWorkspaceInput,
+): Promise<BootstrapWriterWorkspaceResult> {
+  const workspaceRoot = await realpath(resolve(root))
+  const manifestPath = resolve(workspaceRoot, "novel.json")
+  ensureContained(workspaceRoot, manifestPath, "novel.json", "manifest")
+  const existing = await readFile(manifestPath, "utf8").catch((error: unknown) => {
+    if (isMissing(error)) return undefined
+    throw error
+  })
+  if (existing !== undefined) throw new Error("novel.json already exists; refusing to overwrite the workspace")
+  const manifest = parseWriterWorkspaceManifest({
+    formatVersion: writerWorkspaceFormatVersion,
+    title: input.title,
+    chapters: input.chapters,
+  })
+  const ids = new Set<string>()
+  const paths = new Set<string>()
+  const planned: { id: string; path: string; absolutePath: string; before: string; after: string }[] = []
+  const summary: BootstrapWriterWorkspaceResult["chapters"] = []
+  for (const chapter of manifest.chapters) {
+    if (ids.has(chapter.id)) throw new Error(`duplicate chapter id: ${chapter.id}`)
+    ids.add(chapter.id)
+    const absolutePath = await containedPath(workspaceRoot, chapter.path, `chapter ${chapter.id}`)
+    const normalizedPath = relative(workspaceRoot, absolutePath).replaceAll("\\", "/")
+    if (paths.has(normalizedPath)) throw new Error(`duplicate chapter path: ${chapter.path}`)
+    paths.add(normalizedPath)
+    const before = await readFile(absolutePath, "utf8")
+    if (!before.trim()) throw new Error(`chapter ${chapter.id} is empty`)
+    const mentionsMarker = before.includes("novel-agent:passage")
+    let after = before
+    if (mentionsMarker) {
+      parseChapterPassages(chapter.id, normalizedPath, before)
+    } else {
+      const newline = before.includes("\r\n") ? "\r\n" : "\n"
+      const bom = before.startsWith("\uFEFF") ? "\uFEFF" : ""
+      const body = bom ? before.slice(1) : before
+      after = `${bom}<!-- novel-agent:passage ${chapter.id}:p0001 -->${newline}${body}`
+      parseChapterPassages(chapter.id, normalizedPath, after)
+      planned.push({ id: chapter.id, path: normalizedPath, absolutePath, before, after })
+    }
+    summary.push({ id: chapter.id, path: normalizedPath, addedMarker: !mentionsMarker })
+  }
+
+  const changed: typeof planned = []
+  let manifestCreated = false
+  try {
+    for (const chapter of planned) {
+      await atomicReplace(chapter.absolutePath, chapter.after)
+      changed.push(chapter)
+    }
+    await atomicCreate(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`)
+    manifestCreated = true
+    const workspace = await loadWriterWorkspace(workspaceRoot)
+    return { workspace, chapters: summary }
+  } catch (error) {
+    const failures: string[] = []
+    if (manifestCreated) await rm(manifestPath, { force: true }).catch((failure) => failures.push(message(failure)))
+    for (const chapter of changed.toReversed()) {
+      await atomicReplace(chapter.absolutePath, chapter.before).catch((failure) => failures.push(message(failure)))
+    }
+    if (failures.length)
+      throw new Error(`workspace bootstrap failed and rollback was incomplete: ${failures.join("; ")}`, {
+        cause: error,
+      })
+    throw error
+  }
 }
 
 export function parseWriterWorkspaceManifest(value: unknown): WriterWorkspaceManifest {
@@ -152,6 +232,34 @@ function ensureContained(root: string, result: string, candidate: string, label:
   if (inside === ".." || inside.startsWith(`..\\`) || inside.startsWith("../") || isAbsolute(inside)) {
     throw new Error(`${label} path escapes the workspace: ${candidate}`)
   }
+}
+
+async function atomicReplace(path: string, value: string) {
+  const temporary = `${path}.${process.pid}.${Date.now()}.tmp`
+  try {
+    await writeFile(temporary, value, { flag: "wx", mode: (await stat(path)).mode })
+    await rename(temporary, path)
+  } finally {
+    await rm(temporary, { force: true })
+  }
+}
+
+async function atomicCreate(path: string, value: string) {
+  const temporary = `${path}.${process.pid}.${Date.now()}.tmp`
+  try {
+    await writeFile(temporary, value, { flag: "wx" })
+    await link(temporary, path)
+  } finally {
+    await rm(temporary, { force: true }).catch(() => undefined)
+  }
+}
+
+function isMissing(error: unknown): error is NodeJS.ErrnoException {
+  return error instanceof Error && "code" in error && error.code === "ENOENT"
+}
+
+function message(error: unknown) {
+  return error instanceof Error ? error.message : String(error)
 }
 
 function object(value: unknown, label: string): Record<string, unknown> {

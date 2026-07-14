@@ -85,6 +85,7 @@ const SUBCOMMANDS = [
   ["github", "run"],
   ["db", "path"],
   ["writer", "run"],
+  ["writer", "init"],
   ["writer", "review"],
   ["writer", "commit"],
   ["writer", "state"],

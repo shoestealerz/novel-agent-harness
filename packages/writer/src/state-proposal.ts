@@ -173,14 +173,19 @@ export async function saveStoryStateProposal(root: string, value: StoryStateProp
 }
 
 export async function loadStoryStateProposal(root: string, id: string) {
+  const path = await storyStateProposalPath(root, id)
+  const proposal = verifyStoryStateProposal(JSON.parse(await readFile(path, "utf8")))
+  if (proposal.id !== id) throw new Error(`story-state proposal content address does not match requested id: ${id}`)
+  return proposal
+}
+
+export async function storyStateProposalPath(root: string, id: string) {
   if (!proposalIdPattern.test(id)) throw new Error("story-state proposal id must be a SHA-256 content address")
   const directory = await proposalDirectory(root, false)
   const lexical = resolve(directory, proposalFileName(id))
   const path = await realpath(lexical)
   ensureContained(directory, path)
-  const proposal = verifyStoryStateProposal(JSON.parse(await readFile(path, "utf8")))
-  if (proposal.id !== id) throw new Error(`story-state proposal content address does not match requested id: ${id}`)
-  return proposal
+  return path
 }
 
 export function renderStoryStateDiff(current: StoryState, value: StoryStateProposal) {
