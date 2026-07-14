@@ -74,13 +74,14 @@ export function sealEditProposal(task: ProposalTask, response: ProposalDraft): E
     ]
   })
   const allowed = new Set(task.contextSpec?.focusRefs ?? [])
+  const uniqueTargets = new Set(edits.map((edit) => edit.target))
   const claimedCommit =
     /\b(?:I (?:have )?(?:committed|applied|saved)|changes? (?:were|have been) (?:committed|applied|saved))\b/i.test(
       response.text,
     )
   const checks = {
     authority: task.job === "revise" && task.authority === "propose",
-    scope: edits.length > 0 && edits.every((edit) => allowed.has(edit.target)),
+    scope: edits.length > 0 && uniqueTargets.size === edits.length && edits.every((edit) => allowed.has(edit.target)),
     preconditions: edits.length > 0 && edits.every((edit) => manuscript.has(edit.target)),
     changed: edits.length > 0 && edits.every((edit) => manuscript.get(edit.target)?.trim() !== edit.replacement.trim()),
     preservation:
@@ -97,10 +98,53 @@ export function sealEditProposal(task: ProposalTask, response: ProposalDraft): E
     preservation,
     validation: { valid: Object.values(checks).every(Boolean), checks },
   }
-  return { ...payload, id: digest(stableJson(payload)) }
+  return { ...payload, id: proposalContentId(payload) }
 }
 
 export const createEditProposal = sealEditProposal
+
+export function verifyEditProposal(value: unknown): EditProposal {
+  const proposal = record(value, "proposal")
+  if (proposal.proposalVersion !== 1) throw new Error("proposal.proposalVersion must be 1")
+  if (proposal.status !== "proposed") throw new Error("proposal.status must be proposed")
+  const id = string(proposal.id, "proposal.id")
+  string(proposal.request, "proposal.request")
+  if (!/^sha256:[a-f0-9]{64}$/.test(id)) throw new Error("proposal.id must be a SHA-256 content address")
+  if (!Array.isArray(proposal.base) || !Array.isArray(proposal.edits) || !Array.isArray(proposal.preservation)) {
+    throw new Error("proposal base, edits, and preservation must be arrays")
+  }
+  proposal.base.forEach((value, index) => sourceBinding(value, `proposal.base[${index}]`))
+  proposal.edits.forEach((value, index) => {
+    const edit = sourceBinding(value, `proposal.edits[${index}]`)
+    string(edit.replacement, `proposal.edits[${index}].replacement`)
+  })
+  proposal.preservation.forEach((value, index) => {
+    const item = sourceBinding(value, `proposal.preservation[${index}]`)
+    if (!Array.isArray(item.literals) || !item.literals.every((literal) => typeof literal === "string")) {
+      throw new Error(`proposal.preservation[${index}].literals must contain strings`)
+    }
+    if (typeof item.receipted !== "boolean") {
+      throw new Error(`proposal.preservation[${index}].receipted must be boolean`)
+    }
+  })
+  const validation = record(proposal.validation, "proposal.validation")
+  const checks = record(validation.checks, "proposal.validation.checks")
+  const names = ["authority", "scope", "preconditions", "changed", "preservation", "uncommitted"] as const
+  for (const name of names) {
+    if (typeof checks[name] !== "boolean") throw new Error(`proposal.validation.checks.${name} must be boolean`)
+  }
+  const valid = names.every((name) => checks[name] === true)
+  if (validation.valid !== valid) throw new Error("proposal.validation.valid does not match its checks")
+  const { id: _storedId, ...payload } = proposal
+  if (proposalContentId(payload as Omit<EditProposal, "id">) !== id) {
+    throw new Error("proposal content address does not match its payload")
+  }
+  return proposal as EditProposal
+}
+
+export function proposalContentId(value: Omit<EditProposal, "id">): `sha256:${string}` {
+  return digest(stableJson(value))
+}
 
 function stableJson(value: unknown): string {
   if (Array.isArray(value)) return `[${value.map(stableJson).join(",")}]`
@@ -111,4 +155,22 @@ function stableJson(value: unknown): string {
       .join(",")}}`
   }
   return JSON.stringify(value)
+}
+
+function sourceBinding(value: unknown, label: string) {
+  const item = record(value, label)
+  string(item.ref ?? item.target, `${label}.${item.ref === undefined ? "target" : "ref"}`)
+  const sha = item.sha256 ?? item.beforeSha256
+  if (typeof sha !== "string" || !/^sha256:[a-f0-9]{64}$/.test(sha)) throw new Error(`${label} requires a SHA-256 hash`)
+  return item
+}
+
+function record(value: unknown, label: string): Record<string, unknown> {
+  if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error(`${label} must be an object`)
+  return value as Record<string, unknown>
+}
+
+function string(value: unknown, label: string) {
+  if (typeof value !== "string" || !value) throw new Error(`${label} must be a non-empty string`)
+  return value
 }
