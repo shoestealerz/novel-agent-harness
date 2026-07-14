@@ -59,6 +59,17 @@ jobs:
         with:
           bun-version: 1.3.14
       - run: bun install --frozen-lockfile
+      - name: Validate production PowerShell launcher
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $errors = $null
+          [System.Management.Automation.Language.Parser]::ParseFile(
+            (Resolve-Path "packages/writer-bench/production/run-deepseek.ps1"),
+            [ref]$null,
+            [ref]$errors
+          ) | Out-Null
+          if ($errors) { throw ($errors | Out-String) }
       - run: bun typecheck
         working-directory: packages/writer
       - run: bun test --timeout 30000
