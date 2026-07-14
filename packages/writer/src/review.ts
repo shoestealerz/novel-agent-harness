@@ -33,14 +33,19 @@ export async function saveEditProposal(root: string, value: EditProposal) {
 }
 
 export async function loadEditProposal(root: string, id: string) {
+  const path = await editProposalPath(root, id)
+  const proposal = verifyEditProposal(JSON.parse(await readFile(path, "utf8")))
+  if (proposal.id !== id) throw new Error(`proposal content address does not match requested id: ${id}`)
+  return proposal
+}
+
+export async function editProposalPath(root: string, id: string) {
   if (!proposalIdPattern.test(id)) throw new Error("proposal id must be a SHA-256 content address")
   const directory = await proposalDirectory(root, false)
   const lexical = resolve(directory, proposalFileName(id))
   const path = await realpath(lexical)
   ensureContained(directory, path)
-  const proposal = verifyEditProposal(JSON.parse(await readFile(path, "utf8")))
-  if (proposal.id !== id) throw new Error(`proposal content address does not match requested id: ${id}`)
-  return proposal
+  return path
 }
 
 export function renderProposalDiff(workspace: WriterWorkspace, value: EditProposal) {

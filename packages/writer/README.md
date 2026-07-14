@@ -40,6 +40,32 @@ The marker, rather than a paragraph's position or current wording, is its durabl
 
 `saveEditProposal()` stores only validated, content-addressed envelopes under `.novel-agent/proposals`. `loadEditProposal()` revalidates the complete content address, and `renderProposalDiff()` refuses stale source hashes before producing a passage-scoped review diff. None of these review operations can apply an edit.
 
+## Author-confirmed commits
+
+`commitEditProposal()` is the only writer-core operation that can change manuscript text. It requires a versioned confirmation that is bound to the exact proposal ID:
+
+```ts
+await commitEditProposal(root, proposal.id, {
+  confirmationVersion: 1,
+  proposalId: proposal.id,
+  decision: "approve",
+  confirmedBy: "author:local-user",
+  confirmedAt: new Date().toISOString(),
+})
+```
+
+The host application must construct this confirmation only after an affirmative author action. It must not expose confirmation construction or `commitEditProposal()` to the model as an autonomous tool.
+
+Before writing, the operation reloads the content-addressed proposal, rejects a previously committed proposal, verifies every contextual, edited, and preserved passage hash, requires the novel workspace to be the root of a clean Git branch, and permits only the saved proposal to be untracked. It then:
+
+1. replaces only the approved passage byte ranges while preserving passage markers;
+2. reloads the workspace and proves that approved replacements changed, unapproved passages did not, and preservation literals remain;
+3. stages only the affected chapters, saved proposal, and a content-addressed receipt;
+4. creates a Git commit with repository hooks disabled so a hook cannot expand the approved file scope;
+5. verifies the resulting Git tree against the exact staged blob IDs.
+
+Receipts live under `.novel-agent/receipts` and bind the proposal, author confirmation, base Git commit, changed passage references, file paths, and before/after hashes. The resulting Git commit ID is returned alongside the receipt. If writing, validation, staging, or Git commit creation fails before `HEAD` advances, writer core restores the original chapter bytes and index state. Once `HEAD` advances it will never rewrite history automatically; any later verification error reports the created commit explicitly.
+
 ## Boundary
 
-This package owns writer semantics. OpenCode continues to own sessions, model access, tools, permissions, events, persistence, and snapshots. Benchmark-only checks and hidden evaluation data remain in `@novel-agent-harness/bench`.
+This package owns writer semantics. OpenCode continues to own sessions, model access, tools, permissions, events, persistence, and snapshots. The trusted host owns author confirmation and may expose proposal review to a model-driven session, but not commit authority. Benchmark-only checks and hidden evaluation data remain in `@novel-agent-harness/bench`.
