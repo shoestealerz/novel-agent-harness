@@ -113,7 +113,9 @@ Completed development experiment 3A: retrieval into the graduated context compil
 
 Experiment 3B failed held-out graduation on Quiet Meridian. The frozen candidate achieved **0.6875 recall, 0.5496 precision, and 1.0000 temporal safety**, versus 0.5972, 0.4538, and 0.2500 for lexical retrieval. Across 72 DeepSeek cells, its downstream score was 0.7467 versus 0.7371, but safety failures increased from 21 to 26 and unsupported-claim avoidance fell from 1.0000 to 0.9048. The preregistered deterministic and downstream comparisons failed. Temporal filtering is retained as a mandatory invariant; the semantic retriever does not graduate. See `packages/writer-bench/experiments/retrieval-heldout/RESULTS.md`.
 
-Experiment 3C development is complete. Retrieval v2 adds query decomposition, entity/relation evidence, coverage-aware selection, and optional local semantic embeddings while retaining the validated temporal cutoff. On Harbor Light it improved recall from 0.9524 to 1.0000 and precision from 0.7024 to 0.7381. On Quiet Meridian it improved recall from 0.6875 to 0.8111 and precision from 0.5496 to 0.6399. Temporal safety remained 1.0000. The design is frozen for evaluation on a new sealed corpus; these development results do not graduate retrieval. See `packages/writer-bench/experiments/retrieval-v2/RESULTS.md`.
+Experiment 3C failed sealed graduation on Glass Orchard. Hybrid v2 improved retrieval recall from 0.6611 to 0.6986 with unchanged 0.6639 precision and 1.0000 temporal safety, but missed the preregistered +0.08 recall gate. Across 72 DeepSeek cells it improved mean score from 0.7391 to 0.7478 and reduced safety failures from 23 to 20; all downstream gates except retrieval recall passed. Coverage-only v2 underperformed v1, while embeddings recovered thematic and mechanism links but unevenly displaced causal evidence. Temporal filtering remains mandatory and hybrid v2 remains experimental. See `packages/writer-bench/experiments/retrieval-v2-sealed/RESULTS.md`.
+
+Current experiment 4: immutable edit proposals. To isolate the proposal mechanism from non-graduated retrieval, use controlled task-aware context and compare free-form revision output with structured, immutable, passage-scoped proposals, preservation receipts, validation, and explicit commit authority. Retrieval tuning is paused until the remaining harness mechanisms provide a stronger integrated system to test.
 
 ## Later phases
 
@@ -147,3 +149,4 @@ Build the private UI only after the harness protocol stabilizes: agent chat, man
 - PR #12: task-aware context compiler and official three-trial result; merged.
 - PR #13: retrieval development experiment; open.
 - PR #14: preregistered Quiet Meridian held-out failure; open.
+- PR #15: retrieval v2 development candidate; open.
