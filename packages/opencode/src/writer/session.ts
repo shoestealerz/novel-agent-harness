@@ -88,7 +88,7 @@ export function promptInput(input: Pick<Input, "sessionID" | "model" | "variant"
     ...(input.model ? { model: input.model } : {}),
     ...(input.variant ? { variant: input.variant } : {}),
     system: writerSystemPrompt,
-    tools: { novel_list: false, novel_read: false, novel_context: false, novel_proposal: false },
+    tools: { novel_list: false, novel_read: false, novel_context: false, novel_proposal: false, novel_state: false },
     format: { type: "json_schema" as const, schema: writerResponseSchema, retryCount: 2 },
     parts: [{ type: "text" as const, text: renderWriterContract(turn.task) }],
   }

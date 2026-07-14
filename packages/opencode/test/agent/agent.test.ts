@@ -74,6 +74,7 @@ it.instance(
       expect(evalPerm(writer, "novel_read")).toBe("allow")
       expect(evalPerm(writer, "novel_context")).toBe("allow")
       expect(evalPerm(writer, "novel_proposal")).toBe("allow")
+      expect(evalPerm(writer, "novel_state")).toBe("allow")
     }),
   {
     config: {
