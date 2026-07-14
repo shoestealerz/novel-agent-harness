@@ -119,7 +119,9 @@ Completed experiment 4: immutable edit proposals. Across 72 completed DeepSeek c
 
 Experiment 5 rejected the full writer-memory schema. Across 36 completed two-call cells, OpenCode's generic anchored compaction scored 0.8361 versus 0.7880, achieved 0.9778 memory recall versus 0.9500, and grounded downstream answers at 0.7222 versus 0.5556. Writer memory nearly doubled summary length, added 1,780 output tokens per task, increased latency by 38%, and raised safety failures from 6 to 9. Critical narrative state should live in typed validated stores; transcript compaction should remain terse and pointer-based. See `packages/writer-bench/experiments/writer-memory/RESULTS.md`.
 
-Current experiment 6: deterministic validators and optional critic agents. Measure whether scoped critics catch semantic continuity, character-knowledge, preservation, and voice issues that deterministic validation cannot, without giving critics commit authority or allowing them to rewrite valid proposals silently.
+Experiment 6 rejected the general semantic critic as a default stage. It reached 0.7500 planted-defect recall but produced false positives on every valid control, grounded required evidence at only 0.0556, added 3,144 output tokens and 33.7 seconds per task, and lowered mean score from 0.6250 to 0.5365. The no-edit authority boundary held. Critics must remain optional and be redesigned as narrow, evidence-gated, locally capped checks with valid controls. See `packages/writer-bench/experiments/proposal-critics/RESULTS.md`.
+
+Current experiment 7: integrated harness evaluation. Evaluate only graduated mechanisms—Writer Contract v0.1, controlled task-aware context, mandatory temporal boundaries, and immutable content-addressed proposals—against raw DeepSeek and stock OpenCode reliability baselines. Keep retrieval v2, verbose writer memory, and the general semantic critic disabled.
 
 ## Later phases
 
@@ -156,3 +158,4 @@ Build the private UI only after the harness protocol stabilizes: agent chat, man
 - PR #15: retrieval v2 development candidate; open.
 - PR #16: sealed retrieval v2 failure; open.
 - PR #17: immutable edit proposals; open.
+- PR #18: rejected verbose writer memory; open.
