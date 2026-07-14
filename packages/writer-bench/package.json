@@ -5,6 +5,9 @@
   "type": "module",
   "license": "MIT",
   "private": true,
+  "dependencies": {
+    "@novel-agent-harness/writer": "workspace:*"
+  },
   "bin": {
     "writer-bench": "./src/cli.ts"
   },
