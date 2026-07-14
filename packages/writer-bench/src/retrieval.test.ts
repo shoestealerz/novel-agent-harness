@@ -1,7 +1,7 @@
 import assert from "node:assert/strict"
 import test from "node:test"
 import type { ContextItem, ExecutionTask } from "./contracts.ts"
-import { rankEmbedding, rankHierarchical, rankLexical, retrieveContext } from "./retrieval.ts"
+import { rankCoverage, rankEmbedding, rankHierarchical, rankHybrid, rankLexical, retrieveContext } from "./retrieval.ts"
 
 const catalog: ContextItem[] = [
   { ref: "ch01:p001", text: "Mara locked the silver key inside the observatory safe." },
@@ -54,6 +54,43 @@ test("retrieval declarations become compiler roles without leaking into the writ
 test("embedding ranking uses provider vectors through an isolated seam", async () => {
   const ranked = await rankEmbedding("query", catalog.slice(0, 2), async () => [[1, 0], [0.9, 0.1], [0, 1]])
   assert.equal(ranked[0]?.ref, "ch01:p001")
+})
+
+test("hybrid ranking combines coverage and embedding scores", async () => {
+  const ranked = await rankHybrid("silver key safe", catalog.slice(0, 2), { topK: 1 }, async () => [
+    [1, 0],
+    [0.9, 0.1],
+    [0, 1],
+  ])
+  assert.equal(ranked[0]?.ref, "ch01:p001")
+  assert.ok(ranked[0]?.reasons.includes("embedding-cosine"))
+})
+
+test("coverage ranking uses stemmed narrative concepts", () => {
+  const ranked = rankCoverage("Trace changing bird rhythms as an evolving motif.", [
+    { ref: "ch01:p001", text: "A paper bird ticked its spring against the window." },
+    { ref: "ch02:p001", text: "The clerk filed an ordinary maintenance form." },
+  ], { topK: 1 })
+  assert.equal(ranked[0]?.ref, "ch01:p001")
+  assert.ok(ranked[0]?.reasons.some((reason) => reason.startsWith("facet:")))
+})
+
+test("coverage-temporal retrieval spans an arc without future leakage", async () => {
+  const result = await retrieveContext({
+    task: {
+      ...task({ topK: 3, focusRefs: ["ch03:p001"], throughRef: "ch03:p001" }),
+      prompt: "Trace how Sera's trust in Kellan changes through ch03:p001. Distinguish apology and practical cooperation.",
+    },
+    catalog: [
+      { ref: "ch01:p001", text: "Sera heard Kellan's apology and refused to accept it." },
+      { ref: "ch02:p001", text: "A registry clerk repaired an unrelated map table." },
+      { ref: "ch03:p001", text: "Sera trusted Kellan to cooperate beside her in danger." },
+      { ref: "ch04:p001", text: "Later Sera forgave Kellan completely." },
+    ],
+    strategy: "coverage-temporal",
+  })
+  assert.ok(result.trace.selectedRefs.includes("ch01:p001"))
+  assert.ok(!result.trace.selectedRefs.includes("ch04:p001"))
 })
 
 function task(retrievalSpec: NonNullable<ExecutionTask["retrievalSpec"]>): ExecutionTask {
