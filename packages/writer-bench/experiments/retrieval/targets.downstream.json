@@ -1,0 +1,34 @@
+{
+  "systems": [
+    {
+      "id": "writer-retrieval-lexical",
+      "command": ["{node}", "--experimental-strip-types", "src/targets/writer-retrieval.ts"],
+      "env": {
+        "WRITER_BENCH_RETRIEVAL_STRATEGY": "lexical",
+        "WRITER_BENCH_MANUSCRIPT_DIR": "corpora/harbor-light/manuscript"
+      },
+      "baseModel": "deepseek-v4-pro",
+      "comparisonKey": "deepseek-v4-pro|temperature=0.2|max=4096|writer-contract=v0.1|retrieval-experiment=1"
+    },
+    {
+      "id": "writer-retrieval-hierarchical",
+      "command": ["{node}", "--experimental-strip-types", "src/targets/writer-retrieval.ts"],
+      "env": {
+        "WRITER_BENCH_RETRIEVAL_STRATEGY": "hierarchical",
+        "WRITER_BENCH_MANUSCRIPT_DIR": "corpora/harbor-light/manuscript"
+      },
+      "baseModel": "deepseek-v4-pro",
+      "comparisonKey": "deepseek-v4-pro|temperature=0.2|max=4096|writer-contract=v0.1|retrieval-experiment=1"
+    },
+    {
+      "id": "writer-retrieval-hierarchical-temporal",
+      "command": ["{node}", "--experimental-strip-types", "src/targets/writer-retrieval.ts"],
+      "env": {
+        "WRITER_BENCH_RETRIEVAL_STRATEGY": "hierarchical-temporal",
+        "WRITER_BENCH_MANUSCRIPT_DIR": "corpora/harbor-light/manuscript"
+      },
+      "baseModel": "deepseek-v4-pro",
+      "comparisonKey": "deepseek-v4-pro|temperature=0.2|max=4096|writer-contract=v0.1|retrieval-experiment=1"
+    }
+  ]
+}

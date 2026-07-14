@@ -77,6 +77,30 @@ export async function validateCorpus(path: string) {
       })
       task.contextSpec?.excludeRefs?.forEach((ref) => requirePassage(passages, ref, `${relative}:${task.id}`))
       if (task.contextSpec?.throughRef) requirePassage(passages, task.contextSpec.throughRef, `${relative}:${task.id}`)
+      if (task.retrievalSpec) {
+        if (task.contextSpec) throw new Error(`${relative}:${task.id} cannot declare both contextSpec and retrievalSpec`)
+        if (!Number.isInteger(task.retrievalSpec.topK) || task.retrievalSpec.topK < 1) {
+          throw new Error(`${relative}:${task.id} retrieval topK must be a positive integer`)
+        }
+        task.retrievalSpec.focusRefs?.forEach((ref) => requirePassage(passages, ref, `${relative}:${task.id}`))
+        task.retrievalSpec.preservationRefs?.forEach((ref) => requirePassage(passages, ref, `${relative}:${task.id}`))
+        if (task.retrievalSpec.throughRef) requirePassage(passages, task.retrievalSpec.throughRef, `${relative}:${task.id}`)
+        task.retrievalSpec.preservationLiterals?.forEach((literal) => {
+          requirePassage(passages, literal.ref, `${relative}:${task.id}`)
+          if (!task.retrievalSpec?.preservationRefs?.includes(literal.ref)) {
+            throw new Error(`${relative}:${task.id} retrieval literal must use a preservation reference`)
+          }
+          if (!passageText.get(literal.ref)?.includes(literal.text)) {
+            throw new Error(`${relative}:${task.id} retrieval literal is absent from ${literal.ref}`)
+          }
+        })
+        const gold = requireObject(task.metadata?.retrievalGold, `${relative}:${task.id}.metadata.retrievalGold`)
+        const required = requireStringArray(gold.requiredRefs, `${relative}:${task.id}.retrievalGold.requiredRefs`)
+        const relevant = requireStringArray(gold.relevantRefs, `${relative}:${task.id}.retrievalGold.relevantRefs`)
+        required.forEach((ref) => requirePassage(passages, ref, `${relative}:${task.id}`))
+        relevant.forEach((ref) => requirePassage(passages, ref, `${relative}:${task.id}`))
+        if (required.some((ref) => !relevant.includes(ref))) throw new Error(`${relative}:${task.id} retrieval required refs must be relevant`)
+      }
       if (task.job === "revise") {
         task.context?.filter((item) => item.kind === "manuscript").forEach((item) => {
           if (item.text.trim() !== passageText.get(item.ref)) {
