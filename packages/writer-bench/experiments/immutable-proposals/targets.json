@@ -1,0 +1,31 @@
+{
+  "systems": [
+    {
+      "id": "freeform-edit",
+      "command": ["{node}", "--experimental-strip-types", "src/targets/proposal-experiment.ts"],
+      "env": {
+        "WRITER_BENCH_PROPOSAL_MODE": "freeform",
+        "WRITER_BENCH_MANUSCRIPT_DIR": "corpora/glass-orchard/manuscript"
+      },
+      "baseModel": "deepseek-v4-pro",
+      "comparisonKey": "deepseek-v4-pro|temperature=0.2|max=4096|context=task-aware|proposal-experiment=1",
+      "metadata": { "mechanism": "freeform-editorial-proposal" }
+    },
+    {
+      "id": "immutable-proposal",
+      "command": ["{node}", "--experimental-strip-types", "src/targets/proposal-experiment.ts"],
+      "env": {
+        "WRITER_BENCH_PROPOSAL_MODE": "immutable",
+        "WRITER_BENCH_MANUSCRIPT_DIR": "corpora/glass-orchard/manuscript"
+      },
+      "baseModel": "deepseek-v4-pro",
+      "comparisonKey": "deepseek-v4-pro|temperature=0.2|max=4096|context=task-aware|proposal-experiment=1",
+      "metadata": { "mechanism": "content-addressed-validated-proposal" }
+    }
+  ],
+  "judge": {
+    "id": "deepseek-proposal-judge",
+    "command": ["{node}", "--experimental-strip-types", "src/targets/openai-compatible.ts"],
+    "baseModel": "deepseek-v4-pro"
+  }
+}

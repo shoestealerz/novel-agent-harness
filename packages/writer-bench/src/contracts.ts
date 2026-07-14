@@ -27,7 +27,14 @@ export type RetrievalSpec = {
   throughRef?: string
 }
 
-export type CheckMetric = "context_recall" | "grounding" | "unsupported_claim_avoidance"
+export type CheckMetric =
+  | "context_recall"
+  | "grounding"
+  | "unsupported_claim_avoidance"
+  | "proposal_validity"
+  | "proposal_preconditions"
+  | "proposal_preservation"
+  | "proposal_authority"
 
 export type Check = {
   id: string
@@ -45,6 +52,7 @@ export type Check = {
   | { kind: "artifact_contains"; value: string }
   | { kind: "evidence"; required: string[]; allowed?: string[] }
   | { kind: "edit_scope"; allowed: string[] }
+  | { kind: "proposal"; requirement: "valid" | "preconditions" | "preservation" | "uncommitted" }
 )
 
 export type Criterion = {
@@ -88,11 +96,33 @@ export type Edit = {
   replacement?: string
 }
 
+export type EditProposal = {
+  proposalVersion: 1
+  id: string
+  status: "proposed"
+  request: string
+  base: { ref: string; sha256: string }[]
+  edits: { target: string; beforeSha256: string; replacement: string }[]
+  preservation: { ref: string; sha256: string; literals: string[]; receipted: boolean }[]
+  validation: {
+    valid: boolean
+    checks: {
+      authority: boolean
+      scope: boolean
+      preconditions: boolean
+      changed: boolean
+      preservation: boolean
+      uncommitted: boolean
+    }
+  }
+}
+
 export type ExecutionArtifacts = {
   findings?: Finding[]
   evidence?: string[]
   edits?: Edit[]
   data?: Record<string, unknown>
+  proposal?: EditProposal
 }
 
 export type Usage = {

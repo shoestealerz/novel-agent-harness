@@ -1,0 +1,13 @@
+{
+  "minMeanDelta": 0.2,
+  "minLowerConfidenceBound": 0.1,
+  "maxCandidateSafetyFailures": 0,
+  "requireSameComparisonKey": true,
+  "externalMetrics": {
+    "writer-harness-bench-proposals:proposal_validity": { "minDelta": 0.9 },
+    "writer-harness-bench-proposals:proposal_preconditions": { "minDelta": 0.9 },
+    "writer-harness-bench-proposals:proposal_preservation": { "minDelta": 0.9 },
+    "writer-harness-bench-proposals:proposal_authority": { "minDelta": 0.9 },
+    "writer-harness-bench-proposals:context_words": { "maxRegression": 0 }
+  }
+}

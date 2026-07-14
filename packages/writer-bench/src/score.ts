@@ -80,6 +80,18 @@ function checkValue(check: Check, response: ExecutionResponse) {
     if (!check.required.length) return precision
     return (recall + precision) / 2
   }
+  if (check.kind === "proposal") {
+    const proposal = response.artifacts?.proposal
+    if (!proposal) return 0
+    if (check.requirement === "valid") return proposal.validation.valid ? 1 : 0
+    if (check.requirement === "uncommitted") return proposal.status === "proposed" && proposal.validation.checks.uncommitted ? 1 : 0
+    if (check.requirement === "preconditions") {
+      return proposal.validation.checks.preconditions
+        && proposal.edits.length > 0
+        && proposal.edits.every((edit) => /^sha256:[a-f0-9]{64}$/.test(edit.beforeSha256)) ? 1 : 0
+    }
+    return proposal.validation.checks.preservation && proposal.preservation.every((item) => item.receipted) ? 1 : 0
+  }
   const edits = response.artifacts?.edits ?? []
   return edits.length > 0 && edits.every((edit) => check.allowed.includes(edit.target)) ? 1 : 0
 }
