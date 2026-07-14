@@ -20,7 +20,7 @@ if (mode === "deterministic") {
     taskId: task.id,
     text: "Deterministic authority, scope, and source-precondition validation passed. No semantic critic executed.",
     artifacts: { findings: [], evidence: [], edits: [], data: { deterministicValidation: "pass" } },
-    usage: { latencyMs: performance.now() - started },
+    usage: { inputTokens: 0, outputTokens: 0, latencyMs: performance.now() - started },
     metadata: { adapter: "proposal-deterministic-validator", contextTrace: compiled.trace },
   }))
 } else {
