@@ -160,3 +160,4 @@ Build the private UI only after the harness protocol stabilizes: agent chat, man
 - PR #17: immutable edit proposals; open.
 - PR #18: rejected verbose writer memory; open.
 - PR #19: rejected broad semantic critic; open.
+- PR #20: integrated graduated-harness evaluation and Phase 7 synthesis; open.
