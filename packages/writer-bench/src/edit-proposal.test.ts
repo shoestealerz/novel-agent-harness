@@ -43,6 +43,29 @@ test("marks missing preservation receipts and commit claims invalid", () => {
   assert.equal(proposal.validation.checks.uncommitted, false)
 })
 
+test("validates exact preservation receipts containing quotation marks", () => {
+  const quoted = {
+    ...task,
+    contextSpec: {
+      ...task.contextSpec!,
+      preservationLiterals: [{ ref: "ch01:p002", text: "She said, \"Keep this exact.\"" }],
+    },
+    context: [
+      task.context![0]!,
+      { ref: "ch01:p002", kind: "manuscript" as const, text: "She said, \"Keep this exact.\"" },
+    ],
+  }
+  const proposal = createEditProposal(quoted, {
+    ...result("Receipt recorded.", "The sentence was long."),
+    artifacts: {
+      edits: [{ target: "ch01:p001", replacement: "The sentence was long." }],
+      data: { preservation: ["She said, \"Keep this exact.\""] },
+    },
+  })
+  assert.equal(proposal.validation.checks.preservation, true)
+  assert.equal(proposal.validation.valid, true)
+})
+
 test("validates every immutable-proposal task against Glass Orchard", async () => {
   const catalog = await loadManuscriptContext("corpora/glass-orchard/manuscript")
   const tasks = (await readJsonl("experiments/immutable-proposals/tasks.jsonl")).map(parseTask)

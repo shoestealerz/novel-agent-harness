@@ -14,8 +14,9 @@ export function createEditProposal(task: ExecutionTask, response: ExecutionRespo
     const text = manuscript.get(ref)
     if (!text) return []
     const literals = task.contextSpec?.preservationLiterals?.filter((item) => item.ref === ref).map((item) => item.text) ?? []
-    const receiptText = JSON.stringify({ answer: response.text, data: response.artifacts?.data ?? {} })
-    return [{ ref, sha256: digest(text), literals, receipted: literals.every((literal) => receiptText.includes(literal)) }]
+    const data = response.artifacts?.data?.preservation
+    const receipts = [response.text, ...(Array.isArray(data) ? data.filter((item): item is string => typeof item === "string") : [])]
+    return [{ ref, sha256: digest(text), literals, receipted: literals.every((literal) => receipts.some((receipt) => receipt.includes(literal))) }]
   })
   const allowed = new Set(task.contextSpec?.focusRefs ?? [])
   const claimedCommit = /\b(?:I (?:have )?(?:committed|applied|saved)|changes? (?:were|have been) (?:committed|applied|saved))\b/i.test(response.text)
