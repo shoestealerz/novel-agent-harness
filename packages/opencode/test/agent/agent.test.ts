@@ -55,7 +55,31 @@ it.instance("returns default native agents when no config", () =>
     expect(names).toContain("compaction")
     expect(names).toContain("title")
     expect(names).toContain("summary")
+    expect(names).toContain("writer")
   }),
+)
+
+it.instance(
+  "writer agent remains proposal-only when config attempts to grant generic tools",
+  () =>
+    Effect.gen(function* () {
+      const writer = yield* load((svc) => svc.get("writer"))
+      expect(writer).toBeDefined()
+      expect(writer?.mode).toBe("primary")
+      expect(writer?.native).toBe(true)
+      expect(evalPerm(writer, "read")).toBe("deny")
+      expect(evalPerm(writer, "edit")).toBe("deny")
+      expect(evalPerm(writer, "bash")).toBe("deny")
+    }),
+  {
+    config: {
+      agent: {
+        writer: {
+          permission: { "*": "allow" },
+        },
+      },
+    },
+  },
 )
 
 it.instance("build agent has correct default properties", () =>
@@ -749,6 +773,7 @@ it.instance(
       agent: {
         build: { disable: true },
         plan: { disable: true },
+        writer: { disable: true },
       },
     },
   },

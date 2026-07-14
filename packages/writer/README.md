@@ -32,6 +32,12 @@ The marker, rather than a paragraph's position or current wording, is its durabl
 
 `loadWriterWorkspace()` validates the manifest, prevents chapter paths from escaping the workspace, rejects duplicate or mismatched references, preserves exact passage text, and records a SHA-256 precondition for every passage.
 
+## Writer Task Contract and sessions
+
+`createWriterTask()` routes or accepts an explicit Explain, Diagnose, Plan, or scoped Revise job and derives authority from the job: the first three are always read-only and Revise can only propose. `renderWriterContract()` sends the model a benchmark-free production contract, while `parseWriterResult()` rejects unsupported evidence, read-only edits, out-of-scope targets, duplicate targets, invalid preservation receipts, and commit claims. Valid revisions are sealed into immutable proposals by trusted writer code.
+
+OpenCode's `WriterSession` adapter loads the Git-backed workspace, compiles the selected context, submits the contract through OpenCode's durable session and structured-output machinery, validates the response, and persists a valid revision proposal. Its built-in `writer` agent has generic tools denied; author confirmation and commit are not model tools.
+
 ## Context and proposal boundary
 
 `compileContext()` builds a controlled packet from explicit focus, dependency, preservation, exclusion, and through-point declarations. Temporal order comes from the manifest and chapter source order, so references do not need numeric names. It validates every declared reference and exact preservation literal before model inference.
