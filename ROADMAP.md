@@ -153,11 +153,12 @@ Build the private UI only after the harness protocol stabilizes: agent chat, man
 - PR #10: illustrated Writer Task Contract experiment explainer; merged.
 - PR #11: corrected Writer Task Contract v0.1 and official three-trial result; merged.
 - PR #12: task-aware context compiler and official three-trial result; merged.
-- PR #13: retrieval development experiment; open.
-- PR #14: preregistered Quiet Meridian held-out failure; open.
-- PR #15: retrieval v2 development candidate; open.
-- PR #16: sealed retrieval v2 failure; open.
-- PR #17: immutable edit proposals; open.
-- PR #18: rejected verbose writer memory; open.
-- PR #19: rejected broad semantic critic; open.
-- PR #20: integrated graduated-harness evaluation and Phase 7 synthesis; open.
+- PR #13: retrieval development experiment; merged.
+- PR #14: preregistered Quiet Meridian held-out failure; auto-closed when its stacked base branch was removed and superseded by PR #21.
+- PR #15: retrieval v2 development candidate; merged.
+- PR #16: sealed retrieval v2 failure; merged.
+- PR #17: immutable edit proposals; merged.
+- PR #18: rejected verbose writer memory; merged.
+- PR #19: rejected broad semantic critic; merged.
+- PR #20: integrated graduated-harness evaluation and Phase 7 synthesis.
+- PR #21: replacement for the auto-closed held-out retrieval PR; merged.
