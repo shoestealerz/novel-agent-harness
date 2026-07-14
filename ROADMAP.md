@@ -137,7 +137,9 @@ The minimal story-state layer now stores typed characters, objects, locations, o
 
 The initial `opencode writer` headless interface now runs all four Writer jobs through real OpenCode sessions, accepts either isolated model-selected context or explicit passage constraints, emits a versioned JSON result, reviews manuscript and story-state proposals, initializes or inspects typed state, and turns an explicit `--yes` author confirmation into a verified manuscript Git commit and receipt. Real subprocess coverage exercises Explain and the full Revise → review → author-confirmed commit path.
 
-Next, add safe workspace bootstrapping for existing manuscript files and an author-confirmed story-state commit transaction. Then expand the production corpus and turn the headless subprocess scenarios into permanent release gates.
+Safe workspace bootstrap now requires a clean Git root and already tracked chapter files, refuses to overwrite `novel.json`, preserves valid existing markers, and adds only one conservative whole-chapter marker to unmarked files through an explicit `--yes` operation. Author-confirmed story-state commits now revalidate the proposal, evidence, current state hash, clean Git scope, staged blobs, and unchanged `HEAD`; they write a separate content-addressed receipt and restore the exact prior state bytes and index if the commit fails. Real subprocess coverage exercises bootstrap, state-proposal review, and state commit.
+
+Next, expand the production corpus and turn the headless subprocess scenarios into full release gates covering process restart, stale proposals, provider failures, and both supported operating-system families.
 
 ### Phase 9: Production benchmark expansion
 
@@ -177,3 +179,5 @@ Build the private UI only after the harness protocol stabilizes: agent chat, man
 - PR #26: author-confirmed proposal commits and Git-backed receipts; merged.
 - PR #27: production Writer Task Contract and OpenCode session adapter; merged.
 - PR #28: read-only narrative tools and isolated model-assisted context selection; merged.
+- PR #29: typed, evidence-linked story state and immutable state proposals; merged.
+- PR #30: real headless Writer workflow with review, author confirmation, and manuscript commit receipts; merged.

@@ -1,6 +1,13 @@
 import { describe, expect } from "bun:test"
 import { Effect } from "effect"
+import { rm } from "node:fs/promises"
 import path from "node:path"
+import {
+  loadStoryState,
+  loadWriterWorkspace,
+  saveStoryStateProposal,
+  sealStoryStateProposal,
+} from "@novel-agent-harness/writer"
 import { reply } from "../lib/llm-server"
 import { cliIt, testModelID } from "../lib/cli-process"
 
@@ -135,6 +142,105 @@ describe("writer CLI subprocess", () => {
         const chapter = yield* Effect.promise(() => Bun.file(path.join(root, "ch01.md")).text())
         expect(chapter).toContain("Once, the bell rang.")
         expect(git(root, "log", "-1", "--pretty=%s").stdout.toString()).toContain("Apply approved novel revision")
+      }),
+    60_000,
+  )
+
+  cliIt.concurrent(
+    "bootstraps a tracked manuscript and commits author-confirmed story state",
+    ({ home, opencode }) =>
+      Effect.gen(function* () {
+        const root = path.join(home, "bootstrap-novel")
+        yield* Effect.promise(async () => {
+          await Bun.write(path.join(root, "chapter-one.md"), "# Chapter One\n\nMara entered alone.\n")
+          git(root, "init", "--quiet", "--initial-branch=dev")
+          git(root, "config", "user.name", "Writer Test")
+          git(root, "config", "user.email", "writer@example.test")
+          git(root, "add", "chapter-one.md")
+          git(root, "commit", "--quiet", "-m", "Import manuscript")
+        })
+
+        yield* Effect.promise(() => Bun.write(path.join(root, "untracked-notes.txt"), "Do not absorb me.\n"))
+        const refused = yield* opencode.spawn([
+          "writer",
+          "init",
+          "--dir",
+          root,
+          "--title",
+          "Bootstrap Novel",
+          "--chapter",
+          "ch01=chapter-one.md",
+          "--yes",
+        ])
+        opencode.expectExit(refused, 1, "writer init with unrelated work")
+        expect(refused.stderr).toContain("must be clean")
+        expect(yield* Effect.promise(() => Bun.file(path.join(root, "novel.json")).exists())).toBe(false)
+        yield* Effect.promise(() => rm(path.join(root, "untracked-notes.txt")))
+
+        const initialized = yield* opencode.spawn([
+          "writer",
+          "init",
+          "--dir",
+          root,
+          "--title",
+          "Bootstrap Novel",
+          "--chapter",
+          "ch01=chapter-one.md",
+          "--yes",
+        ])
+        opencode.expectExit(initialized, 0, "writer init")
+        expect(JSON.parse(initialized.stdout).passages).toBe(1)
+        const marked = yield* Effect.promise(() => Bun.file(path.join(root, "chapter-one.md")).text())
+        expect(marked).toContain("novel-agent:passage ch01:p0001")
+        git(root, "add", "novel.json", "chapter-one.md")
+        git(root, "commit", "--quiet", "-m", "Initialize Novel Agent workspace")
+
+        const proposal = yield* Effect.promise(async () => {
+          const workspace = await loadWriterWorkspace(root)
+          const state = await loadStoryState(root)
+          const proposal = sealStoryStateProposal(
+            workspace,
+            state.state,
+            { request: "Record Mara", authority: "propose" },
+            {
+              text: "Proposal only.",
+              upserts: [
+                {
+                  kind: "entity",
+                  id: "entity:mara",
+                  entityType: "character",
+                  name: "Mara",
+                  aliases: [],
+                  evidence: ["ch01:p0001"],
+                },
+              ],
+            },
+          )
+          await saveStoryStateProposal(root, proposal)
+          return proposal
+        })
+        const stateReview = yield* opencode.spawn(["writer", "review", proposal.id, "--kind", "state", "--dir", root])
+        opencode.expectExit(stateReview, 0, "writer state review")
+        expect(stateReview.stdout).toContain("@@ entity:mara @@")
+
+        const committed = yield* opencode.spawn([
+          "writer",
+          "commit",
+          proposal.id,
+          "--kind",
+          "state",
+          "--dir",
+          root,
+          "--confirmed-by",
+          "Test Author",
+          "--yes",
+        ])
+        opencode.expectExit(committed, 0, "writer state commit")
+        const result = JSON.parse(committed.stdout)
+        expect(result.receipt.kind).toBe("story-state")
+        const committedState = yield* Effect.promise(() => loadStoryState(root))
+        expect(committedState.state.records[0]?.id).toBe("entity:mara")
+        expect(git(root, "status", "--porcelain").stdout.toString()).toBe("")
       }),
     60_000,
   )

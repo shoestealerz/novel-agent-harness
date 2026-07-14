@@ -62,6 +62,11 @@ Benchmark model credentials and local target files are intentionally excluded fr
 For a Git-backed novel workspace containing `novel.json` and stable passage markers:
 
 ```bash
+# Bootstrap clean, already tracked chapter files. Unmarked files receive one
+# conservative whole-chapter passage marker and are never silently overwritten.
+opencode writer init --dir ./my-novel --title "My Novel" \
+  --chapter ch01=manuscript/chapter-01.md --yes
+
 # Optional typed story-state store
 opencode writer state --init --dir ./my-novel
 
@@ -74,9 +79,13 @@ opencode writer review sha256:... --dir ./my-novel
 
 # Only an explicit author confirmation can create the Git commit and receipt
 opencode writer commit sha256:... --dir ./my-novel --confirmed-by "Author Name" --yes
+
+# Story-state proposals use the same explicit author boundary and a separate receipt.
+opencode writer commit sha256:... --kind state --dir ./my-novel \
+  --confirmed-by "Author Name" --yes
 ```
 
-`writer run` emits a versioned JSON result by default. Explain, Diagnose, and Plan remain read-only; Revise can only save an immutable proposal. `writer commit` executes outside the model tool loop and rechecks the exact proposal and source hashes before changing manuscript files.
+`writer run` emits a versioned JSON result by default. Explain, Diagnose, and Plan remain read-only; Revise can only save an immutable proposal. `writer commit` executes outside the model tool loop and rechecks the exact proposal, source or state hashes, evidence references, clean Git scope, staged blobs, and unchanged `HEAD` before creating a commit. Failed transactions restore the exact prior files and index.
 
 ## Relationship to OpenCode
 
@@ -86,4 +95,4 @@ The repository history begins with that source snapshot as a single baseline com
 
 ## Status
 
-Phase 7 experiments are complete. Phase 8—the public writing-harness MVP—is active. The headless Writer workflow now connects real model sessions, controlled context, proposal review, explicit author confirmation, and Git-backed commit receipts. Next are novel-workspace bootstrapping, author-confirmed story-state commits, and production-scale regression coverage.
+Phase 7 experiments are complete. Phase 8—the public writing-harness MVP—is active. The headless Writer workflow now connects safe workspace bootstrap, real model sessions, controlled context, proposal review, explicit author confirmation, and Git-backed manuscript and story-state commit receipts. The next phase is production-scale regression coverage and release hardening.

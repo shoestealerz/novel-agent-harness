@@ -1,5 +1,7 @@
 import {
+  bootstrapWriterWorkspace,
   commitEditProposal,
+  commitStoryStateProposal,
   initializeStoryState,
   loadEditProposal,
   loadStoryState,
@@ -11,7 +13,10 @@ import {
   type WriterJob,
 } from "@novel-agent-harness/writer"
 import { Effect } from "effect"
+import { execFile } from "node:child_process"
+import { realpath } from "node:fs/promises"
 import path from "node:path"
+import { promisify } from "node:util"
 import type { Argv } from "yargs"
 import { Provider } from "@/provider/provider"
 import { Session } from "@/session/session"
@@ -20,6 +25,7 @@ import { effectCmd, fail } from "../effect-cmd"
 import { cmd } from "./cmd"
 
 const jobs = ["explain", "diagnose", "plan", "revise"] as const
+const execute = promisify(execFile)
 
 export const WriterCommand = cmd({
   command: "writer",
@@ -27,11 +33,60 @@ export const WriterCommand = cmd({
   builder: (yargs: Argv) =>
     yargs
       .command(WriterRunCommand)
+      .command(WriterInitCommand)
       .command(WriterReviewCommand)
       .command(WriterCommitCommand)
       .command(WriterStateCommand)
       .demandCommand(),
   async handler() {},
+})
+
+export const WriterInitCommand = effectCmd({
+  command: "init",
+  describe: "bootstrap tracked manuscript files as a Novel Agent workspace",
+  instance: false,
+  builder: (yargs: Argv) =>
+    yargs
+      .option("dir", { type: "string", describe: "novel workspace directory" })
+      .option("title", { type: "string", demandOption: true, describe: "novel title" })
+      .option("chapter", {
+        type: "string",
+        array: true,
+        demandOption: true,
+        describe: "chapter mapping as stable-id=relative/path.md",
+      })
+      .option("yes", {
+        type: "boolean",
+        default: false,
+        describe: "approve adding one whole-chapter marker where markers are absent",
+      }),
+  handler: Effect.fn("Cli.writer.init")(function* (args) {
+    if (!args.yes) return yield* fail("Refusing to modify chapter files without explicit --yes confirmation")
+    const root = path.resolve(process.cwd(), args.dir ?? ".")
+    const chapters = parseChapterArgs(args.chapter)
+    const result = yield* Effect.promise(async () => {
+      await ensureCleanTrackedWorkspace(
+        root,
+        chapters.map((chapter) => chapter.path),
+      )
+      return bootstrapWriterWorkspace(root, { title: args.title, chapters })
+    })
+    console.log(
+      JSON.stringify(
+        {
+          formatVersion: result.workspace.manifest.formatVersion,
+          root: result.workspace.root,
+          manifestPath: result.workspace.manifestPath,
+          title: result.workspace.manifest.title,
+          chapters: result.chapters,
+          passages: result.workspace.passages.size,
+          next: "Review the inserted markers, then commit novel.json and changed chapter files to Git.",
+        },
+        null,
+        2,
+      ),
+    )
+  }),
 })
 
 export const WriterRunCommand = effectCmd({
@@ -123,32 +178,36 @@ export const WriterReviewCommand = effectCmd({
 
 export const WriterCommitCommand = effectCmd({
   command: "commit <proposalId>",
-  describe: "commit an author-confirmed manuscript proposal and emit its receipt",
+  describe: "commit an author-confirmed manuscript or story-state proposal and emit its receipt",
   instance: false,
   builder: (yargs: Argv) =>
     yargs
       .positional("proposalId", { type: "string", demandOption: true })
       .option("dir", { type: "string", describe: "novel workspace directory" })
+      .option("kind", {
+        type: "string",
+        choices: ["manuscript", "state"] as const,
+        default: "manuscript",
+      })
       .option("confirmed-by", { type: "string", demandOption: true, describe: "author identity for the receipt" })
       .option("yes", { type: "boolean", default: false, describe: "explicitly approve this exact proposal" })
       .option("message", { type: "string", describe: "optional Git commit message" }),
   handler: Effect.fn("Cli.writer.commit")(function* (args) {
     if (!args.yes) return yield* fail("Refusing to commit without explicit --yes author confirmation")
     const root = path.resolve(process.cwd(), args.dir ?? ".")
-    const result = yield* Effect.promise(() =>
-      commitEditProposal(
-        root,
-        args.proposalId,
-        {
-          confirmationVersion: 1,
-          proposalId: args.proposalId as `sha256:${string}`,
-          decision: "approve",
-          confirmedBy: args["confirmed-by"],
-          confirmedAt: new Date().toISOString(),
-        },
-        { message: args.message },
-      ),
-    )
+    const confirmation = {
+      confirmationVersion: 1 as const,
+      proposalId: args.proposalId as `sha256:${string}`,
+      decision: "approve" as const,
+      confirmedBy: args["confirmed-by"],
+      confirmedAt: new Date().toISOString(),
+    }
+    const result = yield* Effect.promise(async () => {
+      if (args.kind === "state") {
+        return commitStoryStateProposal(root, args.proposalId, confirmation, { message: args.message })
+      }
+      return commitEditProposal(root, args.proposalId, confirmation, { message: args.message })
+    })
     console.log(JSON.stringify(result, null, 2))
   }),
 })
@@ -198,6 +257,38 @@ export function contextSpecFromArgs(args: ContextArgs): WriterContextSpec | unde
     preservationLiterals,
     excludeRefs: args.exclude ?? [],
     ...(args.through ? { throughRef: args.through } : {}),
+  }
+}
+
+export function parseChapterArgs(values: string[]) {
+  const chapters = values.map((value) => {
+    const index = value.indexOf("=")
+    if (index < 1 || index === value.length - 1) throw new Error("--chapter must use stable-id=relative/path.md")
+    return { id: value.slice(0, index), path: value.slice(index + 1) }
+  })
+  if (new Set(chapters.map((chapter) => chapter.id)).size !== chapters.length) {
+    throw new Error("--chapter contains duplicate stable IDs")
+  }
+  if (new Set(chapters.map((chapter) => chapter.path)).size !== chapters.length) {
+    throw new Error("--chapter contains duplicate paths")
+  }
+  return chapters
+}
+
+async function ensureCleanTrackedWorkspace(root: string, chapterPaths: string[]) {
+  const repository = (
+    await execute("git", ["rev-parse", "--show-toplevel"], { cwd: root, encoding: "utf8" })
+  ).stdout.trim()
+  const [workspaceRoot, repositoryRoot] = await Promise.all([realpath(root), realpath(repository)])
+  if (path.relative(workspaceRoot, repositoryRoot)) throw new Error("writer workspace must be the Git repository root")
+  const status = (
+    await execute("git", ["status", "--porcelain=v1", "-z", "--untracked-files=all"], { cwd: root, encoding: "utf8" })
+  ).stdout
+  if (status) throw new Error("writer workspace must be clean before bootstrap")
+  for (const chapter of chapterPaths) {
+    await execute("git", ["ls-files", "--error-unmatch", "--", chapter], { cwd: root, encoding: "utf8" }).catch(() => {
+      throw new Error(`chapter must already be tracked by Git: ${chapter}`)
+    })
   }
 }
 
