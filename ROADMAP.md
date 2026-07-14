@@ -131,7 +131,7 @@ Build an embedded writer runtime around OpenCode with writer-owned contracts, na
 
 Initial supported jobs: Explain, Diagnose, Plan, and scoped Revise.
 
-Completed implementation slices: `packages/writer` now defines the public writer-core package, Git-friendly `novel.json` manifest, explicit stable passage markers, path containment, SHA-256 passage preconditions, the graduated controlled-context compiler, and immutable proposal sealing. Writer Harness Bench imports the production context and proposal implementations instead of maintaining experimental copies. Next, add proposal persistence and diff rendering, followed by an author-confirmed commit operation with a fresh base-hash check.
+Completed implementation slices: `packages/writer` now defines the public writer-core package, Git-friendly `novel.json` manifest, explicit stable passage markers, path containment, SHA-256 passage preconditions, the graduated controlled-context compiler, immutable proposal sealing, content-addressed proposal persistence, and stale-safe review diffs. Writer Harness Bench imports the production context and proposal implementations instead of maintaining experimental copies. Next, add an author-confirmed commit operation with a fresh base-hash check and Git-backed receipt.
 
 ### Phase 9: Production benchmark expansion
 
