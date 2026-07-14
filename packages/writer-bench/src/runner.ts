@@ -52,6 +52,7 @@ async function executeCell(
     record.targetId === cell.target.id && record.task.id === cell.task.id && record.trial === cell.trial)
   const rerun = input.rerunCells?.includes(`${cell.target.id}:${cell.task.id}`)
   if (previous?.response && !previous.error && !rerun) {
+    if (input.targets.judge) return { ...previous, task: cell.task, targetId: cell.target.id, trial: cell.trial }
     return { task: cell.task, targetId: cell.target.id, trial: cell.trial, response: previous.response, ...evaluateResponse(cell.target, cell.task, previous.response) }
   }
   const executionTask = publicTask(cell.task)
@@ -115,7 +116,12 @@ function validateResume(input: {
     }
   })
   if (!input.resume) return
-  if (input.targets.judge || input.resume.judge) throw new Error("resume is not supported for judged runs")
+  if (!!input.targets.judge !== !!input.resume.judge
+    || input.targets.judge && input.resume.judge && (
+      input.targets.judge.id !== input.resume.judge.id
+      || input.targets.judge.baseModel !== input.resume.judge.baseModel
+      || JSON.stringify(input.targets.judge.command) !== JSON.stringify(input.resume.judge.command)
+    )) throw new Error("resume judge mismatch")
   if (input.resume.trials !== input.trials) throw new Error("resume trials must match the requested trials")
   for (const target of input.targets.systems) {
     const previous = input.resume.targets.find((item) => item.id === target.id)
