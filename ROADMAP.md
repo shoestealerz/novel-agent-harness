@@ -1,10 +1,10 @@
 # Novel Agent Harness Roadmap
 
-Last updated: 2026-07-13
+Last updated: 2026-07-14
 
 ## Current position
 
-The project is in **Phase 7: writer-specific experiments**.
+The project has completed **Phase 7: writer-specific experiments** and is ready for **Phase 8: public writing harness MVP**.
 
 ```text
 Research and architecture                   complete
@@ -13,8 +13,8 @@ Benchmark runner and regression gates       complete
 Pilot fiction corpus and gold annotations   complete
 Raw-model and stock-OpenCode adapters        complete
 Real raw-model vs stock-OpenCode baseline    complete
-Writer-specific experiments                 active
-Public writing harness MVP                  not started
+Writer-specific experiments                 complete
+Public writing harness MVP                  next
 Production benchmark expansion              not started
 Private web application                     deferred
 ```
@@ -86,7 +86,7 @@ Exit criteria:
 
 Result: 72/72 executions completed. Raw DeepSeek scored 0.7361 and stock OpenCode scored 0.6620, a -0.0741 paired delta with a 95% bootstrap interval of -0.1481 to -0.0069. Stock OpenCode increased safety failures from 19 to 27. The failed gates define the lower bound and concrete requirements for Phase 7. See `packages/writer-bench/baseline/RESULTS.md`.
 
-## Active phase
+## Completed Phase 7
 
 ### Phase 7: Writer-specific experiments
 
@@ -121,7 +121,7 @@ Experiment 5 rejected the full writer-memory schema. Across 36 completed two-cal
 
 Experiment 6 rejected the general semantic critic as a default stage. It reached 0.7500 planted-defect recall but produced false positives on every valid control, grounded required evidence at only 0.0556, added 3,144 output tokens and 33.7 seconds per task, and lowered mean score from 0.6250 to 0.5365. The no-edit authority boundary held. Critics must remain optional and be redesigned as narrow, evidence-gated, locally capped checks with valid controls. See `packages/writer-bench/experiments/proposal-critics/RESULTS.md`.
 
-Current experiment 7: integrated harness evaluation. Evaluate only graduated mechanisms—Writer Contract v0.1, controlled task-aware context, mandatory temporal boundaries, and immutable content-addressed proposals—against raw DeepSeek and stock OpenCode reliability baselines. Keep retrieval v2, verbose writer memory, and the general semantic critic disabled.
+Completed experiment 7: integrated harness evaluation. Across 108 completed cells, the combined Writer Contract v0.1, controlled task-aware context, proposal-only authority, and immutable proposal layer scored **0.9960 with zero safety failures**, compared with **0.0000 and 216 safety failures each** for raw DeepSeek and stock OpenCode. The paired delta against both controls was +0.9960 with a 95% bootstrap interval of +0.9881 to +1.0000. All preregistered gates passed. This graduates the reliability architecture to MVP implementation, not to production or broad literary-quality claims. See `packages/writer-bench/experiments/integrated-harness/RESULTS.md` and the Phase 7 synthesis at `packages/writer-bench/experiments/PHASE7_RESULTS.md`.
 
 ## Later phases
 
@@ -153,9 +153,12 @@ Build the private UI only after the harness protocol stabilizes: agent chat, man
 - PR #10: illustrated Writer Task Contract experiment explainer; merged.
 - PR #11: corrected Writer Task Contract v0.1 and official three-trial result; merged.
 - PR #12: task-aware context compiler and official three-trial result; merged.
-- PR #13: retrieval development experiment; open.
-- PR #14: preregistered Quiet Meridian held-out failure; open.
-- PR #15: retrieval v2 development candidate; open.
-- PR #16: sealed retrieval v2 failure; open.
-- PR #17: immutable edit proposals; open.
-- PR #18: rejected verbose writer memory; open.
+- PR #13: retrieval development experiment; merged.
+- PR #14: preregistered Quiet Meridian held-out failure; auto-closed when its stacked base branch was removed and superseded by PR #21.
+- PR #15: retrieval v2 development candidate; merged.
+- PR #16: sealed retrieval v2 failure; merged.
+- PR #17: immutable edit proposals; merged.
+- PR #18: rejected verbose writer memory; merged.
+- PR #19: rejected broad semantic critic; merged.
+- PR #20: integrated graduated-harness evaluation and Phase 7 synthesis.
+- PR #21: replacement for the auto-closed held-out retrieval PR; merged.
