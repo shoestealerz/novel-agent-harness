@@ -210,12 +210,16 @@ function nativeMetrics(records: RunRecord[]) {
     const contextWords = matching.flatMap((record) => metadataNumber(record, "contextWords"))
     const inputTokens = matching.flatMap((record) => typeof record.response?.usage?.inputTokens === "number" ? [record.response.usage.inputTokens] : [])
     const outputTokens = matching.flatMap((record) => typeof record.response?.usage?.outputTokens === "number" ? [record.response.usage.outputTokens] : [])
-    const latency = matching.flatMap((record) => typeof record.response?.usage?.latencyMs === "number" ? [record.response.usage.latencyMs] : [])
-    return [
+      const latency = matching.flatMap((record) => typeof record.response?.usage?.latencyMs === "number" ? [record.response.usage.latencyMs] : [])
+      const memoryInputWords = matching.flatMap((record) => metadataTraceNumber(record, "memoryTrace", "inputWords"))
+      const memorySummaryWords = matching.flatMap((record) => metadataTraceNumber(record, "memoryTrace", "summaryWords"))
+      return [
       ...(contextWords.length ? [{ targetId, suite, metric: "context_words", value: average(contextWords), direction: "lower" as const, source: "writer-bench:context-trace" }] : []),
       ...(inputTokens.length ? [{ targetId, suite, metric: "input_tokens", value: average(inputTokens), direction: "lower" as const, source: "writer-bench:provider-usage" }] : []),
       ...(outputTokens.length ? [{ targetId, suite, metric: "output_tokens", value: average(outputTokens), direction: "lower" as const, source: "writer-bench:provider-usage" }] : []),
-      ...(latency.length ? [{ targetId, suite, metric: "latency_ms", value: average(latency), direction: "lower" as const, source: "writer-bench:provider-usage" }] : []),
+        ...(latency.length ? [{ targetId, suite, metric: "latency_ms", value: average(latency), direction: "lower" as const, source: "writer-bench:provider-usage" }] : []),
+        ...(memoryInputWords.length ? [{ targetId, suite, metric: "memory_input_words", value: average(memoryInputWords), direction: "lower" as const, source: "writer-bench:memory-trace" }] : []),
+        ...(memorySummaryWords.length ? [{ targetId, suite, metric: "memory_summary_words", value: average(memorySummaryWords), direction: "lower" as const, source: "writer-bench:memory-trace" }] : []),
     ]
   })
   return [...checks, ...operational, ...retrievalMetrics(records)]
@@ -255,12 +259,19 @@ function retrievalMetrics(records: RunRecord[]) {
   })
 }
 
-function metadataNumber(record: RunRecord, key: string) {
+  function metadataNumber(record: RunRecord, key: string) {
   const trace = record.response?.metadata?.contextTrace
   if (!trace || typeof trace !== "object" || Array.isArray(trace)) return []
   const value = (trace as Record<string, unknown>)[key]
   return typeof value === "number" ? [value] : []
-}
+  }
+
+  function metadataTraceNumber(record: RunRecord, traceKey: string, key: string) {
+    const trace = record.response?.metadata?.[traceKey]
+    if (!trace || typeof trace !== "object" || Array.isArray(trace)) return []
+    const value = (trace as Record<string, unknown>)[key]
+    return typeof value === "number" ? [value] : []
+  }
 
 function average(values: number[]) {
   return values.length ? values.reduce((total, value) => total + value, 0) / values.length : 0

@@ -35,6 +35,8 @@ export type CheckMetric =
   | "proposal_preconditions"
   | "proposal_preservation"
   | "proposal_authority"
+  | "memory_recall"
+  | "memory_safety"
 
 export type Check = {
   id: string
