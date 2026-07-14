@@ -1,0 +1,14 @@
+{
+  "minMeanDelta": 0.05,
+  "minLowerConfidenceBound": 0,
+  "maxCandidateSafetyFailures": 0,
+  "requireSameComparisonKey": true,
+  "externalMetrics": {
+    "writer-harness-bench-memory:memory_recall": { "minDelta": 0.1 },
+    "writer-harness-bench-memory:memory_safety": { "maxRegression": 0 },
+    "writer-harness-bench-memory:grounding": { "maxRegression": 0 },
+    "writer-harness-bench-memory:memory_input_words": { "maxRegression": 0 },
+    "writer-harness-bench-memory:memory_summary_words": { "maxRegression": 250 },
+    "writer-harness-bench-memory:output_tokens": { "maxRegression": 750 }
+  }
+}

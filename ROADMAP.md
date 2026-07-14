@@ -117,7 +117,9 @@ Experiment 3C failed sealed graduation on Glass Orchard. Hybrid v2 improved retr
 
 Completed experiment 4: immutable edit proposals. Across 72 completed DeepSeek cells with identical task-aware context, content-addressed validated proposals scored 0.9851 with zero safety failures versus 0.2821 and 216 safety failures for free-form editing. Proposal validity, source preconditions, preservation receipts, and uncommitted authority were each 1.0000; all preregistered gates passed. Directional judge scores showed small prose and voice gains and a 0.0194 subjective constraint-fidelity regression, while every deterministic constraint check passed. The structured protocol increased tokens and latency materially. See `packages/writer-bench/experiments/immutable-proposals/RESULTS.md`.
 
-Current experiment 5: writer-aware memory and compaction. Compare coding-oriented transcript compaction with narrative reconstruction that preserves canon facts, character knowledge, unresolved questions, promises/payoffs, object state, chronology, voice constraints, author decisions, and active proposal state. Hold the graduated task contract, controlled context, and immutable proposal boundary fixed.
+Experiment 5 rejected the full writer-memory schema. Across 36 completed two-call cells, OpenCode's generic anchored compaction scored 0.8361 versus 0.7880, achieved 0.9778 memory recall versus 0.9500, and grounded downstream answers at 0.7222 versus 0.5556. Writer memory nearly doubled summary length, added 1,780 output tokens per task, increased latency by 38%, and raised safety failures from 6 to 9. Critical narrative state should live in typed validated stores; transcript compaction should remain terse and pointer-based. See `packages/writer-bench/experiments/writer-memory/RESULTS.md`.
+
+Current experiment 6: deterministic validators and optional critic agents. Measure whether scoped critics catch semantic continuity, character-knowledge, preservation, and voice issues that deterministic validation cannot, without giving critics commit authority or allowing them to rewrite valid proposals silently.
 
 ## Later phases
 
@@ -153,3 +155,4 @@ Build the private UI only after the harness protocol stabilizes: agent chat, man
 - PR #14: preregistered Quiet Meridian held-out failure; open.
 - PR #15: retrieval v2 development candidate; open.
 - PR #16: sealed retrieval v2 failure; open.
+- PR #17: immutable edit proposals; open.

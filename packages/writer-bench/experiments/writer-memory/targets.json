@@ -1,0 +1,28 @@
+{
+  "systems": [
+    {
+      "id": "coding-compaction",
+      "command": ["{node}", "--experimental-strip-types", "src/targets/memory-experiment.ts"],
+      "timeoutMs": 360000,
+      "env": {
+        "WRITER_BENCH_MEMORY_MODE": "coding",
+        "WRITER_BENCH_HISTORY_DIR": "experiments/writer-memory/histories"
+      },
+      "baseModel": "deepseek-v4-pro",
+      "comparisonKey": "deepseek-v4-pro|temperature=0.2|max=4096|memory-experiment=1|downstream=writer-contract-v0.1",
+      "metadata": { "mechanism": "opencode-coding-compaction-schema" }
+    },
+    {
+      "id": "writer-memory",
+      "command": ["{node}", "--experimental-strip-types", "src/targets/memory-experiment.ts"],
+      "timeoutMs": 360000,
+      "env": {
+        "WRITER_BENCH_MEMORY_MODE": "writer",
+        "WRITER_BENCH_HISTORY_DIR": "experiments/writer-memory/histories"
+      },
+      "baseModel": "deepseek-v4-pro",
+      "comparisonKey": "deepseek-v4-pro|temperature=0.2|max=4096|memory-experiment=1|downstream=writer-contract-v0.1",
+      "metadata": { "mechanism": "writer-narrative-state-memory" }
+    }
+  ]
+}
