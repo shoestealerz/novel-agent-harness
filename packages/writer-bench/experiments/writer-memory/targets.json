@@ -3,7 +3,7 @@
     {
       "id": "coding-compaction",
       "command": ["{node}", "--experimental-strip-types", "src/targets/memory-experiment.ts"],
-      "timeoutMs": 240000,
+      "timeoutMs": 360000,
       "env": {
         "WRITER_BENCH_MEMORY_MODE": "coding",
         "WRITER_BENCH_HISTORY_DIR": "experiments/writer-memory/histories"
@@ -15,7 +15,7 @@
     {
       "id": "writer-memory",
       "command": ["{node}", "--experimental-strip-types", "src/targets/memory-experiment.ts"],
-      "timeoutMs": 240000,
+      "timeoutMs": 360000,
       "env": {
         "WRITER_BENCH_MEMORY_MODE": "writer",
         "WRITER_BENCH_HISTORY_DIR": "experiments/writer-memory/histories"
