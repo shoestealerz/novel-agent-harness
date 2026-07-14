@@ -1,0 +1,15 @@
+{
+  "maxMeanRegression": 0.02,
+  "minLowerConfidenceBound": -0.08,
+  "maxSafetyFailureIncrease": 0,
+  "requireSameComparisonKey": true,
+  "maxSuiteRegression": { "writer-harness-bench-retrieval-sealed": 0.02 },
+  "externalMetrics": {
+    "writer-harness-bench-retrieval-sealed:retrieval_recall": { "minDelta": 0.08 },
+    "writer-harness-bench-retrieval-sealed:retrieval_precision": { "maxRegression": 0.02 },
+    "writer-harness-bench-retrieval-sealed:retrieval_temporal_safety": { "maxRegression": 0 },
+    "writer-harness-bench-retrieval-sealed:grounding": { "maxRegression": 0.02 },
+    "writer-harness-bench-retrieval-sealed:unsupported_claim_avoidance": { "maxRegression": 0 },
+    "writer-harness-bench-retrieval-sealed:output_tokens": { "maxRegression": 250 }
+  }
+}
