@@ -131,9 +131,9 @@ Build an embedded writer runtime around OpenCode with writer-owned contracts, na
 
 Initial supported jobs: Explain, Diagnose, Plan, and scoped Revise.
 
-Completed implementation slices: `packages/writer` now defines the public writer-core package, Git-friendly `novel.json` manifest, explicit stable passage markers, path containment, SHA-256 passage preconditions, the graduated controlled-context compiler, immutable proposal sealing, content-addressed proposal persistence, stale-safe review diffs, and an author-confirmed commit transaction with fresh contextual hash checks, exact Git staging, rollback before `HEAD` advances, and content-addressed Git-backed receipts. Writer Harness Bench imports the production context and proposal implementations instead of maintaining experimental copies.
+Completed implementation slices: `packages/writer` now defines the public writer-core package, Git-friendly `novel.json` manifest, explicit stable passage markers, path containment, SHA-256 passage preconditions, the graduated controlled-context compiler, immutable proposal sealing, content-addressed proposal persistence, stale-safe review diffs, and an author-confirmed commit transaction with fresh contextual hash checks, exact Git staging, rollback before `HEAD` advances, and content-addressed Git-backed receipts. The production Writer Task Contract routes Explain, Diagnose, Plan, and scoped Revise, derives least authority from the job, validates structured evidence and edit scope, and seals valid revisions. OpenCode's Writer session adapter runs that contract through its existing session and structured-output services and persists valid proposals. Writer Harness Bench imports the production context and proposal implementations instead of maintaining experimental copies.
 
-Next, embed these primitives behind a writer-owned session adapter and narrative tool registry for Explain, Diagnose, Plan, and scoped Revise. Proposal review may be session-visible; confirmation and commit authority must remain host-owned and unavailable to the model tool loop.
+Next, add the narrative tool registry and explicit context-selection protocol, retaining mandatory temporal filtering. Proposal review may be session-visible; confirmation and commit authority must remain host-owned and unavailable to the model tool loop.
 
 ### Phase 9: Production benchmark expansion
 
@@ -170,4 +170,4 @@ Build the private UI only after the harness protocol stabilizes: agent chat, man
 - PR #23: production context compiler and immutable proposal primitives; merged.
 - PR #24: content-addressed proposal persistence and stale-safe review diffs; merged.
 - PR #25: repository owner maintainer registration; merged.
-- PR #26: author-confirmed proposal commits and Git-backed receipts; draft.
+- PR #26: author-confirmed proposal commits and Git-backed receipts; merged.

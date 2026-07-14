@@ -14,6 +14,7 @@ import PROMPT_COMPACTION from "./prompt/compaction.txt"
 import PROMPT_EXPLORE from "./prompt/explore.txt"
 import PROMPT_SUMMARY from "./prompt/summary.txt"
 import PROMPT_TITLE from "./prompt/title.txt"
+import PROMPT_WRITER from "./prompt/writer.txt"
 import { Permission } from "@/permission"
 import { mergeDeep, pipe, sortBy, values } from "remeda"
 import { Global } from "@opencode-ai/core/global"
@@ -262,6 +263,16 @@ const layer = Layer.effect(
             ),
             prompt: PROMPT_SUMMARY,
           },
+          writer: {
+            name: "writer",
+            description:
+              "Fiction-writing agent for grounded explanation, diagnosis, planning, and scoped revision proposals.",
+            mode: "primary",
+            native: true,
+            prompt: PROMPT_WRITER,
+            options: {},
+            permission: Permission.merge(defaults, user, Permission.fromConfig({ "*": "deny" })),
+          },
         }
 
         for (const [key, value] of Object.entries(cfg.agent ?? {})) {
@@ -291,6 +302,14 @@ const layer = Layer.effect(
           item.steps = value.steps ?? item.steps
           item.options = mergeDeep(item.options, value.options ?? {})
           item.permission = Permission.merge(item.permission, Permission.fromConfig(value.permission ?? {}))
+        }
+
+        const writer = agents.writer
+        if (writer) {
+          writer.mode = "primary"
+          writer.native = true
+          writer.prompt = PROMPT_WRITER
+          writer.permission = Permission.merge(writer.permission, Permission.fromConfig({ "*": "deny" }))
         }
 
         // Ensure Truncate.GLOB is allowed unless explicitly configured
