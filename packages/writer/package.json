@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json.schemastore.org/package.json",
+  "name": "@novel-agent-harness/writer",
+  "version": "0.1.0",
+  "description": "Writer-owned workspace and proposal primitives for the Novel Agent Harness",
+  "type": "module",
+  "license": "MIT",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "test": "node --experimental-strip-types --test 'src/**/*.test.ts'",
+    "typecheck": "tsgo --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "@tsconfig/node22": "catalog:",
+    "@typescript/native-preview": "catalog:"
+  }
+}

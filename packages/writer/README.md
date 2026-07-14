@@ -1,0 +1,37 @@
+# Novel Agent Harness writer core
+
+This package contains the production-facing writer primitives that sit above OpenCode's generic agent runtime. The first vertical slice defines a Git-friendly novel workspace and stable passage identity.
+
+## Workspace format
+
+A workspace has a `novel.json` manifest:
+
+```json
+{
+  "formatVersion": 1,
+  "title": "Glass Orchard",
+  "chapters": [{ "id": "ch01", "path": "manuscript/ch01.md" }]
+}
+```
+
+Chapter Markdown uses explicit passage markers:
+
+```markdown
+# Chapter One
+
+<!-- novel-agent:passage ch01:p001 -->
+
+The tide had left glass pears beneath the pier.
+
+<!-- novel-agent:passage ch01:p002 -->
+
+Mara counted three before she touched the first.
+```
+
+The marker, rather than a paragraph's position or current wording, is its durable identity. Inserting, deleting, or reordering other passages therefore does not renumber citations, proposal targets, story-state evidence, or review comments. The authoring UI can hide markers while preserving them in the Git-backed Markdown source.
+
+`loadWriterWorkspace()` validates the manifest, prevents chapter paths from escaping the workspace, rejects duplicate or mismatched references, preserves exact passage text, and records a SHA-256 precondition for every passage.
+
+## Boundary
+
+This package owns writer semantics. OpenCode continues to own sessions, model access, tools, permissions, events, persistence, and snapshots. Benchmark-only checks and hidden evaluation data remain in `@novel-agent-harness/bench`.
