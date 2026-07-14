@@ -1,0 +1,28 @@
+{
+  "systems": [
+    {
+      "id": "deterministic-validation",
+      "command": ["{node}", "--experimental-strip-types", "src/targets/critic-experiment.ts"],
+      "timeoutMs": 240000,
+      "env": {
+        "WRITER_BENCH_CRITIC_MODE": "deterministic",
+        "WRITER_BENCH_MANUSCRIPT_DIR": "corpora/glass-orchard/manuscript"
+      },
+      "baseModel": "deepseek-v4-pro",
+      "comparisonKey": "glass-orchard=1.0|proposal-fixtures=0.1|deterministic-validator=1|critic-experiment=1",
+      "metadata": { "mechanism": "deterministic-proposal-validation" }
+    },
+    {
+      "id": "semantic-critic",
+      "command": ["{node}", "--experimental-strip-types", "src/targets/critic-experiment.ts"],
+      "timeoutMs": 240000,
+      "env": {
+        "WRITER_BENCH_CRITIC_MODE": "critic",
+        "WRITER_BENCH_MANUSCRIPT_DIR": "corpora/glass-orchard/manuscript"
+      },
+      "baseModel": "deepseek-v4-pro",
+      "comparisonKey": "glass-orchard=1.0|proposal-fixtures=0.1|deterministic-validator=1|critic-experiment=1",
+      "metadata": { "mechanism": "read-only-semantic-proposal-critic" }
+    }
+  ]
+}

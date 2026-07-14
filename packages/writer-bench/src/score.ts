@@ -92,6 +92,8 @@ function checkValue(check: Check, response: ExecutionResponse) {
     }
     return proposal.validation.checks.preservation && proposal.preservation.every((item) => item.receipted) ? 1 : 0
   }
+  if (check.kind === "no_edits") return response.artifacts?.edits?.length ? 0 : 1
+  if (check.kind === "max_findings") return (response.artifacts?.findings?.length ?? 0) <= check.max ? 1 : 0
   const edits = response.artifacts?.edits ?? []
   return edits.length > 0 && edits.every((edit) => check.allowed.includes(edit.target)) ? 1 : 0
 }
