@@ -10,10 +10,14 @@ on:
       - "packages/opencode/src/tool/novel.ts"
       - "packages/opencode/src/tool/registry.ts"
       - "packages/opencode/src/writer/**"
+      - "packages/opencode/src/cli/cmd/writer.ts"
+      - "packages/opencode/src/index.ts"
       - "packages/opencode/test/agent/agent.test.ts"
       - "packages/opencode/test/tool/novel.test.ts"
       - "packages/opencode/test/tool/registry.test.ts"
       - "packages/opencode/test/writer/**"
+      - "packages/opencode/test/cli/writer.test.ts"
+      - "packages/opencode/test/cli/writer-process.test.ts"
       - ".github/workflows/writer-bench.yml"
       - "bun.lock"
   push:
@@ -27,10 +31,14 @@ on:
       - "packages/opencode/src/tool/novel.ts"
       - "packages/opencode/src/tool/registry.ts"
       - "packages/opencode/src/writer/**"
+      - "packages/opencode/src/cli/cmd/writer.ts"
+      - "packages/opencode/src/index.ts"
       - "packages/opencode/test/agent/agent.test.ts"
       - "packages/opencode/test/tool/novel.test.ts"
       - "packages/opencode/test/tool/registry.test.ts"
       - "packages/opencode/test/writer/**"
+      - "packages/opencode/test/cli/writer.test.ts"
+      - "packages/opencode/test/cli/writer-process.test.ts"
       - ".github/workflows/writer-bench.yml"
       - "bun.lock"
   workflow_dispatch:
@@ -50,7 +58,7 @@ jobs:
         working-directory: packages/writer
       - run: bun typecheck
         working-directory: packages/opencode
-      - run: bun test test/writer/session.test.ts test/tool/novel.test.ts test/agent/agent.test.ts test/tool/registry.test.ts
+      - run: bun test test/writer/session.test.ts test/tool/novel.test.ts test/agent/agent.test.ts test/tool/registry.test.ts test/cli/writer.test.ts test/cli/writer-process.test.ts
         working-directory: packages/opencode
       - run: bun typecheck
         working-directory: packages/writer-bench

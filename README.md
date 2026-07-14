@@ -57,6 +57,27 @@ node --experimental-strip-types --test "src/**/*.test.ts"
 
 Benchmark model credentials and local target files are intentionally excluded from Git. See [`packages/writer-bench/README.md`](packages/writer-bench/README.md) for runner usage.
 
+### Headless Writer workflow
+
+For a Git-backed novel workspace containing `novel.json` and stable passage markers:
+
+```bash
+# Optional typed story-state store
+opencode writer state --init --dir ./my-novel
+
+# The model selects controlled context, or pass --focus/--through explicitly
+opencode writer run --dir ./my-novel --model deepseek/deepseek-chat \
+  --job revise "Tighten the confrontation without changing who knows the secret"
+
+# Review the returned content-addressed proposal ID
+opencode writer review sha256:... --dir ./my-novel
+
+# Only an explicit author confirmation can create the Git commit and receipt
+opencode writer commit sha256:... --dir ./my-novel --confirmed-by "Author Name" --yes
+```
+
+`writer run` emits a versioned JSON result by default. Explain, Diagnose, and Plan remain read-only; Revise can only save an immutable proposal. `writer commit` executes outside the model tool loop and rechecks the exact proposal and source hashes before changing manuscript files.
+
 ## Relationship to OpenCode
 
 The initial source tree was imported from [anomalyco/opencode](https://github.com/anomalyco/opencode) at commit [`34e5809`](https://github.com/anomalyco/opencode/commit/34e58090595d44e3e7cc37498f16753a98627456). OpenCode provides the generic session, model, tool, permission, event, persistence, and snapshot machinery. Novel Agent Harness owns the writer-specific contracts, context, story-state, proposal, evaluation, and author-authority layers.
@@ -65,4 +86,4 @@ The repository history begins with that source snapshot as a single baseline com
 
 ## Status
 
-Phase 7 experiments are complete. Phase 8—the public writing-harness MVP—is active. The next product slice is a usable CLI/headless workflow that connects workspace setup, Writer sessions, proposal review, explicit author confirmation, and commit receipts.
+Phase 7 experiments are complete. Phase 8—the public writing-harness MVP—is active. The headless Writer workflow now connects real model sessions, controlled context, proposal review, explicit author confirmation, and Git-backed commit receipts. Next are novel-workspace bootstrapping, author-confirmed story-state commits, and production-scale regression coverage.
