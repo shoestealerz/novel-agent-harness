@@ -1,0 +1,16 @@
+{
+  "systems": [
+    {
+      "id": "writer-retrieval-embedding",
+      "command": ["{node}", "--experimental-strip-types", "src/targets/writer-retrieval.ts"],
+      "env": {
+        "WRITER_BENCH_RETRIEVAL_STRATEGY": "embedding",
+        "WRITER_BENCH_MANUSCRIPT_DIR": "corpora/harbor-light/manuscript",
+        "WRITER_BENCH_EMBEDDING_BASE_URL": "https://provider.example/v1",
+        "WRITER_BENCH_EMBEDDING_MODEL": "replace-with-pinned-model"
+      },
+      "baseModel": "deepseek-v4-pro",
+      "comparisonKey": "deepseek-v4-pro|temperature=0.2|max=4096|writer-contract=v0.1|retrieval-experiment=1"
+    }
+  ]
+}
