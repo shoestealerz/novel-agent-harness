@@ -310,6 +310,15 @@ const layer = Layer.effect(
           writer.native = true
           writer.prompt = PROMPT_WRITER
           writer.permission = Permission.merge(writer.permission, Permission.fromConfig({ "*": "deny" }))
+          writer.permission = Permission.merge(
+            writer.permission,
+            Permission.fromConfig({
+              novel_list: "allow",
+              novel_read: "allow",
+              novel_context: "allow",
+              novel_proposal: "allow",
+            }),
+          )
         }
 
         // Ensure Truncate.GLOB is allowed unless explicitly configured

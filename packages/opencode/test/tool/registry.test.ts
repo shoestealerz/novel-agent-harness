@@ -109,6 +109,20 @@ describe("tool.registry", () => {
     }),
   )
 
+  it.instance("registers read-only novel tools without commit authority", () =>
+    Effect.gen(function* () {
+      const registry = yield* ToolRegistry.Service
+      const ids = yield* registry.ids()
+
+      expect(ids).toContain("novel_list")
+      expect(ids).toContain("novel_read")
+      expect(ids).toContain("novel_context")
+      expect(ids).toContain("novel_proposal")
+      expect(ids).not.toContain("novel_commit")
+      expect(ids).not.toContain("novel_confirm")
+    }),
+  )
+
   it.instance("does not expose execute unless code mode is enabled", () =>
     Effect.gen(function* () {
       const registry = yield* ToolRegistry.Service

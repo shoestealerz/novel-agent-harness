@@ -38,6 +38,8 @@ The marker, rather than a paragraph's position or current wording, is its durabl
 
 OpenCode's `WriterSession` adapter loads the Git-backed workspace, compiles the selected context, submits the contract through OpenCode's durable session and structured-output machinery, validates the response, and persists a valid revision proposal. Its built-in `writer` agent has generic tools denied; author confirmation and commit are not model tools.
 
+When the host does not supply an explicit context specification, the adapter opens an isolated child session for context discovery. That selector can use four read-only narrative tools: `novel_list`, `novel_read`, `novel_context`, and `novel_proposal`. It returns references through a structured selection protocol; trusted code recompiles them with temporal filtering, and only that validated packet enters the author-facing execution session. Narrative tools are disabled for the execution turn so inspected-but-excluded prose cannot leak through session history. No confirmation or commit tool is registered.
+
 ## Context and proposal boundary
 
 `compileContext()` builds a controlled packet from explicit focus, dependency, preservation, exclusion, and through-point declarations. Temporal order comes from the manifest and chapter source order, so references do not need numeric names. It validates every declared reference and exact preservation literal before model inference.
