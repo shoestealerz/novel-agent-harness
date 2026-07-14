@@ -115,7 +115,9 @@ Experiment 3B failed held-out graduation on Quiet Meridian. The frozen candidate
 
 Experiment 3C failed sealed graduation on Glass Orchard. Hybrid v2 improved retrieval recall from 0.6611 to 0.6986 with unchanged 0.6639 precision and 1.0000 temporal safety, but missed the preregistered +0.08 recall gate. Across 72 DeepSeek cells it improved mean score from 0.7391 to 0.7478 and reduced safety failures from 23 to 20; all downstream gates except retrieval recall passed. Coverage-only v2 underperformed v1, while embeddings recovered thematic and mechanism links but unevenly displaced causal evidence. Temporal filtering remains mandatory and hybrid v2 remains experimental. See `packages/writer-bench/experiments/retrieval-v2-sealed/RESULTS.md`.
 
-Current experiment 4: immutable edit proposals. To isolate the proposal mechanism from non-graduated retrieval, use controlled task-aware context and compare free-form revision output with structured, immutable, passage-scoped proposals, preservation receipts, validation, and explicit commit authority. Retrieval tuning is paused until the remaining harness mechanisms provide a stronger integrated system to test.
+Completed experiment 4: immutable edit proposals. Across 72 completed DeepSeek cells with identical task-aware context, content-addressed validated proposals scored 0.9851 with zero safety failures versus 0.2821 and 216 safety failures for free-form editing. Proposal validity, source preconditions, preservation receipts, and uncommitted authority were each 1.0000; all preregistered gates passed. Directional judge scores showed small prose and voice gains and a 0.0194 subjective constraint-fidelity regression, while every deterministic constraint check passed. The structured protocol increased tokens and latency materially. See `packages/writer-bench/experiments/immutable-proposals/RESULTS.md`.
+
+Current experiment 5: writer-aware memory and compaction. Compare coding-oriented transcript compaction with narrative reconstruction that preserves canon facts, character knowledge, unresolved questions, promises/payoffs, object state, chronology, voice constraints, author decisions, and active proposal state. Hold the graduated task contract, controlled context, and immutable proposal boundary fixed.
 
 ## Later phases
 
@@ -150,3 +152,4 @@ Build the private UI only after the harness protocol stabilizes: agent chat, man
 - PR #13: retrieval development experiment; open.
 - PR #14: preregistered Quiet Meridian held-out failure; open.
 - PR #15: retrieval v2 development candidate; open.
+- PR #16: sealed retrieval v2 failure; open.
