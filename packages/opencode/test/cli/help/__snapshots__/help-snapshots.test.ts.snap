@@ -621,3 +621,103 @@ Options:
       --log-level   log level                   [string] [choices: "DEBUG", "INFO", "WARN", "ERROR"]
       --pure        run without external plugins                                           [boolean]"
 `;
+
+exports[`opencode CLI help-text snapshots every documented command emits stable help text: opencode writer --help 1`] = `
+"opencode writer
+
+run the Novel Agent Harness headlessly
+
+Commands:
+  opencode writer run <request..>      run a grounded Writer task and return a structured result
+  opencode writer review <proposalId>  render a stale-safe manuscript or story-state proposal diff
+  opencode writer commit <proposalId>  commit an author-confirmed manuscript proposal and emit its
+                                       receipt
+  opencode writer state                initialize or inspect the validated story-state store
+
+Options:
+  -h, --help        show help                                                              [boolean]
+  -v, --version     show version number                                                    [boolean]
+      --print-logs  print logs to stderr                                                   [boolean]
+      --log-level   log level                   [string] [choices: \"DEBUG\", \"INFO\", \"WARN\", \"ERROR\"]
+      --pure        run without external plugins                                           [boolean]"
+`;
+
+exports[`opencode CLI help-text snapshots every documented command emits stable help text: opencode writer run --help 1`] = `
+"opencode writer run <request..>
+
+run a grounded Writer task and return a structured result
+
+Positionals:
+  request                                                           [array] [required] [default: []]
+
+Options:
+  -h, --help              show help                                                        [boolean]
+  -v, --version           show version number                                              [boolean]
+      --print-logs        print logs to stderr                                             [boolean]
+      --log-level         log level             [string] [choices: \"DEBUG\", \"INFO\", \"WARN\", \"ERROR\"]
+      --pure              run without external plugins                                     [boolean]
+      --dir               novel workspace directory                                         [string]
+      --job                              [string] [choices: \"explain\", \"diagnose\", \"plan\", \"revise\"]
+  -m, --model             model as provider/model                                           [string]
+      --variant           provider-specific model variant                                   [string]
+      --focus             stable focus passage reference                                     [array]
+      --dependency        stable dependency passage reference                                [array]
+      --preserve          stable passage reference to preserve                               [array]
+      --preserve-literal  exact preservation receipt as passage-ref=literal                  [array]
+      --exclude           stable passage reference to exclude                                [array]
+      --through           inclusive temporal boundary passage reference                     [string]
+      --format                                  [string] [choices: \"json\", \"text\"] [default: \"json\"]"
+`;
+
+exports[`opencode CLI help-text snapshots every documented command emits stable help text: opencode writer review --help 1`] = `
+"opencode writer review <proposalId>
+
+render a stale-safe manuscript or story-state proposal diff
+
+Positionals:
+  proposalId                                                                     [string] [required]
+
+Options:
+  -h, --help        show help                                                              [boolean]
+  -v, --version     show version number                                                    [boolean]
+      --print-logs  print logs to stderr                                                   [boolean]
+      --log-level   log level                   [string] [choices: \"DEBUG\", \"INFO\", \"WARN\", \"ERROR\"]
+      --pure        run without external plugins                                           [boolean]
+      --dir         novel workspace directory                                               [string]
+      --kind                       [string] [choices: \"manuscript\", \"state\"] [default: \"manuscript\"]"
+`;
+
+exports[`opencode CLI help-text snapshots every documented command emits stable help text: opencode writer commit --help 1`] = `
+"opencode writer commit <proposalId>
+
+commit an author-confirmed manuscript proposal and emit its receipt
+
+Positionals:
+  proposalId                                                                     [string] [required]
+
+Options:
+  -h, --help          show help                                                            [boolean]
+  -v, --version       show version number                                                  [boolean]
+      --print-logs    print logs to stderr                                                 [boolean]
+      --log-level     log level                 [string] [choices: \"DEBUG\", \"INFO\", \"WARN\", \"ERROR\"]
+      --pure          run without external plugins                                         [boolean]
+      --dir           novel workspace directory                                             [string]
+      --confirmed-by  author identity for the receipt                            [string] [required]
+      --yes           explicitly approve this exact proposal              [boolean] [default: false]
+      --message       optional Git commit message                                           [string]"
+`;
+
+exports[`opencode CLI help-text snapshots every documented command emits stable help text: opencode writer state --help 1`] = `
+"opencode writer state
+
+initialize or inspect the validated story-state store
+
+Options:
+  -h, --help        show help                                                              [boolean]
+  -v, --version     show version number                                                    [boolean]
+      --print-logs  print logs to stderr                                                   [boolean]
+      --log-level   log level                   [string] [choices: \"DEBUG\", \"INFO\", \"WARN\", \"ERROR\"]
+      --pure        run without external plugins                                           [boolean]
+      --dir         novel workspace directory                                               [string]
+      --init        create an empty store if absent                       [boolean] [default: false]"
+`;

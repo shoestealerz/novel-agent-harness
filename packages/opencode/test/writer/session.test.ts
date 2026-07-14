@@ -38,11 +38,24 @@ describe("WriterSession", () => {
     expect(input.parts[0]?.text).toContain("ch01:p001")
     expect(input.system).toContain("fiction-writing harness")
     expect(input.tools).toEqual({
+      StructuredOutput: true,
       novel_list: false,
       novel_read: false,
       novel_context: false,
       novel_proposal: false,
       novel_state: false,
+    })
+    const selection = WriterSession.selectionPromptInput({
+      sessionID: SessionID.make("ses_writer_selection"),
+      request: "Explain the bell",
+    })
+    expect(selection.tools).toEqual({
+      StructuredOutput: true,
+      novel_list: true,
+      novel_read: true,
+      novel_context: true,
+      novel_state: true,
+      novel_proposal: false,
     })
   })
 

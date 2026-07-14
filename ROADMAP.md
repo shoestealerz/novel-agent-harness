@@ -135,7 +135,9 @@ Completed implementation slices: `packages/writer` now defines the public writer
 
 The minimal story-state layer now stores typed characters, objects, locations, organizations, concepts, facts, events, character knowledge, and relationships. Every record cites stable manuscript evidence, cross-record and temporal references are validated, and uncertainty remains explicit. State changes are immutable, content-addressed proposals with base hashes and stale-safe review diffs; there is deliberately no model-facing state mutation tool. The read-only `novel_state` tool supports exact type/ID filters and excludes records evidenced after a requested temporal boundary.
 
-Next, connect the runtime into a usable CLI/headless workflow: initialize a novel workspace, run the four Writer jobs, inspect manuscript and story-state proposals, request explicit author confirmation, and return commit receipts without exposing commit authority to the model loop.
+The initial `opencode writer` headless interface now runs all four Writer jobs through real OpenCode sessions, accepts either isolated model-selected context or explicit passage constraints, emits a versioned JSON result, reviews manuscript and story-state proposals, initializes or inspects typed state, and turns an explicit `--yes` author confirmation into a verified manuscript Git commit and receipt. Real subprocess coverage exercises Explain and the full Revise → review → author-confirmed commit path.
+
+Next, add safe workspace bootstrapping for existing manuscript files and an author-confirmed story-state commit transaction. Then expand the production corpus and turn the headless subprocess scenarios into permanent release gates.
 
 ### Phase 9: Production benchmark expansion
 

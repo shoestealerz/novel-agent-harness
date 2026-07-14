@@ -24,6 +24,7 @@ import {
 import { Effect } from "effect"
 import { ModelV2 } from "@opencode-ai/core/model"
 import { ProviderV2 } from "@opencode-ai/core/provider"
+import { SessionV1 } from "@opencode-ai/core/v1/session"
 import { SessionPrompt } from "@/session/prompt"
 import { Session } from "@/session/session"
 import type { SessionID } from "@/session/schema"
@@ -88,8 +89,19 @@ export function promptInput(input: Pick<Input, "sessionID" | "model" | "variant"
     ...(input.model ? { model: input.model } : {}),
     ...(input.variant ? { variant: input.variant } : {}),
     system: writerSystemPrompt,
-    tools: { novel_list: false, novel_read: false, novel_context: false, novel_proposal: false, novel_state: false },
-    format: { type: "json_schema" as const, schema: writerResponseSchema, retryCount: 2 },
+    tools: {
+      StructuredOutput: true,
+      novel_list: false,
+      novel_read: false,
+      novel_context: false,
+      novel_proposal: false,
+      novel_state: false,
+    },
+    format: new SessionV1.OutputFormatJsonSchema({
+      type: "json_schema",
+      schema: writerResponseSchema,
+      retryCount: 2,
+    }),
     parts: [{ type: "text" as const, text: renderWriterContract(turn.task) }],
   }
 }
@@ -102,7 +114,19 @@ export function selectionPromptInput(input: Pick<Input, "sessionID" | "model" | 
     ...(input.model ? { model: input.model } : {}),
     ...(input.variant ? { variant: input.variant } : {}),
     system: writerSelectionSystemPrompt,
-    format: { type: "json_schema" as const, schema: writerSelectionSchema, retryCount: 2 },
+    tools: {
+      StructuredOutput: true,
+      novel_list: true,
+      novel_read: true,
+      novel_context: true,
+      novel_state: true,
+      novel_proposal: false,
+    },
+    format: new SessionV1.OutputFormatJsonSchema({
+      type: "json_schema",
+      schema: writerSelectionSchema,
+      retryCount: 2,
+    }),
     parts: [{ type: "text" as const, text: renderWriterSelectionRequest({ request: input.request, job }) }],
   }
 }
