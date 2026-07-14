@@ -62,9 +62,9 @@ Goal: measure the same model under direct prompting and unmodified OpenCode befo
 
 Required matrix:
 
-| Target | Context | Runtime |
-| --- | --- | --- |
-| `raw-model` | Task-provided passages | Direct OpenAI-compatible call |
+| Target           | Context                          | Runtime                           |
+| ---------------- | -------------------------------- | --------------------------------- |
+| `raw-model`      | Task-provided passages           | Direct OpenAI-compatible call     |
 | `stock-opencode` | Identical task-provided passages | Unmodified OpenCode primary agent |
 
 Protocol:
@@ -131,7 +131,9 @@ Build an embedded writer runtime around OpenCode with writer-owned contracts, na
 
 Initial supported jobs: Explain, Diagnose, Plan, and scoped Revise.
 
-Completed implementation slices: `packages/writer` now defines the public writer-core package, Git-friendly `novel.json` manifest, explicit stable passage markers, path containment, SHA-256 passage preconditions, the graduated controlled-context compiler, immutable proposal sealing, content-addressed proposal persistence, and stale-safe review diffs. Writer Harness Bench imports the production context and proposal implementations instead of maintaining experimental copies. Next, add an author-confirmed commit operation with a fresh base-hash check and Git-backed receipt.
+Completed implementation slices: `packages/writer` now defines the public writer-core package, Git-friendly `novel.json` manifest, explicit stable passage markers, path containment, SHA-256 passage preconditions, the graduated controlled-context compiler, immutable proposal sealing, content-addressed proposal persistence, stale-safe review diffs, and an author-confirmed commit transaction with fresh contextual hash checks, exact Git staging, rollback before `HEAD` advances, and content-addressed Git-backed receipts. Writer Harness Bench imports the production context and proposal implementations instead of maintaining experimental copies.
+
+Next, embed these primitives behind a writer-owned session adapter and narrative tool registry for Explain, Diagnose, Plan, and scoped Revise. Proposal review may be session-visible; confirmation and commit authority must remain host-owned and unavailable to the model tool loop.
 
 ### Phase 9: Production benchmark expansion
 
