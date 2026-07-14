@@ -38,6 +38,8 @@ The marker, rather than a paragraph's position or current wording, is its durabl
 
 `sealEditProposal()` accepts model-proposed replacement text but constructs the authoritative envelope in trusted harness code. The content-addressed envelope binds edits to source hashes, allowed targets, preservation receipts, and an explicitly uncommitted authority state. It never writes manuscript files.
 
+`saveEditProposal()` stores only validated, content-addressed envelopes under `.novel-agent/proposals`. `loadEditProposal()` revalidates the complete content address, and `renderProposalDiff()` refuses stale source hashes before producing a passage-scoped review diff. None of these review operations can apply an edit.
+
 ## Boundary
 
 This package owns writer semantics. OpenCode continues to own sessions, model access, tools, permissions, events, persistence, and snapshots. Benchmark-only checks and hidden evaluation data remain in `@novel-agent-harness/bench`.
