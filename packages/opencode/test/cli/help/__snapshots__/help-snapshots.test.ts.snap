@@ -661,6 +661,7 @@ Options:
       --job                              [string] [choices: "explain", "diagnose", "plan", "revise"]
   -m, --model             model as provider/model                                           [string]
       --variant           provider-specific model variant                                   [string]
+      --session           resume a prior headless Writer session                            [string]
       --focus             stable focus passage reference                                     [array]
       --dependency        stable dependency passage reference                                [array]
       --preserve          stable passage reference to preserve                               [array]

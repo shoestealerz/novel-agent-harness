@@ -74,6 +74,10 @@ opencode writer state --init --dir ./my-novel
 opencode writer run --dir ./my-novel --model deepseek/deepseek-chat \
   --job revise "Tighten the confrontation without changing who knows the secret"
 
+# Continue the same durable Writer conversation after the command exits
+opencode writer run --dir ./my-novel --session ses_... --job explain \
+  "Now test that interpretation against chapter two"
+
 # Review the returned content-addressed proposal ID
 opencode writer review sha256:... --dir ./my-novel
 
@@ -85,7 +89,7 @@ opencode writer commit sha256:... --kind state --dir ./my-novel \
   --confirmed-by "Author Name" --yes
 ```
 
-`writer run` emits a versioned JSON result by default. Explain, Diagnose, and Plan remain read-only; Revise can only save an immutable proposal. `writer commit` executes outside the model tool loop and rechecks the exact proposal, source or state hashes, evidence references, clean Git scope, staged blobs, and unchanged `HEAD` before creating a commit. Failed transactions restore the exact prior files and index.
+`writer run` emits a versioned JSON result with its durable session ID and per-turn token/cost usage by default. Explain, Diagnose, and Plan remain read-only; Revise can only save an immutable proposal. `--session` resumes only a prior headless Writer session from the same canonical novel workspace. `writer commit` executes outside the model tool loop and rechecks the exact proposal, source or state hashes, evidence references, clean Git scope, staged blobs, and unchanged `HEAD` before creating a commit. Failed transactions restore the exact prior files and index.
 
 ## Relationship to OpenCode
 

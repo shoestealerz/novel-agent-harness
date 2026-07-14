@@ -16,12 +16,14 @@ The package is independent of OpenCode's runtime. A target is any command that a
 - Hard regression gates, including per-suite gates and zero-tolerance safety checks.
 - Importers for WritingBench JSONL and ConStory-Bench prompt exports.
 - Real adapters for an OpenAI-compatible raw model and stock non-interactive OpenCode.
+- A production adapter that executes the shipped `opencode writer` CLI in a fresh isolated novel workspace per benchmark cell.
 - A small native smoke suite that demonstrates evidence, intentional exceptions, scoped revision, and causal planning.
 - A validated synthetic pilot corpus, `Harbor Light`, with stable passages, gold story state, planted defects, deliberate exceptions, twelve protocol tasks, and seven context stress tasks.
 
 The smoke suite verifies the runner. It is not the finished research corpus.
 
 See [TARGETS.md](TARGETS.md) to configure the first real raw-model versus stock-OpenCode run.
+See [production/README.md](production/README.md) for the preregistered production Writer comparison and release gates.
 
 Validate the pilot corpus with:
 

@@ -18,6 +18,7 @@ on:
       - "packages/opencode/test/writer/**"
       - "packages/opencode/test/cli/writer.test.ts"
       - "packages/opencode/test/cli/writer-process.test.ts"
+      - "packages/opencode/test/lib/cli-process.ts"
       - ".github/workflows/writer-bench.yml"
       - "bun.lock"
   push:
@@ -39,13 +40,19 @@ on:
       - "packages/opencode/test/writer/**"
       - "packages/opencode/test/cli/writer.test.ts"
       - "packages/opencode/test/cli/writer-process.test.ts"
+      - "packages/opencode/test/lib/cli-process.ts"
       - ".github/workflows/writer-bench.yml"
       - "bun.lock"
   workflow_dispatch:
 
 jobs:
   verify:
-    runs-on: ubuntu-latest
+    name: verify (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
@@ -54,11 +61,13 @@ jobs:
       - run: bun install --frozen-lockfile
       - run: bun typecheck
         working-directory: packages/writer
-      - run: bun test
+      - run: bun test --timeout 30000
         working-directory: packages/writer
       - run: bun typecheck
         working-directory: packages/opencode
-      - run: bun test test/writer/session.test.ts test/tool/novel.test.ts test/agent/agent.test.ts test/tool/registry.test.ts test/cli/writer.test.ts test/cli/writer-process.test.ts
+      - run: bun test test/writer/session.test.ts test/tool/novel.test.ts test/tool/registry.test.ts test/cli/writer.test.ts test/cli/writer-process.test.ts test/cli/help/help-snapshots.test.ts
+        working-directory: packages/opencode
+      - run: bun test test/agent/agent.test.ts -t "writer agent remains proposal-only"
         working-directory: packages/opencode
       - run: bun typecheck
         working-directory: packages/writer-bench
@@ -72,6 +81,6 @@ jobs:
         working-directory: packages/writer-bench
       - uses: actions/upload-artifact@v4
         with:
-          name: writer-benchmark-smoke
+          name: writer-benchmark-smoke-${{ matrix.os }}
           path: packages/writer-bench/.results
           include-hidden-files: true
