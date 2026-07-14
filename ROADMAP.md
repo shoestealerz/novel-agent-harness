@@ -164,5 +164,10 @@ Build the private UI only after the harness protocol stabilizes: agent chat, man
 - PR #17: immutable edit proposals; merged.
 - PR #18: rejected verbose writer memory; merged.
 - PR #19: rejected broad semantic critic; merged.
-- PR #20: integrated graduated-harness evaluation and Phase 7 synthesis.
+- PR #20: integrated graduated-harness evaluation and Phase 7 synthesis; merged.
 - PR #21: replacement for the auto-closed held-out retrieval PR; merged.
+- PR #22: stable Git-backed novel workspaces; merged.
+- PR #23: production context compiler and immutable proposal primitives; merged.
+- PR #24: content-addressed proposal persistence and stale-safe review diffs; merged.
+- PR #25: repository owner maintainer registration; merged.
+- PR #26: author-confirmed proposal commits and Git-backed receipts; draft.
