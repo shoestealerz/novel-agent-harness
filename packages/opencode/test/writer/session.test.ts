@@ -137,6 +137,7 @@ describe("WriterSession", () => {
 
     expect(output.result.answer).toContain("ch01:p001")
     expect(output.result.proposal).toBeUndefined()
+    expect(output.usage).toEqual({ inputTokens: 1, outputTokens: 1, costUsd: 0 })
   })
 
   test("selects context before executing an unscoped writer request", async () => {

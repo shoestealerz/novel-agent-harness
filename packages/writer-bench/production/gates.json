@@ -1,0 +1,6 @@
+{
+  "maxMeanRegression": 0,
+  "maxCandidateSafetyFailures": 0,
+  "maxSafetyFailureIncrease": 0,
+  "requireSameComparisonKey": true
+}

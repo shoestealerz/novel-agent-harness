@@ -67,6 +67,97 @@ describe("writer CLI subprocess", () => {
         expect(output.contextTrace.selectedRefs).toEqual(["ch01:p001"])
         expect(output.result.answer).toContain("ch01:p001")
         expect(output.result.proposal).toBeUndefined()
+
+        yield* llm.push(
+          reply().tool("StructuredOutput", {
+            answer: "It is still a single ring [ch01:p001].",
+            evidence: ["ch01:p001"],
+            findings: [],
+            edits: [],
+            data: { observations: [], inferences: [], unresolved: [], preservation: [] },
+          }),
+        )
+        const resumed = yield* opencode.spawn([
+          "writer",
+          "run",
+          "Confirm the count",
+          "--session",
+          output.sessionID,
+          "--dir",
+          home,
+          "--job",
+          "explain",
+          "--focus",
+          "ch01:p001",
+        ])
+        opencode.expectExit(resumed, 0, "writer resume")
+        expect(JSON.parse(resumed.stdout).sessionID).toBe(output.sessionID)
+        const inputs = yield* llm.inputs
+        expect(JSON.stringify(inputs.at(-1))).toContain("The bell rings once")
+
+        const other = path.join(home, "other-novel")
+        yield* Effect.promise(async () => {
+          await Bun.write(
+            path.join(other, "novel.json"),
+            JSON.stringify({
+              formatVersion: 1,
+              title: "Other Novel",
+              chapters: [{ id: "ch01", path: "ch01.md" }],
+            }),
+          )
+          await Bun.write(path.join(other, "ch01.md"), "<!-- novel-agent:passage ch01:p001 -->\nAnother bell.\n")
+        })
+        const crossWorkspace = yield* opencode.spawn([
+          "writer",
+          "run",
+          "Cross the boundary",
+          "--session",
+          output.sessionID,
+          "--dir",
+          other,
+          "--job",
+          "explain",
+          "--focus",
+          "ch01:p001",
+        ])
+        opencode.expectExit(crossWorkspace, 1, "writer cross-workspace resume")
+        expect(crossWorkspace.stderr).toContain("different novel workspace")
+      }),
+    60_000,
+  )
+
+  cliIt.concurrent(
+    "fails closed when the configured model is unavailable",
+    ({ home, opencode }) =>
+      Effect.gen(function* () {
+        yield* Effect.promise(async () => {
+          await Bun.write(
+            path.join(home, "novel.json"),
+            JSON.stringify({
+              formatVersion: 1,
+              title: "Provider Failure",
+              chapters: [{ id: "ch01", path: "ch01.md" }],
+            }),
+          )
+          await Bun.write(path.join(home, "ch01.md"), "<!-- novel-agent:passage ch01:p001 -->\nNo answer yet.\n")
+        })
+        const result = yield* opencode.spawn([
+          "writer",
+          "run",
+          "Explain the passage",
+          "--model",
+          "missing-provider/missing-model",
+          "--dir",
+          home,
+          "--job",
+          "explain",
+          "--focus",
+          "ch01:p001",
+        ])
+        opencode.expectExit(result, 1, "writer model failure")
+        expect(result.stdout.trim()).toBe("")
+        expect(result.stderr).toMatch(/model.*not found|missing-provider/i)
+        expect(yield* Effect.promise(() => Bun.file(path.join(home, ".novel-agent", "proposals")).exists())).toBe(false)
       }),
     60_000,
   )

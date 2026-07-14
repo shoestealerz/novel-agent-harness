@@ -1,0 +1,31 @@
+{
+  "systems": [
+    {
+      "id": "raw-model",
+      "label": "Direct model baseline",
+      "command": ["{node}", "--experimental-strip-types", "src/targets/openai-compatible.ts"],
+      "timeoutMs": 240000,
+      "baseModel": "SET_MODEL_ID",
+      "comparisonKey": "SET_COMPARISON_KEY",
+      "metadata": { "mechanism": "direct-model" }
+    },
+    {
+      "id": "stock-opencode",
+      "label": "Stock OpenCode baseline",
+      "command": ["{node}", "--experimental-strip-types", "src/targets/opencode-cli.ts"],
+      "timeoutMs": 360000,
+      "baseModel": "SET_MODEL_ID",
+      "comparisonKey": "SET_COMPARISON_KEY",
+      "metadata": { "mechanism": "stock-opencode" }
+    },
+    {
+      "id": "production-writer",
+      "label": "Production Novel Agent Harness",
+      "command": ["{node}", "--experimental-strip-types", "src/targets/production-writer.ts"],
+      "timeoutMs": 360000,
+      "baseModel": "SET_MODEL_ID",
+      "comparisonKey": "SET_COMPARISON_KEY",
+      "metadata": { "mechanism": "production-opencode-writer" }
+    }
+  ]
+}

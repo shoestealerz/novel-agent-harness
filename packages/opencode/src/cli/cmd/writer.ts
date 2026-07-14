@@ -19,6 +19,7 @@ import path from "node:path"
 import { promisify } from "node:util"
 import type { Argv } from "yargs"
 import { Provider } from "@/provider/provider"
+import { SessionID } from "@/session/schema"
 import { Session } from "@/session/session"
 import { WriterSession } from "@/writer/session"
 import { effectCmd, fail } from "../effect-cmd"
@@ -100,6 +101,7 @@ export const WriterRunCommand = effectCmd({
       .option("job", { type: "string", choices: jobs })
       .option("model", { alias: "m", type: "string", describe: "model as provider/model" })
       .option("variant", { type: "string", describe: "provider-specific model variant" })
+      .option("session", { type: "string", describe: "resume a prior headless Writer session" })
       .option("focus", { type: "string", array: true, describe: "stable focus passage reference" })
       .option("dependency", { type: "string", array: true, describe: "stable dependency passage reference" })
       .option("preserve", { type: "string", array: true, describe: "stable passage reference to preserve" })
@@ -118,20 +120,35 @@ export const WriterRunCommand = effectCmd({
     const contextSpec = contextSpecFromArgs(args)
     const parsed = args.model ? Provider.parseModel(args.model) : undefined
     const sessions = yield* Session.Service
-    const session = yield* sessions.create({
-      title: `Writer: ${request.slice(0, 72)}`,
-      agent: "writer",
-      ...(parsed
-        ? {
-            model: {
-              id: parsed.modelID,
-              providerID: parsed.providerID,
-              variant: args.variant ?? "default",
-            },
-          }
-        : {}),
-      metadata: { "novel.writer.phase": "execution", "novel.writer.interface": "headless" },
-    })
+    const session = args.session
+      ? yield* sessions
+          .get(SessionID.make(args.session))
+          .pipe(Effect.catchCause(() => fail(`Writer session not found: ${args.session}`)))
+      : yield* sessions.create({
+          title: `Writer: ${request.slice(0, 72)}`,
+          agent: "writer",
+          ...(parsed
+            ? {
+                model: {
+                  id: parsed.modelID,
+                  providerID: parsed.providerID,
+                  variant: args.variant ?? "default",
+                },
+              }
+            : {}),
+          metadata: { "novel.writer.phase": "execution", "novel.writer.interface": "headless" },
+        })
+    if (args.session) {
+      const [sessionRoot, requestedRoot] = yield* Effect.promise(() =>
+        Promise.all([realpath(session.directory), realpath(root)]),
+      )
+      if (path.relative(sessionRoot, requestedRoot)) {
+        return yield* fail("Writer session belongs to a different novel workspace")
+      }
+      if (session.agent !== "writer" || session.metadata?.["novel.writer.interface"] !== "headless") {
+        return yield* fail("Only a prior headless Writer session can be resumed")
+      }
+    }
     const output = yield* WriterSession.run({
       sessionID: session.id,
       root,
@@ -301,6 +318,7 @@ function headlessResult(sessionID: string, output: WriterSession.Output) {
     selection: output.selection,
     contextTrace: output.contextTrace,
     result: output.result,
+    usage: output.usage,
     proposalPath: output.proposalPath,
   }
 }

@@ -139,7 +139,9 @@ The initial `opencode writer` headless interface now runs all four Writer jobs t
 
 Safe workspace bootstrap now requires a clean Git root and already tracked chapter files, refuses to overwrite `novel.json`, preserves valid existing markers, and adds only one conservative whole-chapter marker to unmarked files through an explicit `--yes` operation. Author-confirmed story-state commits now revalidate the proposal, evidence, current state hash, clean Git scope, staged blobs, and unchanged `HEAD`; they write a separate content-addressed receipt and restore the exact prior state bytes and index if the commit fails. Real subprocess coverage exercises bootstrap, state-proposal review, and state commit.
 
-Next, expand the production corpus and turn the headless subprocess scenarios into full release gates covering process restart, stale proposals, provider failures, and both supported operating-system families.
+The production benchmark adapter now executes the shipped `opencode writer` command in a fresh isolated novel workspace per cell and maps its structured artifacts, token usage, cost, latency, session identity, and failures into Writer Harness Bench. Headless Writer sessions can resume across process restarts only within the same canonical novel workspace. The dedicated CI gate now covers session recovery, stale proposals, model-configuration failure, and the complete Writer/benchmark suite on Windows and Linux.
+
+Next, run the preregistered production adapter against the same pinned model through raw-model, stock-OpenCode, and production-Writer targets, then expand the production corpus before making broader quality claims.
 
 ### Phase 9: Production benchmark expansion
 
@@ -181,3 +183,4 @@ Build the private UI only after the harness protocol stabilizes: agent chat, man
 - PR #28: read-only narrative tools and isolated model-assisted context selection; merged.
 - PR #29: typed, evidence-linked story state and immutable state proposals; merged.
 - PR #30: real headless Writer workflow with review, author confirmation, and manuscript commit receipts; merged.
+- PR #31: safe workspace bootstrap and author-confirmed story-state commit receipts; merged.

@@ -48,6 +48,7 @@ export type PreparedTurn = {
 
 export type Output = PreparedTurn & {
   result: WriterResult
+  usage: { inputTokens: number; outputTokens: number; costUsd: number }
   proposalPath?: string
   selection?: { sessionID: SessionID; contextSpec: WriterContextSelection }
 }
@@ -131,7 +132,7 @@ export function selectionPromptInput(input: Pick<Input, "sessionID" | "model" | 
   }
 }
 
-export async function finalize(root: string, turn: PreparedTurn, value: unknown): Promise<Output> {
+export async function finalize(root: string, turn: PreparedTurn, value: unknown): Promise<Omit<Output, "usage">> {
   const result = parseWriterResult(turn.task, value)
   const proposalPath = result.proposal ? await saveEditProposal(root, result.proposal) : undefined
   return { ...turn, result, ...(proposalPath ? { proposalPath } : {}) }
@@ -180,7 +181,15 @@ export const run = Effect.fn("WriterSession.run")(function* (input: Input) {
   if (info.role !== "assistant") throw new Error("writer session did not return an assistant response")
   if (info.structured === undefined) throw new Error("writer session did not return structured output")
   const output = yield* Effect.promise(() => finalize(input.root, turn, info.structured))
-  return { ...output, ...(admission.selection ? { selection: admission.selection } : {}) }
+  return {
+    ...output,
+    usage: {
+      inputTokens: info.tokens.input + info.tokens.cache.read + info.tokens.cache.write,
+      outputTokens: info.tokens.output + info.tokens.reasoning,
+      costUsd: info.cost,
+    },
+    ...(admission.selection ? { selection: admission.selection } : {}),
+  }
 })
 
 export * as WriterSession from "./session"
