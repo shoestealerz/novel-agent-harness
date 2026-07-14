@@ -70,6 +70,10 @@ it.instance(
       expect(evalPerm(writer, "read")).toBe("deny")
       expect(evalPerm(writer, "edit")).toBe("deny")
       expect(evalPerm(writer, "bash")).toBe("deny")
+      expect(evalPerm(writer, "novel_list")).toBe("allow")
+      expect(evalPerm(writer, "novel_read")).toBe("allow")
+      expect(evalPerm(writer, "novel_context")).toBe("allow")
+      expect(evalPerm(writer, "novel_proposal")).toBe("allow")
     }),
   {
     config: {

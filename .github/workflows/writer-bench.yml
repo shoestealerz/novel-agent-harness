@@ -5,6 +5,15 @@ on:
     paths:
       - "packages/writer/**"
       - "packages/writer-bench/**"
+      - "packages/opencode/src/agent/agent.ts"
+      - "packages/opencode/src/agent/prompt/writer.txt"
+      - "packages/opencode/src/tool/novel.ts"
+      - "packages/opencode/src/tool/registry.ts"
+      - "packages/opencode/src/writer/**"
+      - "packages/opencode/test/agent/agent.test.ts"
+      - "packages/opencode/test/tool/novel.test.ts"
+      - "packages/opencode/test/tool/registry.test.ts"
+      - "packages/opencode/test/writer/**"
       - ".github/workflows/writer-bench.yml"
       - "bun.lock"
   push:
@@ -13,6 +22,15 @@ on:
     paths:
       - "packages/writer/**"
       - "packages/writer-bench/**"
+      - "packages/opencode/src/agent/agent.ts"
+      - "packages/opencode/src/agent/prompt/writer.txt"
+      - "packages/opencode/src/tool/novel.ts"
+      - "packages/opencode/src/tool/registry.ts"
+      - "packages/opencode/src/writer/**"
+      - "packages/opencode/test/agent/agent.test.ts"
+      - "packages/opencode/test/tool/novel.test.ts"
+      - "packages/opencode/test/tool/registry.test.ts"
+      - "packages/opencode/test/writer/**"
       - ".github/workflows/writer-bench.yml"
       - "bun.lock"
   workflow_dispatch:
@@ -30,6 +48,10 @@ jobs:
         working-directory: packages/writer
       - run: bun test
         working-directory: packages/writer
+      - run: bun typecheck
+        working-directory: packages/opencode
+      - run: bun test test/writer/session.test.ts test/tool/novel.test.ts test/agent/agent.test.ts test/tool/registry.test.ts
+        working-directory: packages/opencode
       - run: bun typecheck
         working-directory: packages/writer-bench
       - run: bun test

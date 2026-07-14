@@ -54,6 +54,7 @@ import { ModelV2 } from "@opencode-ai/core/model"
 import { MCP } from "@/mcp"
 import { PermissionV1 } from "@opencode-ai/core/v1/permission"
 import { McpCatalog } from "@/mcp/catalog"
+import { NovelContextTool, NovelListTool, NovelProposalTool, NovelReadTool } from "./novel"
 
 export function webSearchEnabled(providerID: ProviderV2.ID, flags = { exa: false, parallel: false }) {
   return providerID === ProviderV2.ID.opencode || flags.exa || flags.parallel
@@ -109,6 +110,10 @@ const layer = Layer.effect(
     const greptool = yield* GrepTool
     const patchtool = yield* ApplyPatchTool
     const skilltool = yield* SkillTool
+    const novelList = yield* NovelListTool
+    const novelRead = yield* NovelReadTool
+    const novelContext = yield* NovelContextTool
+    const novelProposal = yield* NovelProposalTool
     const agent = yield* Agent.Service
     const codeMode = flags.experimentalCodeMode ? yield* Effect.promise(() => import("./code-mode")) : undefined
     const codeModeTool = codeMode ? yield* codeMode.CodeModeTool : undefined
@@ -214,6 +219,10 @@ const layer = Layer.effect(
           todo: Tool.init(todo),
           search: Tool.init(websearch),
           skill: Tool.init(skilltool),
+          novelList: Tool.init(novelList),
+          novelRead: Tool.init(novelRead),
+          novelContext: Tool.init(novelContext),
+          novelProposal: Tool.init(novelProposal),
           patch: Tool.init(patchtool),
           question: Tool.init(question),
           lsp: Tool.init(lsptool),
@@ -237,6 +246,10 @@ const layer = Layer.effect(
             tool.todo,
             tool.search,
             tool.skill,
+            tool.novelList,
+            tool.novelRead,
+            tool.novelContext,
+            tool.novelProposal,
             tool.patch,
             ...(tool.execute ? [tool.execute] : []),
             ...(flags.experimentalLspTool ? [tool.lsp] : []),
