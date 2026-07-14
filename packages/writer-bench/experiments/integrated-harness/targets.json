@@ -1,0 +1,40 @@
+{
+  "systems": [
+    {
+      "id": "integrated-raw",
+      "command": ["{node}", "--experimental-strip-types", "src/targets/integrated-experiment.ts"],
+      "timeoutMs": 240000,
+      "env": {
+        "WRITER_BENCH_INTEGRATED_MODE": "raw",
+        "WRITER_BENCH_MANUSCRIPT_DIR": "corpora/glass-orchard/manuscript"
+      },
+      "baseModel": "deepseek-v4-pro",
+      "comparisonKey": "deepseek-v4-pro|temperature=0.2|max=4096|glass-orchard-proposals=0.1|context=task-aware",
+      "metadata": { "mechanism": "raw-model-with-identical-context" }
+    },
+    {
+      "id": "integrated-stock-opencode",
+      "command": ["{node}", "--experimental-strip-types", "src/targets/integrated-experiment.ts"],
+      "timeoutMs": 360000,
+      "env": {
+        "WRITER_BENCH_INTEGRATED_MODE": "stock",
+        "WRITER_BENCH_MANUSCRIPT_DIR": "corpora/glass-orchard/manuscript"
+      },
+      "baseModel": "deepseek-v4-pro",
+      "comparisonKey": "deepseek-v4-pro|temperature=0.2|max=4096|glass-orchard-proposals=0.1|context=task-aware",
+      "metadata": { "mechanism": "stock-opencode-with-identical-context" }
+    },
+    {
+      "id": "integrated-writer-harness",
+      "command": ["{node}", "--experimental-strip-types", "src/targets/integrated-experiment.ts"],
+      "timeoutMs": 240000,
+      "env": {
+        "WRITER_BENCH_INTEGRATED_MODE": "integrated",
+        "WRITER_BENCH_MANUSCRIPT_DIR": "corpora/glass-orchard/manuscript"
+      },
+      "baseModel": "deepseek-v4-pro",
+      "comparisonKey": "deepseek-v4-pro|temperature=0.2|max=4096|glass-orchard-proposals=0.1|context=task-aware",
+      "metadata": { "mechanism": "graduated-writer-harness" }
+    }
+  ]
+}
