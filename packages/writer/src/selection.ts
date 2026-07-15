@@ -12,6 +12,7 @@ export const writerSelectionSystemPrompt = [
   "Use only novel_list, novel_read, novel_context, and the read-only novel_state tool to inspect the Git-backed novel.",
   "Return stable passage references, not prose answers or edits.",
   "Choose the smallest packet that covers the focus, causal dependencies, and explicit preservation constraints.",
+  "Use preservationLiterals only for wording the author explicitly requires verbatim; never turn motifs, voice, ideas, facts, or paraphrasable constraints into exact literals.",
   "Set throughRef whenever the request has a story-time, chapter, scene, or character-knowledge boundary; never select later passages beyond it.",
   "Do not infer throughRef from chapter order or boundary wording alone when the boundary event is absent; keep it unset and retain every passage that directly answers a requested facet.",
   "Before finalizing, account for every inspected passage as selected or explicitly excluded, and never exclude directly responsive evidence merely because it occurs in a later chapter.",

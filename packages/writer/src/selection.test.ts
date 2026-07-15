@@ -64,4 +64,5 @@ test("renders a selection request without manuscript prose or benchmark material
   assert.match(request, /passage references/)
   assert.doesNotMatch(request, /checks|criteria|gold/)
   assert.match(writerSelectionSystemPrompt, /Do not infer throughRef from chapter order/)
+  assert.match(writerSelectionSystemPrompt, /never turn motifs, voice, ideas/)
 })
