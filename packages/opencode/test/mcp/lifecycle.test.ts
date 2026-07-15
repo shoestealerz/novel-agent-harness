@@ -538,6 +538,7 @@ it.instance("remote timeout aborts both real HTTP transport attempts", () =>
     yield* pollWithTimeout(
       Effect.sync(() => (server.aborted() >= 2 ? server.aborted() : undefined)),
       "remote transport requests were not aborted",
+      "15 seconds",
     )
     expect(server.requests).toEqual(["POST", "GET"])
   }),
