@@ -14,7 +14,7 @@
     ".": "./src/index.ts"
   },
   "scripts": {
-    "test": "node --experimental-strip-types --test \"src/**/*.test.ts\"",
+    "test": "bun test",
     "typecheck": "tsgo --noEmit"
   },
   "devDependencies": {
