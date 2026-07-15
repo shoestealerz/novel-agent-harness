@@ -472,9 +472,9 @@ function head(root: string, executable: string) {
   return runGit(root, ["rev-parse", "HEAD"], executable).then((result) => result.stdout.trim())
 }
 
-function runGit(root: string, args: string[], executable: string, input = "") {
+function runGit(root: string, args: string[], executable: string) {
   return new Promise<GitOutput>((resolve, reject) => {
-    const child = spawn(executable, args, { cwd: root, windowsHide: true, stdio: ["pipe", "pipe", "pipe"] })
+    const child = spawn(executable, args, { cwd: root, windowsHide: true, stdio: ["ignore", "pipe", "pipe"] })
     const stdout: string[] = []
     const stderr: string[] = []
     child.stdout.setEncoding("utf8").on("data", (value: string) => stdout.push(value))
@@ -485,7 +485,6 @@ function runGit(root: string, args: string[], executable: string, input = "") {
       if (code === 0) return resolve(result)
       reject(new Error(`git ${args[0] ?? "command"} failed: ${result.stderr.trim() || `exit ${code}`}`))
     })
-    child.stdin.end(input)
   })
 }
 
