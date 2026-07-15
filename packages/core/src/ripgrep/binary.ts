@@ -59,6 +59,31 @@ export namespace RipgrepBinary {
         const dir = yield* fs.makeTempDirectoryScoped({ directory: Global.Path.bin, prefix: "ripgrep-" })
 
         if (config.extension === "zip") {
+          const shell = yield* Effect.gen(function* () {
+            const discovered = which("pwsh.exe") ?? which("powershell.exe")
+            if (discovered) return discovered
+            if (process.platform !== "win32") return undefined
+
+            const system = path.join(
+              process.env.SystemRoot ?? "C:\\Windows",
+              "System32",
+              "WindowsPowerShell",
+              "v1.0",
+              "powershell.exe",
+            )
+            return (yield* fs.isFile(system).pipe(Effect.orElseSucceed(() => false))) ? system : undefined
+          })
+          const escapedArchive = archive.replaceAll("'", "''")
+          const escapedDir = dir.replaceAll("'", "''")
+          const zipResult = shell
+            ? yield* run(shell, [
+                "-NoProfile",
+                "-NonInteractive",
+                "-Command",
+                `$ErrorActionPreference = 'Stop'; try { Add-Type -AssemblyName System.IO.Compression.ZipFile } catch { }; [System.IO.Compression.ZipFile]::ExtractToDirectory('${escapedArchive}', '${escapedDir}')`,
+              ])
+            : undefined
+
           const tar = yield* Effect.gen(function* () {
             const discovered = which("tar.exe") ?? which("tar")
             if (discovered) return discovered
@@ -69,14 +94,15 @@ export namespace RipgrepBinary {
             const system = path.join(process.env.SystemRoot ?? "C:\\Windows", "System32", "tar.exe")
             return (yield* fs.isFile(system).pipe(Effect.orElseSucceed(() => false))) ? system : undefined
           })
-          const tarResult = tar ? yield* run(tar, ["-xf", archive, "-C", dir]) : undefined
-          if (!tarResult || tarResult.code !== 0) {
-            const shell = (yield* Effect.sync(() => which("powershell.exe") ?? which("pwsh.exe"))) ?? "powershell.exe"
+          const tarResult =
+            zipResult?.code === 0 ? undefined : tar ? yield* run(tar, ["-xf", archive, "-C", dir]) : undefined
+          if (zipResult?.code !== 0 && tarResult?.code !== 0) {
+            if (!shell) throw new Error("ripgrep zip extraction requires PowerShell or tar")
             const result = yield* run(shell, [
               "-NoProfile",
               "-NonInteractive",
               "-Command",
-              `$global:ProgressPreference = 'SilentlyContinue'; Expand-Archive -LiteralPath '${archive.replaceAll("'", "''")}' -DestinationPath '${dir.replaceAll("'", "''")}' -Force`,
+              `$ErrorActionPreference = 'Stop'; $global:ProgressPreference = 'SilentlyContinue'; Expand-Archive -LiteralPath '${escapedArchive}' -DestinationPath '${escapedDir}' -Force`,
             ])
             if (result.code !== 0)
               throw new Error(
@@ -101,16 +127,14 @@ export namespace RipgrepBinary {
         if (!(yield* fs.isFile(extracted))) throw new Error(`ripgrep archive did not contain executable: ${extracted}`)
 
         const staged = `${target}.${process.pid}.${randomUUID()}.tmp`
-        yield* fs
-          .copyFile(extracted, staged)
-          .pipe(
-            Effect.andThen(process.platform === "win32" ? Effect.void : fs.chmod(staged, 0o755)),
-            Effect.andThen(fs.rename(staged, target)),
-            Effect.catch((error) =>
-              fs.isFile(target).pipe(Effect.flatMap((exists) => (exists ? Effect.void : Effect.fail(error)))),
-            ),
-            Effect.ensuring(fs.remove(staged, { force: true }).pipe(Effect.ignore)),
-          )
+        yield* fs.copyFile(extracted, staged).pipe(
+          Effect.andThen(process.platform === "win32" ? Effect.void : fs.chmod(staged, 0o755)),
+          Effect.andThen(fs.rename(staged, target)),
+          Effect.catch((error) =>
+            fs.isFile(target).pipe(Effect.flatMap((exists) => (exists ? Effect.void : Effect.fail(error)))),
+          ),
+          Effect.ensuring(fs.remove(staged, { force: true }).pipe(Effect.ignore)),
+        )
       }, Effect.scoped)
 
       return Service.of({
