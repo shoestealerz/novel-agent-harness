@@ -58,7 +58,16 @@ export namespace RipgrepBinary {
         const dir = yield* fs.makeTempDirectoryScoped({ directory: Global.Path.bin, prefix: "ripgrep-" })
 
         if (config.extension === "zip") {
-          const tar = yield* Effect.sync(() => which("tar.exe") ?? which("tar"))
+          const tar = yield* Effect.gen(function* () {
+            const discovered = which("tar.exe") ?? which("tar")
+            if (discovered) return discovered
+            if (process.platform !== "win32") return undefined
+
+            // GitHub-hosted Windows runners can omit System32 from the PATH
+            // inherited by Bun even though the inbox bsdtar is available there.
+            const system = path.join(process.env.SystemRoot ?? "C:\\Windows", "System32", "tar.exe")
+            return (yield* fs.isFile(system).pipe(Effect.orElseSucceed(() => false))) ? system : undefined
+          })
           const tarResult = tar ? yield* run(tar, ["-xf", archive, "-C", dir]) : undefined
           if (!tarResult || tarResult.code !== 0) {
             const shell = (yield* Effect.sync(() => which("powershell.exe") ?? which("pwsh.exe"))) ?? "powershell.exe"
