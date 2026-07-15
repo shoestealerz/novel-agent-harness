@@ -59,7 +59,7 @@ export function renderWriterSelectionRequest(input: { request: string; job: Writ
 }
 
 export function parseWriterContextSelection(value: unknown): WriterContextSelection {
-  const input = record(value, "writer context selection")
+  const input = record(normalizeWriterContextSelection(value), "writer context selection")
   const focusRefs = refs(input.focusRefs, "focusRefs")
   if (!focusRefs.length) throw new Error("writer context selection requires at least one focus reference")
   const dependencyRefs = refs(input.dependencyRefs, "dependencyRefs")
@@ -89,6 +89,35 @@ export function parseWriterContextSelection(value: unknown): WriterContextSelect
     ...(throughRef ? { throughRef } : {}),
     rationale: text(input.rationale, "writer context selection rationale"),
   }
+}
+
+export function normalizeWriterContextSelection(value: unknown): unknown {
+  const outer = value && typeof value === "object" && !Array.isArray(value) ? (value as Record<string, unknown>) : null
+  if (!outer || Object.keys(outer).length !== 1) return value
+  const key = "input" in outer ? "input" : "answer" in outer ? "answer" : undefined
+  if (!key) return value
+  const nested = (() => {
+    const candidate = outer[key]
+    if (candidate && typeof candidate === "object" && !Array.isArray(candidate)) return candidate
+    if (typeof candidate !== "string") return undefined
+    try {
+      return JSON.parse(candidate) as unknown
+    } catch {
+      return undefined
+    }
+  })()
+  if (!nested || typeof nested !== "object" || Array.isArray(nested)) return value
+  const input = nested as Record<string, unknown>
+  const required = [
+    "focusRefs",
+    "dependencyRefs",
+    "preservationRefs",
+    "preservationLiterals",
+    "excludeRefs",
+    "throughRef",
+    "rationale",
+  ]
+  return required.every((field) => field in input) ? input : value
 }
 
 function refs(value: unknown, label: string) {

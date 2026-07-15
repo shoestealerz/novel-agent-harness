@@ -1,6 +1,6 @@
 import assert from "node:assert/strict"
 import test from "node:test"
-import { parseWriterContextSelection, renderWriterSelectionRequest } from "./selection.ts"
+import { normalizeWriterContextSelection, parseWriterContextSelection, renderWriterSelectionRequest } from "./selection.ts"
 
 test("parses a structured context selection", () => {
   const selection = parseWriterContextSelection({
@@ -14,6 +14,22 @@ test("parses a structured context selection", () => {
   })
   assert.equal(selection.throughRef, "ch02:p005")
   assert.deepEqual(selection.focusRefs, ["ch02:p004"])
+})
+
+test("unwraps complete selector responses from non-strict tool providers", () => {
+  const expected = {
+    focusRefs: ["ch02:p004"],
+    dependencyRefs: [],
+    preservationRefs: [],
+    preservationLiterals: [],
+    excludeRefs: ["ch03:p001"],
+    throughRef: "ch02:p005",
+    rationale: "The focus and boundary are sufficient.",
+  }
+  assert.deepEqual(normalizeWriterContextSelection({ input: expected }), expected)
+  assert.deepEqual(normalizeWriterContextSelection({ answer: JSON.stringify(expected) }), expected)
+  assert.deepEqual(parseWriterContextSelection({ input: expected }).focusRefs, ["ch02:p004"])
+  assert.deepEqual(normalizeWriterContextSelection({ input: { focusRefs: [] } }), { input: { focusRefs: [] } })
 })
 
 test("rejects empty focus, exclusion overlap, and unbound literals", () => {
