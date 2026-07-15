@@ -1,4 +1,5 @@
 import path from "path"
+import { randomUUID } from "crypto"
 import { Context, Effect, Layer, Stream } from "effect"
 import { FetchHttpClient, HttpClient, HttpClientRequest } from "effect/unstable/http"
 import { ChildProcess } from "effect/unstable/process"
@@ -99,8 +100,17 @@ export namespace RipgrepBinary {
         )
         if (!(yield* fs.isFile(extracted))) throw new Error(`ripgrep archive did not contain executable: ${extracted}`)
 
-        yield* fs.copyFile(extracted, target)
-        if (process.platform !== "win32") yield* fs.chmod(target, 0o755)
+        const staged = `${target}.${process.pid}.${randomUUID()}.tmp`
+        yield* fs
+          .copyFile(extracted, staged)
+          .pipe(
+            Effect.andThen(process.platform === "win32" ? Effect.void : fs.chmod(staged, 0o755)),
+            Effect.andThen(fs.rename(staged, target)),
+            Effect.catch((error) =>
+              fs.isFile(target).pipe(Effect.flatMap((exists) => (exists ? Effect.void : Effect.fail(error)))),
+            ),
+            Effect.ensuring(fs.remove(staged, { force: true }).pipe(Effect.ignore)),
+          )
       }, Effect.scoped)
 
       return Service.of({
@@ -122,7 +132,7 @@ export namespace RipgrepBinary {
 
                 const filename = `ripgrep-${VERSION}-${config.platform}.${config.extension}`
                 const url = `https://github.com/BurntSushi/ripgrep/releases/download/${VERSION}/${filename}`
-                const archive = path.join(Global.Path.bin, filename)
+                const archive = path.join(Global.Path.bin, `${filename}.${process.pid}.${randomUUID()}.download`)
 
                 yield* Effect.logInfo("downloading ripgrep", { url })
                 yield* fs.ensureDir(Global.Path.bin).pipe(Effect.orDie)
@@ -133,9 +143,12 @@ export namespace RipgrepBinary {
                 )
                 if (bytes.byteLength === 0) throw new Error(`failed to download ripgrep from ${url}`)
 
-                yield* fs.writeWithDirs(archive, new Uint8Array(bytes))
-                yield* extract(archive, config, target)
-                yield* fs.remove(archive, { force: true }).pipe(Effect.ignore)
+                yield* fs
+                  .writeWithDirs(archive, new Uint8Array(bytes))
+                  .pipe(
+                    Effect.andThen(extract(archive, config, target)),
+                    Effect.ensuring(fs.remove(archive, { force: true }).pipe(Effect.ignore)),
+                  )
                 return target
               }),
               `ripgrep-install:${target}`,
