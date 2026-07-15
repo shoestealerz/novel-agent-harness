@@ -39,20 +39,29 @@ The integrated reliability evaluation completed 108/108 cells. The graduated har
 - [`ROADMAP.md`](ROADMAP.md): current phase, experiment record, and implementation sequence
 - [`packages/opencode`](packages/opencode): the retained generic agent runtime inherited from OpenCode
 
-## Development
+## Alpha quick start
 
-The monorepo uses Bun 1.3.14 and Node.js 22 or newer.
+The alpha is source-distributed and requires Git, Bun 1.3.14, and Node.js 22 or newer. Clone only from this repository, install the locked dependencies, and verify the Writer command before opening a manuscript workspace:
 
 ```bash
-bun install
+git clone https://github.com/shoestealerz/novel-agent-harness.git
+cd novel-agent-harness
+bun install --frozen-lockfile --ignore-scripts
+bun run writer -- --help
+```
 
-cd packages/writer
-bun run typecheck
-node --experimental-strip-types --test "src/**/*.test.ts"
+The proposal-only Writer path does not require the inherited desktop/native lifecycle scripts. Full monorepo development and the interactive OpenCode surfaces use `bun install --frozen-lockfile`; on Windows that also requires Visual Studio Build Tools with the C++ workload.
 
-cd ../writer-bench
-bun run typecheck
-node --experimental-strip-types --test "src/**/*.test.ts"
+Provider credentials are read by the retained OpenCode model layer. Keep keys in its provider configuration or the current process environment; never add them to a novel repository. Manuscript passages and Writer session context are sent to the provider selected by the author.
+
+For package development:
+
+```bash
+bun run --cwd packages/writer typecheck
+bun run --cwd packages/writer test
+
+bun run --cwd packages/writer-bench typecheck
+bun run --cwd packages/writer-bench test
 ```
 
 Benchmark model credentials and local target files are intentionally excluded from Git. See [`packages/writer-bench/README.md`](packages/writer-bench/README.md) for runner usage.
@@ -64,28 +73,28 @@ For a Git-backed novel workspace containing `novel.json` and stable passage mark
 ```bash
 # Bootstrap clean, already tracked chapter files. Unmarked files receive one
 # conservative whole-chapter passage marker and are never silently overwritten.
-opencode writer init --dir ./my-novel --title "My Novel" \
+bun run writer -- init --dir ./my-novel --title "My Novel" \
   --chapter ch01=manuscript/chapter-01.md --yes
 
 # Optional typed story-state store
-opencode writer state --init --dir ./my-novel
+bun run writer -- state --init --dir ./my-novel
 
 # The model selects controlled context, or pass --focus/--through explicitly
-opencode writer run --dir ./my-novel --model deepseek/deepseek-chat \
+bun run writer -- run --dir ./my-novel --model deepseek/deepseek-v4-pro \
   --job revise "Tighten the confrontation without changing who knows the secret"
 
 # Continue the same durable Writer conversation after the command exits
-opencode writer run --dir ./my-novel --session ses_... --job explain \
+bun run writer -- run --dir ./my-novel --session ses_... --job explain \
   "Now test that interpretation against chapter two"
 
 # Review the returned content-addressed proposal ID
-opencode writer review sha256:... --dir ./my-novel
+bun run writer -- review sha256:... --dir ./my-novel
 
 # Only an explicit author confirmation can create the Git commit and receipt
-opencode writer commit sha256:... --dir ./my-novel --confirmed-by "Author Name" --yes
+bun run writer -- commit sha256:... --dir ./my-novel --confirmed-by "Author Name" --yes
 
 # Story-state proposals use the same explicit author boundary and a separate receipt.
-opencode writer commit sha256:... --kind state --dir ./my-novel \
+bun run writer -- commit sha256:... --kind state --dir ./my-novel \
   --confirmed-by "Author Name" --yes
 ```
 
@@ -99,4 +108,4 @@ The repository history begins with that source snapshot as a single baseline com
 
 ## Status
 
-Phase 7 experiments are complete. Phase 8—the public writing-harness MVP—is active. The headless Writer workflow now connects safe workspace bootstrap, real model sessions, controlled context, proposal review, explicit author confirmation, and Git-backed manuscript and story-state commit receipts. The next phase is production-scale regression coverage and release hardening.
+Phase 7 experiments are complete. Phase 8—the public writing-harness MVP—is active. Version `0.1.0-alpha.1` supports Explain, Diagnose, Plan, and scoped Revise through the source-distributed headless workflow. Broader generation, translation, a stable installable binary, the private web application, and broad literary-quality claims remain outside this alpha. See [RELEASE.md](RELEASE.md) for the release gate and limitations.

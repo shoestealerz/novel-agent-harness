@@ -184,3 +184,6 @@ Build the private UI only after the harness protocol stabilizes: agent chat, man
 - PR #29: typed, evidence-linked story state and immutable state proposals; merged.
 - PR #30: real headless Writer workflow with review, author confirmation, and manuscript commit receipts; merged.
 - PR #31: safe workspace bootstrap and author-confirmed story-state commit receipts; merged.
+- PR #32: production Writer adapter, resumable-session gates, and benchmark CI; merged.
+- PR #33: production DeepSeek benchmark launcher and pinned provider configuration; merged.
+- PR #34: public-runner CI portability and race-safe Windows dependency setup; merged.
