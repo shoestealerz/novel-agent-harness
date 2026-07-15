@@ -2,10 +2,12 @@ import assert from "node:assert/strict"
 import test from "node:test"
 import {
   createWriterTask,
+  normalizeWriterResponse,
   parseWriterResult,
   renderWriterContract,
   routeWriterJob,
   WriterContractError,
+  writerResponseSchemaFor,
 } from "./contract.ts"
 
 const context = [
@@ -33,6 +35,41 @@ test("renders the production contract without benchmark data", () => {
   assert.match(contract, /selectedContext/)
   assert.match(contract, /ch01:p001/)
   assert.doesNotMatch(contract, /checks|criteria|gold/)
+})
+
+test("constrains structured evidence and edit targets to admitted passage references", () => {
+  const explain = createWriterTask({ request: "Explain the bell", job: "explain", context })
+  const explainSchema = writerResponseSchemaFor(explain)
+  assert.deepEqual(explainSchema.properties.evidence.items.enum, ["ch01:p001", "ch01:p002"])
+  assert.deepEqual(explainSchema.properties.findings.items.properties.evidence.items.enum, [
+    "ch01:p001",
+    "ch01:p002",
+  ])
+  assert.equal(explainSchema.properties.edits.maxItems, 0)
+
+  const revise = createWriterTask({
+    request: "Tighten the bell",
+    job: "revise",
+    context,
+    contextSpec: { focusRefs: ["ch01:p001"] },
+  })
+  const reviseSchema = writerResponseSchemaFor(revise)
+  assert.deepEqual(reviseSchema.properties.edits.items.properties.target.enum, ["ch01:p001"])
+  assert.equal("maxItems" in reviseSchema.properties.edits, false)
+})
+
+test("unwraps complete Writer responses nested by non-strict tool providers", () => {
+  const expected = response()
+  assert.deepEqual(normalizeWriterResponse({ answer: expected }), expected)
+  assert.deepEqual(normalizeWriterResponse({ answer: JSON.stringify(expected) }), expected)
+  assert.deepEqual(
+    normalizeWriterResponse({ answer: `${JSON.stringify(expected)},"findingCount":1,"editCount":0}` }),
+    expected,
+  )
+  assert.deepEqual(normalizeWriterResponse({ answer: "ordinary answer" }), { answer: "ordinary answer" })
+  assert.deepEqual(normalizeWriterResponse({ answer: { answer: "incomplete" } }), {
+    answer: { answer: "incomplete" },
+  })
 })
 
 test("rejects edits from a read-only job", () => {

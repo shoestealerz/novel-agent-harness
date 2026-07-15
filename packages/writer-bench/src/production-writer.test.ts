@@ -29,6 +29,7 @@ test("pins comparable raw, stock, and production DeepSeek targets", async () => 
   )
   assert.equal(new Set(targets.systems.map((target) => target.comparisonKey)).size, 1)
   assert.ok(targets.systems.every((target) => target.baseModel === "deepseek-v4-pro"))
+  assert.ok(targets.systems.every((target) => target.comparisonKey?.includes("max=8192")))
 })
 
 test("executes the shipped Writer command protocol against an isolated manuscript workspace", async () => {

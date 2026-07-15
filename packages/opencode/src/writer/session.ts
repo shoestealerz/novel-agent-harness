@@ -8,7 +8,7 @@ import {
   renderWriterSelectionRequest,
   routeWriterJob,
   saveEditProposal,
-  writerResponseSchema,
+  writerResponseSchemaFor,
   writerSelectionSchema,
   writerSelectionSystemPrompt,
   writerSystemPrompt,
@@ -100,7 +100,7 @@ export function promptInput(input: Pick<Input, "sessionID" | "model" | "variant"
     },
     format: new SessionV1.OutputFormatJsonSchema({
       type: "json_schema",
-      schema: writerResponseSchema,
+      schema: writerResponseSchemaFor(turn.task),
       retryCount: 2,
     }),
     parts: [{ type: "text" as const, text: renderWriterContract(turn.task) }],
