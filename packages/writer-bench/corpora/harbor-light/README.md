@@ -19,6 +19,8 @@ Version 0.4.1 corrects the production pilot's preservation gate for `harbor-revi
 
 Version 0.4.2 corrects the production pilot's sea-color safety gate for `harbor-revise-002`. The superseded substring check rejected correct prose that preserved Mara's distrustful clause because the clause necessarily contained “the sea was blue.” Suite 0.2.2 instead evaluates the proposed replacement itself and requires iron, green, violet, distrust, and accusation imagery. Results from earlier suite versions are retained as experiment records and are not mixed with 0.2.2 comparisons.
 
+Version 0.4.3 makes the replacement-only motif expression JavaScript-compatible and corrects the closed-door gate for `harbor-plan-002`. The old substring ban rejected hypothetical tradeoff language such as “if she opens the door” even when every proposed structure explicitly kept it closed. Suite 0.2.3 requires affirmative closed-door language instead. Earlier results remain preserved and are not mixed with 0.2.3 comparisons.
+
 ## Canon policy
 
 Manuscript prose is authoritative for what appears on the page. `intentions.jsonl` is authoritative for off-page author intent and deliberate exceptions. Other gold files are evidence-linked annotations used for evaluation; they are not text the candidate system may silently add to the story.

@@ -82,7 +82,10 @@ export function parseWriterContextSelection(value: unknown): WriterContextSelect
     return { ref, text: text(literal.text, `writer context selection preservationLiterals[${index}].text`) }
   })
   const throughRef =
-    input.throughRef === null ? undefined : text(input.throughRef, "writer context selection throughRef")
+    input.throughRef === null ||
+    (typeof input.throughRef === "string" && /^(?:null|none)$/i.test(input.throughRef.trim()))
+      ? undefined
+      : text(input.throughRef, "writer context selection throughRef")
   return {
     focusRefs,
     dependencyRefs,

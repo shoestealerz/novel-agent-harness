@@ -34,6 +34,7 @@ test("unwraps complete selector responses from non-strict tool providers", () =>
   assert.deepEqual(normalizeWriterContextSelection({ input: expected }), expected)
   assert.deepEqual(normalizeWriterContextSelection({ answer: JSON.stringify(expected) }), expected)
   assert.deepEqual(parseWriterContextSelection({ input: expected }).focusRefs, ["ch02:p004"])
+  assert.equal(parseWriterContextSelection({ ...expected, throughRef: "null" }).throughRef, undefined)
   assert.deepEqual(normalizeWriterContextSelection({ input: { focusRefs: [] } }), { input: { focusRefs: [] } })
 })
 
