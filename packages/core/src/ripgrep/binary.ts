@@ -1,4 +1,5 @@
 import path from "path"
+import { randomUUID } from "crypto"
 import { Context, Effect, Layer, Stream } from "effect"
 import { FetchHttpClient, HttpClient, HttpClientRequest } from "effect/unstable/http"
 import { ChildProcess } from "effect/unstable/process"
@@ -8,6 +9,7 @@ import { makeGlobalNode } from "../effect/app-node"
 import { httpClient } from "../effect/app-node-platform"
 import { FSUtil } from "../fs-util"
 import { Global } from "../global"
+import { EffectFlock } from "../util/effect-flock"
 import { which } from "../util/which"
 
 export namespace RipgrepBinary {
@@ -34,6 +36,7 @@ export namespace RipgrepBinary {
       const fs = yield* FSUtil.Service
       const http = HttpClient.filterStatusOk(yield* HttpClient.HttpClient)
       const spawner = yield* ChildProcessSpawner
+      const flock = yield* EffectFlock.Service
 
       const run = Effect.fnUntraced(function* (command: string, args: string[]) {
         const handle = yield* spawner.spawn(ChildProcess.make(command, args, { extendEnv: true, stdin: "ignore" }))
@@ -56,17 +59,56 @@ export namespace RipgrepBinary {
         const dir = yield* fs.makeTempDirectoryScoped({ directory: Global.Path.bin, prefix: "ripgrep-" })
 
         if (config.extension === "zip") {
-          const shell = (yield* Effect.sync(() => which("powershell.exe") ?? which("pwsh.exe"))) ?? "powershell.exe"
-          const result = yield* run(shell, [
-            "-NoProfile",
-            "-NonInteractive",
-            "-Command",
-            `$global:ProgressPreference = 'SilentlyContinue'; Expand-Archive -LiteralPath '${archive.replaceAll("'", "''")}' -DestinationPath '${dir.replaceAll("'", "''")}' -Force`,
-          ])
-          if (result.code !== 0)
-            throw new Error(
-              result.stderr.trim() || result.stdout.trim() || `ripgrep extraction failed with code ${result.code}`,
+          const shell = yield* Effect.gen(function* () {
+            const discovered = which("pwsh.exe") ?? which("powershell.exe")
+            if (discovered) return discovered
+            if (process.platform !== "win32") return undefined
+
+            const system = path.join(
+              process.env.SystemRoot ?? "C:\\Windows",
+              "System32",
+              "WindowsPowerShell",
+              "v1.0",
+              "powershell.exe",
             )
+            return (yield* fs.isFile(system).pipe(Effect.orElseSucceed(() => false))) ? system : undefined
+          })
+          const escapedArchive = archive.replaceAll("'", "''")
+          const escapedDir = dir.replaceAll("'", "''")
+          const zipResult = shell
+            ? yield* run(shell, [
+                "-NoProfile",
+                "-NonInteractive",
+                "-Command",
+                `$ErrorActionPreference = 'Stop'; try { Add-Type -AssemblyName System.IO.Compression.ZipFile } catch { }; [System.IO.Compression.ZipFile]::ExtractToDirectory('${escapedArchive}', '${escapedDir}')`,
+              ])
+            : undefined
+
+          const tar = yield* Effect.gen(function* () {
+            const discovered = which("tar.exe") ?? which("tar")
+            if (discovered) return discovered
+            if (process.platform !== "win32") return undefined
+
+            // GitHub-hosted Windows runners can omit System32 from the PATH
+            // inherited by Bun even though the inbox bsdtar is available there.
+            const system = path.join(process.env.SystemRoot ?? "C:\\Windows", "System32", "tar.exe")
+            return (yield* fs.isFile(system).pipe(Effect.orElseSucceed(() => false))) ? system : undefined
+          })
+          const tarResult =
+            zipResult?.code === 0 ? undefined : tar ? yield* run(tar, ["-xf", archive, "-C", dir]) : undefined
+          if (zipResult?.code !== 0 && tarResult?.code !== 0) {
+            if (!shell) throw new Error("ripgrep zip extraction requires PowerShell or tar")
+            const result = yield* run(shell, [
+              "-NoProfile",
+              "-NonInteractive",
+              "-Command",
+              `$ErrorActionPreference = 'Stop'; $global:ProgressPreference = 'SilentlyContinue'; Expand-Archive -LiteralPath '${escapedArchive}' -DestinationPath '${escapedDir}' -Force`,
+            ])
+            if (result.code !== 0)
+              throw new Error(
+                result.stderr.trim() || result.stdout.trim() || `ripgrep extraction failed with code ${result.code}`,
+              )
+          }
         }
 
         if (config.extension === "tar.gz") {
@@ -84,8 +126,15 @@ export namespace RipgrepBinary {
         )
         if (!(yield* fs.isFile(extracted))) throw new Error(`ripgrep archive did not contain executable: ${extracted}`)
 
-        yield* fs.copyFile(extracted, target)
-        if (process.platform !== "win32") yield* fs.chmod(target, 0o755)
+        const staged = `${target}.${process.pid}.${randomUUID()}.tmp`
+        yield* fs.copyFile(extracted, staged).pipe(
+          Effect.andThen(process.platform === "win32" ? Effect.void : fs.chmod(staged, 0o755)),
+          Effect.andThen(fs.rename(staged, target)),
+          Effect.catch((error) =>
+            fs.isFile(target).pipe(Effect.flatMap((exists) => (exists ? Effect.void : Effect.fail(error)))),
+          ),
+          Effect.ensuring(fs.remove(staged, { force: true }).pipe(Effect.ignore)),
+        )
       }, Effect.scoped)
 
       return Service.of({
@@ -97,27 +146,38 @@ export namespace RipgrepBinary {
             const target = path.join(Global.Path.bin, `rg${process.platform === "win32" ? ".exe" : ""}`)
             if (yield* fs.isFile(target).pipe(Effect.orDie)) return target
 
-            const platformKey = `${process.arch}-${process.platform}` as keyof typeof PLATFORM
-            const config = PLATFORM[platformKey]
-            if (!config) throw new Error(`unsupported platform for ripgrep: ${platformKey}`)
+            return yield* flock.withLock(
+              Effect.gen(function* () {
+                if (yield* fs.isFile(target).pipe(Effect.orDie)) return target
 
-            const filename = `ripgrep-${VERSION}-${config.platform}.${config.extension}`
-            const url = `https://github.com/BurntSushi/ripgrep/releases/download/${VERSION}/${filename}`
-            const archive = path.join(Global.Path.bin, filename)
+                const platformKey = `${process.arch}-${process.platform}` as keyof typeof PLATFORM
+                const config = PLATFORM[platformKey]
+                if (!config) throw new Error(`unsupported platform for ripgrep: ${platformKey}`)
 
-            yield* Effect.logInfo("downloading ripgrep", { url })
-            yield* fs.ensureDir(Global.Path.bin).pipe(Effect.orDie)
-            const bytes = yield* HttpClientRequest.get(url).pipe(
-              http.execute,
-              Effect.flatMap((response) => response.arrayBuffer),
-              Effect.mapError((cause) => (cause instanceof Error ? cause : new Error(String(cause)))),
+                const filename = `ripgrep-${VERSION}-${config.platform}.${config.extension}`
+                const url = `https://github.com/BurntSushi/ripgrep/releases/download/${VERSION}/${filename}`
+                const archive = path.join(Global.Path.bin, `${filename}.${process.pid}.${randomUUID()}.download`)
+
+                yield* Effect.logInfo("downloading ripgrep", { url })
+                yield* fs.ensureDir(Global.Path.bin).pipe(Effect.orDie)
+                const bytes = yield* HttpClientRequest.get(url).pipe(
+                  http.execute,
+                  Effect.flatMap((response) => response.arrayBuffer),
+                  Effect.mapError((cause) => (cause instanceof Error ? cause : new Error(String(cause)))),
+                )
+                if (bytes.byteLength === 0) throw new Error(`failed to download ripgrep from ${url}`)
+
+                yield* fs
+                  .writeWithDirs(archive, new Uint8Array(bytes))
+                  .pipe(
+                    Effect.andThen(extract(archive, config, target)),
+                    Effect.ensuring(fs.remove(archive, { force: true }).pipe(Effect.ignore)),
+                  )
+                return target
+              }),
+              `ripgrep-install:${target}`,
+              Global.Path.bin,
             )
-            if (bytes.byteLength === 0) throw new Error(`failed to download ripgrep from ${url}`)
-
-            yield* fs.writeWithDirs(archive, new Uint8Array(bytes))
-            yield* extract(archive, config, target)
-            yield* fs.remove(archive, { force: true }).pipe(Effect.ignore)
-            return target
           }),
         ),
       })
@@ -127,6 +187,6 @@ export namespace RipgrepBinary {
   export const node = makeGlobalNode({
     service: Service,
     layer: layer,
-    deps: [FSUtil.node, httpClient, CrossSpawnSpawner.node],
+    deps: [FSUtil.node, httpClient, CrossSpawnSpawner.node, EffectFlock.node],
   })
 }
