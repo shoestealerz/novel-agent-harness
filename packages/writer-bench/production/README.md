@@ -2,6 +2,8 @@
 
 This directory is the repeatable release evaluation for the shipped `opencode writer` command. Unlike the Phase 7 integrated experiment, the `production-writer` target creates an isolated novel workspace for every cell and launches the public CLI in a separate process. The adapter records the CLI session, structured artifacts, token usage, cost, latency, and failures using the normal Writer Harness Bench protocol.
 
+See [RESULTS.md](RESULTS.md) for the completed MVP alpha-release comparison and its evaluation audit.
+
 ## Preregistered pilot
 
 The first production run uses the nine Explain, Diagnose, Plan, and Revise tasks in the Harbor Light pilot. Brainstorm, Synchronize, Generate, and Translate remain outside the MVP and must not be silently routed through a different job.
