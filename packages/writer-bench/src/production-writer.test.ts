@@ -84,6 +84,23 @@ test("maps the complete public context contract to Writer CLI flags", () => {
   assert.ok(args.includes("--through"))
 })
 
+test("delegates unspecified context to the production Writer selector", () => {
+  const args = buildWriterArguments({ ...task, contextSpec: undefined }, "/novel", "provider/model")
+  assert.deepEqual(args, [
+    "writer",
+    "run",
+    task.prompt,
+    "--dir",
+    "/novel",
+    "--job",
+    "explain",
+    "--model",
+    "provider/model",
+    "--format",
+    "json",
+  ])
+})
+
 test("rejects jobs and context that the production MVP does not support", async () => {
   await assert.rejects(
     executeProductionWriter({ ...task, job: "generate" }, { command: ["unused"], model: "fixture/model" }),

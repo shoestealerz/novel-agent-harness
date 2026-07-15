@@ -84,7 +84,8 @@ export async function writeProductionWorkspace(root: string, task: ExecutionTask
 export function buildWriterArguments(task: ExecutionTask, root: string, model: string) {
   validateTask(task)
   const args = ["writer", "run", task.prompt, "--dir", root, "--job", task.job, "--model", model, "--format", "json"]
-  const contextSpec = task.contextSpec ?? { focusRefs: (task.context ?? []).map((item) => item.ref) }
+  const contextSpec = task.contextSpec
+  if (!contextSpec) return args
   appendMany(args, "--focus", contextSpec.focusRefs)
   appendMany(args, "--dependency", contextSpec.dependencyRefs)
   appendMany(args, "--preserve", contextSpec.preservationRefs)

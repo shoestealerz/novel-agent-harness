@@ -174,6 +174,21 @@ describe("WriterSession", () => {
     })
     const sessionLayer = Layer.mock(Session.Service, {
       get: (id) => {
+        if (id === selectorID) {
+          return Effect.succeed({
+            id: selectorID,
+            slug: "writer-context-selection",
+            projectID: ProjectV2.ID.make("project"),
+            directory: tmp.path,
+            parentID: sessionID,
+            title: "Writer context selection",
+            agent: "writer",
+            version: "test",
+            cost: 2,
+            tokens: { input: 3, output: 4, reasoning: 5, cache: { read: 6, write: 7 } },
+            time: { created: Date.now(), updated: Date.now() },
+          })
+        }
         expect(id).toBe(sessionID)
         return Effect.succeed({
           id: sessionID,
@@ -221,6 +236,8 @@ describe("WriterSession", () => {
     expect(state.calls).toBe(2)
     expect(output.selection?.sessionID).toBe(selectorID)
     expect(output.selection?.contextSpec.rationale).toContain("signal")
+    expect(output.selection?.usage).toEqual({ inputTokens: 16, outputTokens: 9, costUsd: 2 })
+    expect(output.usage).toEqual({ inputTokens: 17, outputTokens: 10, costUsd: 2 })
     expect(output.task.contextSpec).not.toHaveProperty("rationale")
     expect(output.contextTrace.selectedRefs).toEqual(["ch01:p001", "ch01:p002"])
     expect(output.result.evidence).toEqual(["ch01:p001", "ch01:p002"])
