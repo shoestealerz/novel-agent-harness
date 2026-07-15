@@ -1,6 +1,11 @@
 import assert from "node:assert/strict"
 import test from "node:test"
-import { normalizeWriterContextSelection, parseWriterContextSelection, renderWriterSelectionRequest } from "./selection.ts"
+import {
+  normalizeWriterContextSelection,
+  parseWriterContextSelection,
+  renderWriterSelectionRequest,
+  writerSelectionSystemPrompt,
+} from "./selection.ts"
 
 test("parses a structured context selection", () => {
   const selection = parseWriterContextSelection({
@@ -58,4 +63,5 @@ test("renders a selection request without manuscript prose or benchmark material
   const request = renderWriterSelectionRequest({ request: "Explain the bell", job: "explain" })
   assert.match(request, /passage references/)
   assert.doesNotMatch(request, /checks|criteria|gold/)
+  assert.match(writerSelectionSystemPrompt, /Do not infer throughRef from chapter order/)
 })

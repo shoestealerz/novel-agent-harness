@@ -13,6 +13,8 @@ export const writerSelectionSystemPrompt = [
   "Return stable passage references, not prose answers or edits.",
   "Choose the smallest packet that covers the focus, causal dependencies, and explicit preservation constraints.",
   "Set throughRef whenever the request has a story-time, chapter, scene, or character-knowledge boundary; never select later passages beyond it.",
+  "Do not infer throughRef from chapter order or boundary wording alone when the boundary event is absent; keep it unset and retain every passage that directly answers a requested facet.",
+  "Before finalizing, account for every inspected passage as selected or explicitly excluded, and never exclude directly responsive evidence merely because it occurs in a later chapter.",
   "Use novel_state with the same throughRef to locate typed facts, events, relationships, and character knowledge, then select their cited manuscript evidence.",
   "Do not use novel_proposal unless the author asks about an existing proposal.",
 ].join(" ")

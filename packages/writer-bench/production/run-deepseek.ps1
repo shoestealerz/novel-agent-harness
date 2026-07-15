@@ -56,11 +56,11 @@ $env:WRITER_BENCH_MODEL = "deepseek-v4-pro"
 $env:WRITER_BENCH_OPENCODE_MODEL = "deepseek/deepseek-v4-pro"
 $env:WRITER_BENCH_BASE_URL = "https://api.deepseek.com"
 $env:WRITER_BENCH_TEMPERATURE = "0.2"
-$env:WRITER_BENCH_MAX_TOKENS = "8192"
+$env:WRITER_BENCH_MAX_TOKENS = "16384"
 $env:WRITER_BENCH_OPENCODE_BIN = $OpenCode
 $env:WRITER_BENCH_WRITER_COMMAND = ConvertTo-Json -Compress @($Bun, "run", "--conditions=browser", $OpenCodeIndex)
 $env:OPENCODE_CONFIG_CONTENT = '{"permission":{"external_directory":"deny","question":"deny"},"agent":{"build":{"temperature":0.2,"steps":12},"writer":{"temperature":0.2,"steps":12}}}'
-$env:OPENCODE_EXPERIMENTAL_OUTPUT_TOKEN_MAX = "8192"
+$env:OPENCODE_EXPERIMENTAL_OUTPUT_TOKEN_MAX = "16384"
 
 $Timestamp = Get-Date -Format "yyyyMMdd-HHmmss"
 $RunDirectory = Join-Path $PackageRoot ".results\production-deepseek-$Timestamp"
