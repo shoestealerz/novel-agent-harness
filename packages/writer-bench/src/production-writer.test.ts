@@ -1,7 +1,8 @@
 import assert from "node:assert/strict"
+import { readFile } from "node:fs/promises"
 import { fileURLToPath } from "node:url"
 import test from "node:test"
-import type { ExecutionTask } from "./contracts.ts"
+import { parseTargetFile, type ExecutionTask } from "./contracts.ts"
 import { buildWriterArguments, executeProductionWriter } from "./targets/production-writer-runtime.ts"
 
 const task: ExecutionTask = {
@@ -18,6 +19,17 @@ const task: ExecutionTask = {
   ],
   contextSpec: { focusRefs: ["ch01:p001"], dependencyRefs: ["ch02:p001"], throughRef: "ch02:p001" },
 }
+
+test("pins comparable raw, stock, and production DeepSeek targets", async () => {
+  const path = fileURLToPath(new URL("../production/targets.deepseek.json", import.meta.url))
+  const targets = parseTargetFile(JSON.parse(await readFile(path, "utf8")))
+  assert.deepEqual(
+    targets.systems.map((target) => target.id),
+    ["raw-model", "stock-opencode", "production-writer"],
+  )
+  assert.equal(new Set(targets.systems.map((target) => target.comparisonKey)).size, 1)
+  assert.ok(targets.systems.every((target) => target.baseModel === "deepseek-v4-pro"))
+})
 
 test("executes the shipped Writer command protocol against an isolated manuscript workspace", async () => {
   const fixture = fileURLToPath(new URL("./targets/production-writer-fixture.ts", import.meta.url))

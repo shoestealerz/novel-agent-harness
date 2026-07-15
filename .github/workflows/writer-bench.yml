@@ -59,13 +59,24 @@ jobs:
         with:
           bun-version: 1.3.14
       - run: bun install --frozen-lockfile
+      - name: Validate production PowerShell launcher
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $errors = $null
+          [System.Management.Automation.Language.Parser]::ParseFile(
+            (Resolve-Path "packages/writer-bench/production/run-deepseek.ps1"),
+            [ref]$null,
+            [ref]$errors
+          ) | Out-Null
+          if ($errors) { throw ($errors | Out-String) }
       - run: bun typecheck
         working-directory: packages/writer
       - run: bun test --timeout 30000
         working-directory: packages/writer
       - run: bun typecheck
         working-directory: packages/opencode
-      - run: bun test test/writer/session.test.ts test/tool/novel.test.ts test/tool/registry.test.ts test/cli/writer.test.ts test/cli/writer-process.test.ts test/cli/help/help-snapshots.test.ts
+      - run: bun test --timeout 30000 test/writer/session.test.ts test/tool/novel.test.ts test/tool/registry.test.ts test/cli/writer.test.ts test/cli/writer-process.test.ts test/cli/help/help-snapshots.test.ts
         working-directory: packages/opencode
       - run: bun test test/agent/agent.test.ts -t "writer agent remains proposal-only"
         working-directory: packages/opencode
