@@ -38,6 +38,21 @@ test("unwraps complete selector responses from non-strict tool providers", () =>
   assert.deepEqual(normalizeWriterContextSelection({ input: { focusRefs: [] } }), { input: { focusRefs: [] } })
 })
 
+test("canonicalizes singleton and comma-delimited reference lists from non-strict providers", () => {
+  const selection = parseWriterContextSelection({
+    focusRefs: "ch02:p004, ch03:p002",
+    dependencyRefs: "ch01:p003",
+    preservationRefs: [],
+    preservationLiterals: [],
+    excludeRefs: "ch04:p001",
+    throughRef: "ch03:p002",
+    rationale: "The selected contradiction and its setup are sufficient.",
+  })
+  assert.deepEqual(selection.focusRefs, ["ch02:p004", "ch03:p002"])
+  assert.deepEqual(selection.dependencyRefs, ["ch01:p003"])
+  assert.deepEqual(selection.excludeRefs, ["ch04:p001"])
+})
+
 test("rejects empty focus, exclusion overlap, and unbound literals", () => {
   const base = {
     focusRefs: ["ch01:p001"],

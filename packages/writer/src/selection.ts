@@ -99,21 +99,21 @@ export function parseWriterContextSelection(value: unknown): WriterContextSelect
 
 export function normalizeWriterContextSelection(value: unknown): unknown {
   const outer = value && typeof value === "object" && !Array.isArray(value) ? (value as Record<string, unknown>) : null
-  if (!outer || Object.keys(outer).length !== 1) return value
-  const key = "input" in outer ? "input" : "answer" in outer ? "answer" : undefined
-  if (!key) return value
-  const nested = (() => {
-    const candidate = outer[key]
-    if (candidate && typeof candidate === "object" && !Array.isArray(candidate)) return candidate
-    if (typeof candidate !== "string") return undefined
+  const candidate = (() => {
+    if (!outer || Object.keys(outer).length !== 1) return value
+    const key = "input" in outer ? "input" : "answer" in outer ? "answer" : undefined
+    if (!key) return value
+    const nested = outer[key]
+    if (nested && typeof nested === "object" && !Array.isArray(nested)) return nested
+    if (typeof nested !== "string") return value
     try {
-      return JSON.parse(candidate) as unknown
+      return JSON.parse(nested) as unknown
     } catch {
-      return undefined
+      return value
     }
   })()
-  if (!nested || typeof nested !== "object" || Array.isArray(nested)) return value
-  const input = nested as Record<string, unknown>
+  if (!candidate || typeof candidate !== "object" || Array.isArray(candidate)) return candidate
+  const input = candidate as Record<string, unknown>
   const required = [
     "focusRefs",
     "dependencyRefs",
@@ -123,7 +123,24 @@ export function normalizeWriterContextSelection(value: unknown): unknown {
     "throughRef",
     "rationale",
   ]
-  return required.every((field) => field in input) ? input : value
+  if (!required.every((field) => field in input)) return candidate === value ? candidate : value
+  return {
+    ...input,
+    focusRefs: normalizeRefs(input.focusRefs),
+    dependencyRefs: normalizeRefs(input.dependencyRefs),
+    preservationRefs: normalizeRefs(input.preservationRefs),
+    excludeRefs: normalizeRefs(input.excludeRefs),
+    preservationLiterals:
+      input.preservationLiterals && typeof input.preservationLiterals === "object" && !Array.isArray(input.preservationLiterals)
+        ? [input.preservationLiterals]
+        : input.preservationLiterals,
+  }
+}
+
+function normalizeRefs(value: unknown) {
+  if (typeof value !== "string") return value
+  const items = value.split(",").map((item) => item.trim())
+  return items.every((item) => /^[a-z][a-z0-9_-]*:[a-z][a-z0-9_-]*$/i.test(item)) ? items : value
 }
 
 function refs(value: unknown, label: string) {

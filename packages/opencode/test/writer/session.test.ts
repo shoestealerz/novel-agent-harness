@@ -149,11 +149,109 @@ describe("WriterSession", () => {
     expect(output.usage).toEqual({ inputTokens: 2, outputTokens: 2, costUsd: 0 })
   })
 
+  test("repairs a structured response that violates the Writer contract", async () => {
+    await using tmp = await writerWorkspace()
+    const sessionID = SessionID.make("ses_writer_contract_repair")
+    const valid = {
+      answer: "The bell is a one-time signal [ch01:p001].",
+      evidence: ["ch01:p001"],
+      findings: [],
+      edits: [],
+      data: { observations: [], inferences: [], unresolved: [], preservation: [] },
+    }
+    const responses = [{ ...valid, evidence: ["In ch01:p001 the bell rings once."] }, valid]
+    const state = { calls: 0 }
+    const layer = Layer.mock(SessionPrompt.Service, {
+      prompt: (input) => {
+        if (state.calls === 1) {
+          expect(input.parts[0]?.type).toBe("text")
+          if (input.parts[0]?.type === "text") {
+            expect(input.parts[0].text).toContain("failed contract validation")
+            expect(input.parts[0].text).toContain("unsupported evidence")
+          }
+        }
+        const structured = responses[state.calls++]
+        if (!structured) throw new Error("unexpected writer session prompt")
+        return Effect.succeed(assistant(sessionID, tmp.path, structured, state.calls))
+      },
+    })
+
+    const output = await Effect.runPromise(
+      WriterSession.run({
+        sessionID,
+        root: tmp.path,
+        request: "Explain the bell",
+        job: "explain",
+        contextSpec: { focusRefs: ["ch01:p001"] },
+      }).pipe(Effect.provide(Layer.merge(layer, unusedSessionLayer))),
+    )
+
+    expect(state.calls).toBe(2)
+    expect(output.result.evidence).toEqual(["ch01:p001"])
+    expect(output.usage).toEqual({ inputTokens: 2, outputTokens: 2, costUsd: 0 })
+  })
+
+  test("fails closed after two Writer contract repair attempts", async () => {
+    await using tmp = await writerWorkspace()
+    const sessionID = SessionID.make("ses_writer_contract_reject")
+    const state = { calls: 0 }
+    const layer = Layer.mock(SessionPrompt.Service, {
+      prompt: () => {
+        state.calls++
+        return Effect.succeed(
+          assistant(
+            sessionID,
+            tmp.path,
+            {
+              answer: "The bell rings once.",
+              evidence: ["invented:p999"],
+              findings: [],
+              edits: [],
+              data: { observations: [], inferences: [], unresolved: [], preservation: [] },
+            },
+            state.calls,
+          ),
+        )
+      },
+    })
+
+    await expect(
+      Effect.runPromise(
+        WriterSession.run({
+          sessionID,
+          root: tmp.path,
+          request: "Explain the bell",
+          job: "explain",
+          contextSpec: { focusRefs: ["ch01:p001"] },
+        }).pipe(Effect.provide(Layer.merge(layer, unusedSessionLayer))),
+      ),
+    ).rejects.toThrow("unsupported evidence")
+    expect(state.calls).toBe(3)
+  })
+
   test("selects context before executing an unscoped writer request", async () => {
     await using tmp = await writerWorkspace()
     const sessionID = SessionID.make("ses_writer_select")
     const selectorID = SessionID.make("ses_writer_selector")
     const responses = [
+      {
+        focusRefs: ["ch01:p002"],
+        dependencyRefs: [],
+        preservationRefs: [],
+        preservationLiterals: [],
+        excludeRefs: [],
+        throughRef: "ch01:p001",
+        rationale: "This boundary accidentally excludes the declared focus.",
+      },
+      {
+        focusRefs: ["ch01:p001"],
+        dependencyRefs: [],
+        preservationRefs: ["ch01:p002"],
+        preservationLiterals: [],
+        excludeRefs: [],
+        throughRef: "ch01:p001",
+        rationale: "This boundary still accidentally excludes a declared preservation passage.",
+      },
       {
         focusRefs: ["ch01:p001"],
         dependencyRefs: [],
@@ -175,7 +273,14 @@ describe("WriterSession", () => {
     const layer = Layer.mock(SessionPrompt.Service, {
       prompt: (input) => {
         expect(input.agent).toBe("writer")
-        expect(input.sessionID).toBe(state.calls === 0 ? selectorID : sessionID)
+        expect(input.sessionID).toBe(state.calls < 3 ? selectorID : sessionID)
+        if (state.calls === 1 || state.calls === 2) {
+          expect(input.parts[0]?.type).toBe("text")
+          if (input.parts[0]?.type === "text") {
+            expect(input.parts[0].text).toContain("failed contract validation")
+            expect(input.parts[0].text).toContain("selected context is missing declared passages")
+          }
+        }
         const structured = responses[state.calls++]
         if (!structured) throw new Error("unexpected writer session prompt")
         return Effect.succeed(assistant(input.sessionID, tmp.path, structured, state.calls))
@@ -242,7 +347,7 @@ describe("WriterSession", () => {
       }).pipe(Effect.provide(Layer.merge(layer, sessionLayer))),
     )
 
-    expect(state.calls).toBe(2)
+    expect(state.calls).toBe(4)
     expect(output.selection?.sessionID).toBe(selectorID)
     expect(output.selection?.contextSpec.rationale).toContain("signal")
     expect(output.selection?.usage).toEqual({ inputTokens: 16, outputTokens: 9, costUsd: 2 })

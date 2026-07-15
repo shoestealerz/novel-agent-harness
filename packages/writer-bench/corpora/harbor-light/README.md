@@ -21,6 +21,8 @@ Version 0.4.2 corrects the production pilot's sea-color safety gate for `harbor-
 
 Version 0.4.3 makes the replacement-only motif expression JavaScript-compatible and corrects the closed-door gate for `harbor-plan-002`. The old substring ban rejected hypothetical tradeoff language such as “if she opens the door” even when every proposed structure explicitly kept it closed. Suite 0.2.3 requires affirmative closed-door language instead. Earlier results remain preserved and are not mixed with 0.2.3 comparisons.
 
+Version 0.4.4 evaluates the affirmative closed-door expression for `harbor-plan-002` across the complete structured response and accepts equivalent continuous constructions such as “the door remaining closed.” Suite 0.2.4 contains no scoring-policy change: it corrects false negatives when either the answer or its structured preservation receipt explicitly satisfies the existing requirement. Earlier results remain preserved and are not mixed with 0.2.4 comparisons.
+
 ## Canon policy
 
 Manuscript prose is authoritative for what appears on the page. `intentions.jsonl` is authoritative for off-page author intent and deliberate exceptions. Other gold files are evidence-linked annotations used for evaluation; they are not text the candidate system may silently add to the story.

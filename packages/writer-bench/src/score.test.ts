@@ -155,6 +155,25 @@ test("scores the proposed replacement length instead of surrounding explanation"
   assert.equal(scoreResponse(task, response).score, 1)
 })
 
+test("scores response-wide preservation language in structured artifacts", () => {
+  const task: Task = {
+    id: "task",
+    suite: "suite",
+    suiteVersion: "1",
+    source: "native",
+    job: "plan",
+    prompt: "plan",
+    checks: [{ id: "closed", kind: "response_regex", pattern: "door remains closed", flags: "i", safety: true }],
+  }
+  const response: ExecutionResponse = {
+    protocolVersion,
+    taskId: "task",
+    text: "Two structures preserve the requested ending.",
+    artifacts: { data: { preservation: ["The door remains closed."] } },
+  }
+  assert.deepEqual(scoreResponse(task, response).safetyFailures, [])
+})
+
 test("scores required motifs on proposed replacement prose instead of explanatory text", () => {
   const task: Task = {
     id: "task",

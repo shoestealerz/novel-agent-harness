@@ -5,6 +5,9 @@ const args = process.argv.slice(2)
 const root = flag("--dir")
 const job = flag("--job")
 const refs = flags("--focus")
+if (process.env.OPENCODE_DB !== join(root, ".opencode.db")) {
+  throw new Error("fixture did not receive an isolated OpenCode database")
+}
 const manifest = JSON.parse(await readFile(join(root, "novel.json"), "utf8")) as {
   chapters: { path: string }[]
 }
