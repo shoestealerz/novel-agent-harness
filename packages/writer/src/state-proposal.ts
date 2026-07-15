@@ -1,5 +1,6 @@
 import { mkdir, readFile, realpath, rename, rm, writeFile } from "node:fs/promises"
 import { isAbsolute, relative, resolve } from "node:path"
+import { claimsAppliedAuthority } from "./authority.ts"
 import {
   parseStoryState,
   storyStateDigest,
@@ -74,10 +75,7 @@ export function sealStoryStateProposal(
   } catch {
     references = false
   }
-  const claimedCommit =
-    /\b(?:I (?:have )?(?:committed|applied|saved)|(?:state|changes?) (?:were|have been) (?:committed|applied|saved))\b/i.test(
-      draft.text,
-    )
+  const claimedCommit = claimsAppliedAuthority(draft.text)
   const checks = {
     authority: task.authority === "propose",
     references,

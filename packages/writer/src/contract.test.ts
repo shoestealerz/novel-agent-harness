@@ -84,6 +84,25 @@ test("rejects edits from a read-only job", () => {
   )
 })
 
+test("distinguishes committed-change claims from explicit proposal disclaimers", () => {
+  const task = createWriterTask({
+    request: "Tighten the bell",
+    job: "revise",
+    context,
+    contextSpec: { focusRefs: ["ch01:p001"] },
+  })
+  const proposed = response({
+    answer: "This is a proposal only — no changes have been applied or committed.",
+    edits: [{ target: "ch01:p001", replacement: "Once, the bell rang." }],
+  })
+  assert.doesNotThrow(() => parseWriterResult(task, proposed))
+  assert.throws(() => parseWriterResult(task, response({ answer: "I applied the revision." })), /claimed authority/)
+  assert.throws(
+    () => parseWriterResult(task, response({ answer: "The change has been committed." })),
+    /claimed authority/,
+  )
+})
+
 test("validates exact preservation literals at task admission", () => {
   assert.throws(
     () =>

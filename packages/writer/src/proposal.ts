@@ -1,3 +1,4 @@
+import { claimsAppliedAuthority } from "./authority.ts"
 import type { WriterContextItem, WriterContextSpec } from "./context.ts"
 import { digest } from "./workspace.ts"
 
@@ -75,10 +76,7 @@ export function sealEditProposal(task: ProposalTask, response: ProposalDraft): E
   })
   const allowed = new Set(task.contextSpec?.focusRefs ?? [])
   const uniqueTargets = new Set(edits.map((edit) => edit.target))
-  const claimedCommit =
-    /\b(?:I (?:have )?(?:committed|applied|saved)|changes? (?:were|have been) (?:committed|applied|saved))\b/i.test(
-      response.text,
-    )
+  const claimedCommit = claimsAppliedAuthority(response.text)
   const checks = {
     authority: task.job === "revise" && task.authority === "propose",
     scope: edits.length > 0 && uniqueTargets.size === edits.length && edits.every((edit) => allowed.has(edit.target)),

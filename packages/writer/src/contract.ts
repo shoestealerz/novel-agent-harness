@@ -1,3 +1,4 @@
+import { claimsAppliedAuthority } from "./authority.ts"
 import type { WriterContextItem, WriterContextSpec } from "./context.ts"
 import { sealEditProposal, type EditProposal } from "./proposal.ts"
 
@@ -262,11 +263,7 @@ export function writerResponseSchemaFor(task: WriterTask) {
 export function parseWriterResult(task: WriterTask, value: unknown): WriterResult {
   const input = record(normalizeWriterResponse(value), "writer response")
   const answer = nonempty(input.answer, "writer response answer")
-  if (
-    /\b(?:I (?:have )?(?:committed|applied|saved)|changes? (?:were|have been) (?:committed|applied|saved))\b/i.test(
-      answer,
-    )
-  ) {
+  if (claimsAppliedAuthority(answer)) {
     throw new WriterContractError("writer response claimed authority to apply or commit changes")
   }
   const allowed = new Set(task.context.map((item) => item.ref))
