@@ -90,7 +90,11 @@ export type RunHandle = {
   readonly result: Effect.Effect<RunResult>
 }
 
-export type SpawnOpts = { readonly timeoutMs?: number; readonly env?: Record<string, string> }
+export type SpawnOpts = {
+  readonly timeoutMs?: number
+  readonly env?: Record<string, string>
+  readonly stdin?: string
+}
 
 // Typed equivalent of constructing argv for `opencode run`. New flags should
 // land here so tests stay grep-able and refactor-safe.
@@ -216,7 +220,7 @@ export function withCliFixture<A, E>(
         cwd: home,
         env: { ...env, ...opts?.env },
         extendEnv: true,
-        stdin: "ignore",
+        stdin: opts?.stdin === undefined ? "ignore" : "pipe",
       })
       // Pass timeout to appProc.run rather than wrapping with
       // Effect.timeoutOrElse externally: AppProcess.run is itself scoped, so
@@ -229,7 +233,7 @@ export function withCliFixture<A, E>(
       // Catch AppProcessError (timeout OR spawn failure) and synthesize a
       // non-zero result so the test sees it via the usual `expectExit`
       // path rather than as an unhandled Effect failure.
-      const result = yield* appProc.run(command, { timeout: Duration.millis(timeoutMs) }).pipe(
+      const result = yield* appProc.run(command, { timeout: Duration.millis(timeoutMs), stdin: opts?.stdin }).pipe(
         Effect.catchTag("AppProcessError", (err) =>
           Effect.succeed({
             command: err.command,

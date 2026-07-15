@@ -15,6 +15,7 @@ import {
 import { Effect } from "effect"
 import { execFile } from "node:child_process"
 import { realpath } from "node:fs/promises"
+import { createInterface } from "node:readline/promises"
 import path from "node:path"
 import { promisify } from "node:util"
 import type { Argv } from "yargs"
@@ -24,16 +25,18 @@ import { Session } from "@/session/session"
 import { WriterSession } from "@/writer/session"
 import { effectCmd, fail } from "../effect-cmd"
 import { cmd } from "./cmd"
+import { WriterChatCommand } from "./writer-chat"
 
 const jobs = ["explain", "diagnose", "plan", "revise"] as const
 const execute = promisify(execFile)
 
 export const WriterCommand = cmd({
   command: "writer",
-  describe: "run the Novel Agent Harness headlessly",
+  describe: "work with novels through the Novel Agent Harness",
   builder: (yargs: Argv) =>
     yargs
       .command(WriterRunCommand)
+      .command(WriterChatCommand)
       .command(WriterInitCommand)
       .command(WriterReviewCommand)
       .command(WriterCommitCommand)
@@ -44,17 +47,16 @@ export const WriterCommand = cmd({
 
 export const WriterInitCommand = effectCmd({
   command: "init",
-  describe: "bootstrap tracked manuscript files as a Novel Agent workspace",
+  describe: "initialize a Git-backed novel workspace, auto-discovering tracked chapter files",
   instance: false,
   builder: (yargs: Argv) =>
     yargs
       .option("dir", { type: "string", describe: "novel workspace directory" })
-      .option("title", { type: "string", demandOption: true, describe: "novel title" })
+      .option("title", { type: "string", describe: "novel title; defaults to the directory name" })
       .option("chapter", {
         type: "string",
         array: true,
-        demandOption: true,
-        describe: "chapter mapping as stable-id=relative/path.md",
+        describe: "chapter mapping as stable-id=relative/path.md; otherwise conservatively auto-discovered",
       })
       .option("yes", {
         type: "boolean",
@@ -62,15 +64,31 @@ export const WriterInitCommand = effectCmd({
         describe: "approve adding one whole-chapter marker where markers are absent",
       }),
   handler: Effect.fn("Cli.writer.init")(function* (args) {
-    if (!args.yes) return yield* fail("Refusing to modify chapter files without explicit --yes confirmation")
     const root = path.resolve(process.cwd(), args.dir ?? ".")
-    const chapters = parseChapterArgs(args.chapter)
+    const title = args.title?.trim() || titleFromDirectory(root)
+    const chapters = args.chapter?.length
+      ? parseChapterArgs(args.chapter)
+      : yield* Effect.tryPromise({
+          try: () => discoverTrackedChapters(root),
+          catch: (cause) => (cause instanceof Error ? cause : new Error(String(cause))),
+        }).pipe(Effect.catch((error) => fail(error.message)))
+    if (!args.yes) {
+      if (!process.stdin.isTTY || !process.stdout.isTTY) {
+        return yield* fail("Refusing to modify chapter files without interactive confirmation or --yes")
+      }
+      console.log(`Initialize “${title}” with:`)
+      for (const chapter of chapters) console.log(`  ${chapter.id}  ${chapter.path}`)
+      const reader = createInterface({ input: process.stdin, output: process.stdout })
+      const confirmation = yield* Effect.promise(() => reader.question("Type INIT to insert stable passage markers: "))
+      reader.close()
+      if (confirmation !== "INIT") return yield* fail("Initialization cancelled")
+    }
     const result = yield* Effect.promise(async () => {
       await ensureCleanTrackedWorkspace(
         root,
         chapters.map((chapter) => chapter.path),
       )
-      return bootstrapWriterWorkspace(root, { title: args.title, chapters })
+      return bootstrapWriterWorkspace(root, { title, chapters })
     })
     console.log(
       JSON.stringify(
@@ -290,6 +308,41 @@ export function parseChapterArgs(values: string[]) {
     throw new Error("--chapter contains duplicate paths")
   }
   return chapters
+}
+
+export function chapterMappingsFromTrackedPaths(values: string[]) {
+  const candidates = values
+    .map((value) => value.replaceAll("\\", "/"))
+    .filter((value) => {
+      if (!/\.(md|markdown|txt)$/i.test(value)) return false
+      if (value.startsWith(".") || value.includes("/.")) return false
+      const name = path.posix.basename(value, path.posix.extname(value))
+      return (
+        /(^|\/)(manuscript|chapters?|draft)(\/|$)/i.test(value) ||
+        /^(chapter|ch)[-_ ]*(?:\d+|one|two|three|four|five|six|seven|eight|nine|ten)(?:[-_ ].*)?$/i.test(name) ||
+        /^(prologue|epilogue|interlude)[-_ ]*\d*$/i.test(name)
+      )
+    })
+    .sort((left, right) => left.localeCompare(right, undefined, { numeric: true, sensitivity: "base" }))
+  return candidates.map((chapterPath, index) => ({ id: `ch${String(index + 1).padStart(2, "0")}`, path: chapterPath }))
+}
+
+async function discoverTrackedChapters(root: string) {
+  const tracked = (await execute("git", ["ls-files", "-z"], { cwd: root, encoding: "utf8" })).stdout
+    .split("\0")
+    .filter(Boolean)
+  const chapters = chapterMappingsFromTrackedPaths(tracked)
+  if (!chapters.length) {
+    throw new Error(
+      "No tracked chapter files were found under manuscript/, chapter(s)/, or draft/. Add and commit them first, or pass --chapter ch01=relative/path.md.",
+    )
+  }
+  return chapters
+}
+
+function titleFromDirectory(root: string) {
+  const value = path.basename(root).replace(/[-_]+/g, " ").trim()
+  return value.replace(/\b\p{L}/gu, (letter) => letter.toUpperCase()) || "Untitled Novel"
 }
 
 async function ensureCleanTrackedWorkspace(root: string, chapterPaths: string[]) {

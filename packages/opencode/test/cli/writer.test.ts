@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test"
-import { contextSpecFromArgs, parseChapterArgs } from "@/cli/cmd/writer"
+import { chapterMappingsFromTrackedPaths, contextSpecFromArgs, parseChapterArgs } from "@/cli/cmd/writer"
+import { parseWriterChatInput } from "@/cli/cmd/writer-chat"
 
 describe("writer CLI", () => {
   test("leaves context selection to the Writer session when no explicit packet is supplied", () => {
@@ -44,5 +45,37 @@ describe("writer CLI", () => {
     expect(() => parseChapterArgs(["invalid"])).toThrow(/stable-id=relative\/path.md/)
     expect(() => parseChapterArgs(["ch01=one.md", "ch01=two.md"])).toThrow(/duplicate stable IDs/)
     expect(() => parseChapterArgs(["ch01=one.md", "ch02=one.md"])).toThrow(/duplicate paths/)
+  })
+
+  test("conservatively discovers tracked manuscript chapters in natural order", () => {
+    expect(
+      chapterMappingsFromTrackedPaths([
+        "README.md",
+        "notes/ideas.md",
+        "chapter-one.md",
+        "manuscript/chapter-10.md",
+        "manuscript/chapter-2.md",
+        "draft/prologue.md",
+        ".private/chapter-1.md",
+      ]),
+    ).toEqual([
+      { id: "ch01", path: "chapter-one.md" },
+      { id: "ch02", path: "draft/prologue.md" },
+      { id: "ch03", path: "manuscript/chapter-2.md" },
+      { id: "ch04", path: "manuscript/chapter-10.md" },
+    ])
+  })
+
+  test("parses Writer chat prompts and slash commands without treating prose as control input", () => {
+    expect(parseWriterChatInput("  Diagnose the opening. ")).toEqual({
+      type: "prompt",
+      text: "Diagnose the opening.",
+    })
+    expect(parseWriterChatInput("/review sha256:abc")).toEqual({
+      type: "command",
+      name: "review",
+      argument: "sha256:abc",
+    })
+    expect(parseWriterChatInput("   ")).toEqual({ type: "empty" })
   })
 })
