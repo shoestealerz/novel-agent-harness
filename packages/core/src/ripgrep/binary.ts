@@ -8,6 +8,7 @@ import { makeGlobalNode } from "../effect/app-node"
 import { httpClient } from "../effect/app-node-platform"
 import { FSUtil } from "../fs-util"
 import { Global } from "../global"
+import { EffectFlock } from "../util/effect-flock"
 import { which } from "../util/which"
 
 export namespace RipgrepBinary {
@@ -34,6 +35,7 @@ export namespace RipgrepBinary {
       const fs = yield* FSUtil.Service
       const http = HttpClient.filterStatusOk(yield* HttpClient.HttpClient)
       const spawner = yield* ChildProcessSpawner
+      const flock = yield* EffectFlock.Service
 
       const run = Effect.fnUntraced(function* (command: string, args: string[]) {
         const handle = yield* spawner.spawn(ChildProcess.make(command, args, { extendEnv: true, stdin: "ignore" }))
@@ -97,27 +99,35 @@ export namespace RipgrepBinary {
             const target = path.join(Global.Path.bin, `rg${process.platform === "win32" ? ".exe" : ""}`)
             if (yield* fs.isFile(target).pipe(Effect.orDie)) return target
 
-            const platformKey = `${process.arch}-${process.platform}` as keyof typeof PLATFORM
-            const config = PLATFORM[platformKey]
-            if (!config) throw new Error(`unsupported platform for ripgrep: ${platformKey}`)
+            return yield* flock.withLock(
+              Effect.gen(function* () {
+                if (yield* fs.isFile(target).pipe(Effect.orDie)) return target
 
-            const filename = `ripgrep-${VERSION}-${config.platform}.${config.extension}`
-            const url = `https://github.com/BurntSushi/ripgrep/releases/download/${VERSION}/${filename}`
-            const archive = path.join(Global.Path.bin, filename)
+                const platformKey = `${process.arch}-${process.platform}` as keyof typeof PLATFORM
+                const config = PLATFORM[platformKey]
+                if (!config) throw new Error(`unsupported platform for ripgrep: ${platformKey}`)
 
-            yield* Effect.logInfo("downloading ripgrep", { url })
-            yield* fs.ensureDir(Global.Path.bin).pipe(Effect.orDie)
-            const bytes = yield* HttpClientRequest.get(url).pipe(
-              http.execute,
-              Effect.flatMap((response) => response.arrayBuffer),
-              Effect.mapError((cause) => (cause instanceof Error ? cause : new Error(String(cause)))),
+                const filename = `ripgrep-${VERSION}-${config.platform}.${config.extension}`
+                const url = `https://github.com/BurntSushi/ripgrep/releases/download/${VERSION}/${filename}`
+                const archive = path.join(Global.Path.bin, filename)
+
+                yield* Effect.logInfo("downloading ripgrep", { url })
+                yield* fs.ensureDir(Global.Path.bin).pipe(Effect.orDie)
+                const bytes = yield* HttpClientRequest.get(url).pipe(
+                  http.execute,
+                  Effect.flatMap((response) => response.arrayBuffer),
+                  Effect.mapError((cause) => (cause instanceof Error ? cause : new Error(String(cause)))),
+                )
+                if (bytes.byteLength === 0) throw new Error(`failed to download ripgrep from ${url}`)
+
+                yield* fs.writeWithDirs(archive, new Uint8Array(bytes))
+                yield* extract(archive, config, target)
+                yield* fs.remove(archive, { force: true }).pipe(Effect.ignore)
+                return target
+              }),
+              `ripgrep-install:${target}`,
+              Global.Path.bin,
             )
-            if (bytes.byteLength === 0) throw new Error(`failed to download ripgrep from ${url}`)
-
-            yield* fs.writeWithDirs(archive, new Uint8Array(bytes))
-            yield* extract(archive, config, target)
-            yield* fs.remove(archive, { force: true }).pipe(Effect.ignore)
-            return target
           }),
         ),
       })
@@ -127,6 +137,6 @@ export namespace RipgrepBinary {
   export const node = makeGlobalNode({
     service: Service,
     layer: layer,
-    deps: [FSUtil.node, httpClient, CrossSpawnSpawner.node],
+    deps: [FSUtil.node, httpClient, CrossSpawnSpawner.node, EffectFlock.node],
   })
 }
