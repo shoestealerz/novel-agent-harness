@@ -29,6 +29,9 @@ test("pins comparable raw, stock, and production DeepSeek targets", async () => 
   )
   assert.equal(new Set(targets.systems.map((target) => target.comparisonKey)).size, 1)
   assert.ok(targets.systems.every((target) => target.baseModel === "deepseek-v4-pro"))
+  assert.ok(targets.systems.every((target) => target.comparisonKey?.includes("max=16384")))
+  const launcher = await readFile(fileURLToPath(new URL("../production/run-deepseek.ps1", import.meta.url)), "utf8")
+  assert.match(launcher, /"--concurrency", 3/)
 })
 
 test("executes the shipped Writer command protocol against an isolated manuscript workspace", async () => {
@@ -81,6 +84,23 @@ test("maps the complete public context contract to Writer CLI flags", () => {
   assert.ok(args.includes("ch02:p001=the bell"))
   assert.ok(args.includes("--exclude"))
   assert.ok(args.includes("--through"))
+})
+
+test("delegates unspecified context to the production Writer selector", () => {
+  const args = buildWriterArguments({ ...task, contextSpec: undefined }, "/novel", "provider/model")
+  assert.deepEqual(args, [
+    "writer",
+    "run",
+    task.prompt,
+    "--dir",
+    "/novel",
+    "--job",
+    "explain",
+    "--model",
+    "provider/model",
+    "--format",
+    "json",
+  ])
 })
 
 test("rejects jobs and context that the production MVP does not support", async () => {

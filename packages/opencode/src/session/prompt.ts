@@ -81,6 +81,20 @@ IMPORTANT:
 
 const STRUCTURED_OUTPUT_SYSTEM_PROMPT = `IMPORTANT: The user has requested structured output. You MUST use the StructuredOutput tool to provide your final response. Do NOT respond with plain text - you MUST call the StructuredOutput tool with your answer formatted according to the schema.`
 
+export function structuredOutputToolChoice(model: {
+  providerID: string
+  id: string
+  api: { id: string }
+}): "required" | undefined {
+  const ids = `${model.id} ${model.api.id}`.toLowerCase()
+  // DeepSeek V4 supports tools in thinking mode but rejects the tool_choice
+  // request parameter. The structured-output system prompt still requires the
+  // model to call StructuredOutput, and the session rejects plain-text output.
+  // https://api-docs.deepseek.com/guides/thinking_mode
+  if (model.providerID === "deepseek" && ids.includes("deepseek-v4")) return undefined
+  return "required"
+}
+
 function mcpResourceBase64Size(value: string) {
   const trimmed = value.replace(/\s/g, "")
   const padding = trimmed.endsWith("==") ? 2 : trimmed.endsWith("=") ? 1 : 0
@@ -1282,7 +1296,7 @@ const layer = Layer.effect(
               ],
               tools,
               model,
-              toolChoice: format.type === "json_schema" ? "required" : undefined,
+              toolChoice: format.type === "json_schema" ? structuredOutputToolChoice(model) : undefined,
             })
 
             if (structured !== undefined) {

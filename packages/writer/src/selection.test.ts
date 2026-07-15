@@ -1,6 +1,11 @@
 import assert from "node:assert/strict"
 import test from "node:test"
-import { parseWriterContextSelection, renderWriterSelectionRequest } from "./selection.ts"
+import {
+  normalizeWriterContextSelection,
+  parseWriterContextSelection,
+  renderWriterSelectionRequest,
+  writerSelectionSystemPrompt,
+} from "./selection.ts"
 
 test("parses a structured context selection", () => {
   const selection = parseWriterContextSelection({
@@ -14,6 +19,38 @@ test("parses a structured context selection", () => {
   })
   assert.equal(selection.throughRef, "ch02:p005")
   assert.deepEqual(selection.focusRefs, ["ch02:p004"])
+})
+
+test("unwraps complete selector responses from non-strict tool providers", () => {
+  const expected = {
+    focusRefs: ["ch02:p004"],
+    dependencyRefs: [],
+    preservationRefs: [],
+    preservationLiterals: [],
+    excludeRefs: ["ch03:p001"],
+    throughRef: "ch02:p005",
+    rationale: "The focus and boundary are sufficient.",
+  }
+  assert.deepEqual(normalizeWriterContextSelection({ input: expected }), expected)
+  assert.deepEqual(normalizeWriterContextSelection({ answer: JSON.stringify(expected) }), expected)
+  assert.deepEqual(parseWriterContextSelection({ input: expected }).focusRefs, ["ch02:p004"])
+  assert.equal(parseWriterContextSelection({ ...expected, throughRef: "null" }).throughRef, undefined)
+  assert.deepEqual(normalizeWriterContextSelection({ input: { focusRefs: [] } }), { input: { focusRefs: [] } })
+})
+
+test("canonicalizes singleton and comma-delimited reference lists from non-strict providers", () => {
+  const selection = parseWriterContextSelection({
+    focusRefs: "ch02:p004, ch03:p002",
+    dependencyRefs: "ch01:p003",
+    preservationRefs: [],
+    preservationLiterals: [],
+    excludeRefs: "ch04:p001",
+    throughRef: "ch03:p002",
+    rationale: "The selected contradiction and its setup are sufficient.",
+  })
+  assert.deepEqual(selection.focusRefs, ["ch02:p004", "ch03:p002"])
+  assert.deepEqual(selection.dependencyRefs, ["ch01:p003"])
+  assert.deepEqual(selection.excludeRefs, ["ch04:p001"])
 })
 
 test("rejects empty focus, exclusion overlap, and unbound literals", () => {
@@ -42,4 +79,6 @@ test("renders a selection request without manuscript prose or benchmark material
   const request = renderWriterSelectionRequest({ request: "Explain the bell", job: "explain" })
   assert.match(request, /passage references/)
   assert.doesNotMatch(request, /checks|criteria|gold/)
+  assert.match(writerSelectionSystemPrompt, /Do not infer throughRef from chapter order/)
+  assert.match(writerSelectionSystemPrompt, /never turn motifs, voice, ideas/)
 })

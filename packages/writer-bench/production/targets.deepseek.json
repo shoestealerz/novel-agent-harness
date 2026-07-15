@@ -6,7 +6,7 @@
       "command": ["{node}", "--experimental-strip-types", "src/targets/openai-compatible.ts"],
       "timeoutMs": 240000,
       "baseModel": "deepseek-v4-pro",
-      "comparisonKey": "deepseek-v4-pro|temperature=0.2|max=4096|production-pilot=v1",
+      "comparisonKey": "deepseek-v4-pro|temperature=0.2|max=16384|production-pilot=v1",
       "metadata": { "mechanism": "direct-model" }
     },
     {
@@ -15,7 +15,7 @@
       "command": ["{node}", "--experimental-strip-types", "src/targets/opencode-cli.ts"],
       "timeoutMs": 360000,
       "baseModel": "deepseek-v4-pro",
-      "comparisonKey": "deepseek-v4-pro|temperature=0.2|max=4096|production-pilot=v1",
+      "comparisonKey": "deepseek-v4-pro|temperature=0.2|max=16384|production-pilot=v1",
       "metadata": { "mechanism": "stock-opencode" }
     },
     {
@@ -24,7 +24,7 @@
       "command": ["{node}", "--experimental-strip-types", "src/targets/production-writer.ts"],
       "timeoutMs": 360000,
       "baseModel": "deepseek-v4-pro",
-      "comparisonKey": "deepseek-v4-pro|temperature=0.2|max=4096|production-pilot=v1",
+      "comparisonKey": "deepseek-v4-pro|temperature=0.2|max=16384|production-pilot=v1",
       "metadata": { "mechanism": "production-opencode-writer" }
     }
   ]

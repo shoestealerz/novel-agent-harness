@@ -155,6 +155,50 @@ test("scores the proposed replacement length instead of surrounding explanation"
   assert.equal(scoreResponse(task, response).score, 1)
 })
 
+test("scores response-wide preservation language in structured artifacts", () => {
+  const task: Task = {
+    id: "task",
+    suite: "suite",
+    suiteVersion: "1",
+    source: "native",
+    job: "plan",
+    prompt: "plan",
+    checks: [{ id: "closed", kind: "response_regex", pattern: "door remains closed", flags: "i", safety: true }],
+  }
+  const response: ExecutionResponse = {
+    protocolVersion,
+    taskId: "task",
+    text: "Two structures preserve the requested ending.",
+    artifacts: { data: { preservation: ["The door remains closed."] } },
+  }
+  assert.deepEqual(scoreResponse(task, response).safetyFailures, [])
+})
+
+test("scores required motifs on proposed replacement prose instead of explanatory text", () => {
+  const task: Task = {
+    id: "task",
+    suite: "suite",
+    suiteVersion: "1",
+    source: "native",
+    job: "revise",
+    prompt: "revise",
+    checks: [{ id: "motif", kind: "edit_regex", pattern: "(?=.*iron)(?=.*green)(?=.*distrust)", flags: "is" }],
+  }
+  const passing: ExecutionResponse = {
+    protocolVersion,
+    taskId: "task",
+    text: "The explanation does not need to repeat the motif.",
+    artifacts: { edits: [{ target: "p1", replacement: "Iron water turned green; Mara distrusted the easy name." }] },
+  }
+  const failing: ExecutionResponse = {
+    ...passing,
+    text: "Iron, green, and distrust appear only in this explanation.",
+    artifacts: { edits: [{ target: "p1", replacement: "The water was simple." }] },
+  }
+  assert.equal(scoreResponse(task, passing).score, 1)
+  assert.equal(scoreResponse(task, failing).score, 0)
+})
+
 test("labels context metrics and scores citation precision without a recall requirement", () => {
   const task: Task = {
     id: "task",

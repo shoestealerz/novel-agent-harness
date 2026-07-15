@@ -34,7 +34,10 @@ export async function executeProductionWriter(
     const command = options.command ?? productionWriterCommand()
     const model = options.model ?? requiredEnvironment("WRITER_BENCH_OPENCODE_MODEL")
     const started = performance.now()
-    const output = await invoke(command, buildWriterArguments(task, root, model), options.timeoutMs)
+    const output = await invoke(command, buildWriterArguments(task, root, model), options.timeoutMs, {
+      ...process.env,
+      OPENCODE_DB: join(root, ".opencode.db"),
+    })
     return productionExecutionResponse(task, output, performance.now() - started, model)
   } finally {
     await rm(root, { recursive: true, force: true })
@@ -84,7 +87,8 @@ export async function writeProductionWorkspace(root: string, task: ExecutionTask
 export function buildWriterArguments(task: ExecutionTask, root: string, model: string) {
   validateTask(task)
   const args = ["writer", "run", task.prompt, "--dir", root, "--job", task.job, "--model", model, "--format", "json"]
-  const contextSpec = task.contextSpec ?? { focusRefs: (task.context ?? []).map((item) => item.ref) }
+  const contextSpec = task.contextSpec
+  if (!contextSpec) return args
   appendMany(args, "--focus", contextSpec.focusRefs)
   appendMany(args, "--dependency", contextSpec.dependencyRefs)
   appendMany(args, "--preserve", contextSpec.preservationRefs)
@@ -146,11 +150,11 @@ export function productionWriterCommand() {
   return parsed
 }
 
-async function invoke(command: string[], args: string[], timeoutMs = 240_000) {
+async function invoke(command: string[], args: string[], timeoutMs = 240_000, env = process.env) {
   const executable = command[0]
   if (!executable) throw new Error("production Writer command is empty")
   const child = spawn(executable, [...command.slice(1), ...args], {
-    env: process.env,
+    env,
     stdio: ["ignore", "pipe", "pipe"],
     windowsHide: true,
   })

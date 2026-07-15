@@ -1,3 +1,4 @@
+import { claimsAppliedAuthority } from "./authority.ts"
 import type { WriterContextItem, WriterContextSpec } from "./context.ts"
 import { sealEditProposal, type EditProposal } from "./proposal.ts"
 
@@ -216,14 +217,53 @@ export const writerResponseSchema = {
   required: ["answer", "evidence", "findings", "edits", "data"],
 } as const
 
+export function writerResponseSchemaFor(task: WriterTask) {
+  const refs = unique(task.context.map((item) => item.ref))
+  const focus = unique(task.contextSpec?.focusRefs ?? [])
+  const evidenceRef = {
+    type: "string",
+    enum: refs,
+    description: "An exact selected passage reference only; do not append a quote or commentary.",
+  } as const
+  const editTarget = {
+    type: "string",
+    enum: focus,
+    description: "An exact explicitly allowed focus passage reference only.",
+  } as const
+  return {
+    ...writerResponseSchema,
+    properties: {
+      ...writerResponseSchema.properties,
+      evidence: { type: "array", items: evidenceRef },
+      findings: {
+        ...writerResponseSchema.properties.findings,
+        items: {
+          ...writerResponseSchema.properties.findings.items,
+          properties: {
+            ...writerResponseSchema.properties.findings.items.properties,
+            evidence: { type: "array", items: evidenceRef },
+          },
+        },
+      },
+      edits: {
+        ...writerResponseSchema.properties.edits,
+        ...(task.authority === "read" ? { maxItems: 0 } : {}),
+        items: {
+          ...writerResponseSchema.properties.edits.items,
+          properties: {
+            ...writerResponseSchema.properties.edits.items.properties,
+            target: editTarget,
+          },
+        },
+      },
+    },
+  } as const
+}
+
 export function parseWriterResult(task: WriterTask, value: unknown): WriterResult {
-  const input = record(value, "writer response")
+  const input = record(normalizeWriterResponse(value), "writer response")
   const answer = nonempty(input.answer, "writer response answer")
-  if (
-    /\b(?:I (?:have )?(?:committed|applied|saved)|changes? (?:were|have been) (?:committed|applied|saved))\b/i.test(
-      answer,
-    )
-  ) {
+  if (claimsAppliedAuthority(answer)) {
     throw new WriterContractError("writer response claimed authority to apply or commit changes")
   }
   const allowed = new Set(task.context.map((item) => item.ref))
@@ -287,6 +327,36 @@ export function parseWriterResult(task: WriterTask, value: unknown): WriterResul
     throw new WriterContractError(`writer revision failed proposal validation: ${failed.join(", ")}`)
   }
   return { ...parsed, proposal }
+}
+
+export function normalizeWriterResponse(value: unknown): unknown {
+  const outer = value && typeof value === "object" && !Array.isArray(value) ? (value as Record<string, unknown>) : null
+  if (!outer || Object.keys(outer).length !== 1 || !("answer" in outer)) return value
+  const nested = (() => {
+    if (outer.answer && typeof outer.answer === "object" && !Array.isArray(outer.answer)) return outer.answer
+    if (typeof outer.answer !== "string") return undefined
+    const text = outer.answer.trim()
+    if (!text.startsWith("{") || !text.endsWith("}")) return undefined
+    try {
+      return JSON.parse(text) as unknown
+    } catch {
+      // DeepSeek V4 may append non-schema diagnostic counters after closing a
+      // complete JSON answer when tool_choice is unavailable in thinking mode.
+      // Recover only the exact known suffix and still run every Writer contract
+      // check against the parsed response below.
+      const match = /^(.*\})(?:,\s*"(?:findingCount|editCount)"\s*:\s*\d+)+\s*}$/s.exec(text)
+      if (!match?.[1]) return undefined
+      try {
+        return JSON.parse(match[1]) as unknown
+      } catch {
+        return undefined
+      }
+    }
+  })()
+  if (!nested || typeof nested !== "object" || Array.isArray(nested)) return value
+  const input = nested as Record<string, unknown>
+  const required = ["answer", "evidence", "findings", "edits", "data"]
+  return required.every((key) => key in input) ? input : value
 }
 
 function requireAllowed(values: string[], allowed: Set<string>, label: string) {

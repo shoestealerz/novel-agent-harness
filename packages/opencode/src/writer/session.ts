@@ -8,10 +8,11 @@ import {
   renderWriterSelectionRequest,
   routeWriterJob,
   saveEditProposal,
-  writerResponseSchema,
+  writerResponseSchemaFor,
   writerSelectionSchema,
   writerSelectionSystemPrompt,
   writerSystemPrompt,
+  WriterContractError,
   type ContextStrategy,
   type ContextTrace,
   type WriterContextItem,
@@ -50,7 +51,11 @@ export type Output = PreparedTurn & {
   result: WriterResult
   usage: { inputTokens: number; outputTokens: number; costUsd: number }
   proposalPath?: string
-  selection?: { sessionID: SessionID; contextSpec: WriterContextSelection }
+  selection?: {
+    sessionID: SessionID
+    contextSpec: WriterContextSelection
+    usage: { inputTokens: number; outputTokens: number; costUsd: number }
+  }
 }
 
 export async function prepare(input: Omit<Input, "sessionID" | "model" | "variant">): Promise<PreparedTurn> {
@@ -100,7 +105,7 @@ export function promptInput(input: Pick<Input, "sessionID" | "model" | "variant"
     },
     format: new SessionV1.OutputFormatJsonSchema({
       type: "json_schema",
-      schema: writerResponseSchema,
+      schema: writerResponseSchemaFor(turn.task),
       retryCount: 2,
     }),
     parts: [{ type: "text" as const, text: renderWriterContract(turn.task) }],
@@ -132,6 +137,41 @@ export function selectionPromptInput(input: Pick<Input, "sessionID" | "model" | 
   }
 }
 
+export function structuredRetryInput<
+  T extends ReturnType<typeof promptInput> | ReturnType<typeof selectionPromptInput>,
+>(input: T): T {
+  return {
+    ...input,
+    parts: [
+      {
+        type: "text" as const,
+        text: "Your previous response was not captured as structured output. Do not restate prose. Call StructuredOutput now with one complete object matching the requested schema and task.",
+      },
+    ],
+  } as T
+}
+
+export function contractRetryInput<
+  T extends ReturnType<typeof promptInput> | ReturnType<typeof selectionPromptInput>,
+>(input: T, subject: "writer response" | "context selection", error: Error): T {
+  return {
+    ...input,
+    parts: [
+      {
+        type: "text" as const,
+        text: [
+          `Your previous structured ${subject} failed contract validation: ${error.message}`,
+          "Return one corrected complete object matching the requested schema and original task.",
+          "Preserve valid content, use only exact stable references admitted by the task, and do not add prose outside StructuredOutput.",
+          subject === "context selection"
+            ? "The temporal boundary must include every declared focus, dependency, and preservation reference; otherwise remove the reference or move the boundary later."
+            : "Every evidence value and finding evidence value must be an exact selected passage reference with no quote or commentary appended.",
+        ].join(" "),
+      },
+    ],
+  } as T
+}
+
 export async function finalize(root: string, turn: PreparedTurn, value: unknown): Promise<Omit<Output, "usage">> {
   const result = parseWriterResult(turn.task, value)
   const proposalPath = result.proposal ? await saveEditProposal(root, result.proposal) : undefined
@@ -142,7 +182,11 @@ export const run = Effect.fn("WriterSession.run")(function* (input: Input) {
   const session = yield* SessionPrompt.Service
   const admission =
     input.context?.length || input.contextSpec
-      ? { input, selection: undefined }
+      ? {
+          input,
+          selection: undefined,
+          turn: yield* Effect.promise(() => prepare(input)),
+        }
       : yield* Effect.gen(function* () {
           const sessions = yield* Session.Service
           const parent = input.model ? undefined : yield* sessions.get(input.sessionID)
@@ -155,41 +199,136 @@ export const run = Effect.fn("WriterSession.run")(function* (input: Input) {
               : parent?.model,
             metadata: { "novel.writer.phase": "context-selection" },
           })
-          const response = yield* session.prompt(selectionPromptInput({ ...input, sessionID: selector.id }))
-          const info = response.info
+          const request = selectionPromptInput({ ...input, sessionID: selector.id })
+          let response = yield* session.prompt(request)
+          let info = response.info
           if (info.role !== "assistant")
             throw new Error("writer context selection did not return an assistant response")
+          if (info.structured === undefined) {
+            response = yield* session.prompt(structuredRetryInput(request))
+            info = response.info
+            if (info.role !== "assistant")
+              throw new Error("writer context selection retry did not return an assistant response")
+          }
           if (info.structured === undefined)
             throw new Error("writer context selection did not return structured output")
-          const selection = parseWriterContextSelection(info.structured)
-          const contextSpec: WriterContextSpec = {
-            focusRefs: selection.focusRefs,
-            dependencyRefs: selection.dependencyRefs,
-            preservationRefs: selection.preservationRefs,
-            preservationLiterals: selection.preservationLiterals,
-            excludeRefs: selection.excludeRefs,
-            throughRef: selection.throughRef,
+          const selectionValue = info.structured
+          const admit = (value: unknown) =>
+            attempt(async () => {
+              const selection = parseWriterContextSelection(value)
+              const contextSpec: WriterContextSpec = {
+                focusRefs: selection.focusRefs,
+                dependencyRefs: selection.dependencyRefs,
+                preservationRefs: selection.preservationRefs,
+                preservationLiterals: selection.preservationLiterals,
+                excludeRefs: selection.excludeRefs,
+                throughRef: selection.throughRef,
+              }
+              const selectedInput = { ...input, contextSpec }
+              return { input: selectedInput, contextSpec: selection, turn: await prepare(selectedInput) }
+            })
+          let admitted = yield* Effect.promise(() => admit(selectionValue))
+          let contractRetries = 0
+          while (!admitted.ok && repairableSelectionError(admitted.error) && contractRetries < 2) {
+            response = yield* session.prompt(contractRetryInput(request, "context selection", admitted.error))
+            info = response.info
+            if (info.role !== "assistant")
+              throw new Error("writer context selection contract retry did not return an assistant response")
+            if (info.structured === undefined)
+              throw new Error("writer context selection contract retry did not return structured output")
+            const correctedSelectionValue = info.structured
+            admitted = yield* Effect.promise(() => admit(correctedSelectionValue))
+            contractRetries++
+          }
+          if (!admitted.ok) throw admitted.error
+          const selectorInfo = yield* sessions.get(selector.id)
+          const selectorTokens = selectorInfo.tokens ?? {
+            input: 0,
+            output: 0,
+            reasoning: 0,
+            cache: { read: 0, write: 0 },
+          }
+          const usage = {
+            inputTokens: selectorTokens.input + selectorTokens.cache.read + selectorTokens.cache.write,
+            outputTokens: selectorTokens.output + selectorTokens.reasoning,
+            costUsd: selectorInfo.cost ?? 0,
           }
           return {
-            input: { ...input, contextSpec },
-            selection: { sessionID: selector.id, contextSpec: selection },
+            input: admitted.value.input,
+            turn: admitted.value.turn,
+            selection: { sessionID: selector.id, contextSpec: admitted.value.contextSpec, usage },
           }
         })
-  const turn = yield* Effect.promise(() => prepare(admission.input))
-  const response = yield* session.prompt(promptInput(input, turn))
-  const info = response.info
+  const turn = admission.turn
+  const request = promptInput(input, turn)
+  let response = yield* session.prompt(request)
+  let info = response.info
   if (info.role !== "assistant") throw new Error("writer session did not return an assistant response")
+  let executionUsage = assistantUsage(info)
+  if (info.structured === undefined) {
+    response = yield* session.prompt(structuredRetryInput(request))
+    info = response.info
+    if (info.role !== "assistant") throw new Error("writer session retry did not return an assistant response")
+    executionUsage = addUsage(executionUsage, assistantUsage(info))
+  }
   if (info.structured === undefined) throw new Error("writer session did not return structured output")
-  const output = yield* Effect.promise(() => finalize(input.root, turn, info.structured))
+  const writerValue = info.structured
+  let finalized = yield* Effect.promise(() => attempt(() => finalize(input.root, turn, writerValue)))
+  let contractRetries = 0
+  while (!finalized.ok && finalized.error instanceof WriterContractError && contractRetries < 2) {
+    response = yield* session.prompt(contractRetryInput(request, "writer response", finalized.error))
+    info = response.info
+    if (info.role !== "assistant") throw new Error("writer session contract retry did not return an assistant response")
+    executionUsage = addUsage(executionUsage, assistantUsage(info))
+    if (info.structured === undefined) throw new Error("writer session contract retry did not return structured output")
+    const correctedWriterValue = info.structured
+    finalized = yield* Effect.promise(() => attempt(() => finalize(input.root, turn, correctedWriterValue)))
+    contractRetries++
+  }
+  if (!finalized.ok) throw finalized.error
+  const output = finalized.value
+  const selectionUsage = admission.selection?.usage ?? { inputTokens: 0, outputTokens: 0, costUsd: 0 }
   return {
     ...output,
     usage: {
-      inputTokens: info.tokens.input + info.tokens.cache.read + info.tokens.cache.write,
-      outputTokens: info.tokens.output + info.tokens.reasoning,
-      costUsd: info.cost,
+      inputTokens: executionUsage.inputTokens + selectionUsage.inputTokens,
+      outputTokens: executionUsage.outputTokens + selectionUsage.outputTokens,
+      costUsd: executionUsage.costUsd + selectionUsage.costUsd,
     },
     ...(admission.selection ? { selection: admission.selection } : {}),
   }
 })
+
+function assistantUsage(info: SessionV1.Assistant) {
+  return {
+    inputTokens: info.tokens.input + info.tokens.cache.read + info.tokens.cache.write,
+    outputTokens: info.tokens.output + info.tokens.reasoning,
+    costUsd: info.cost,
+  }
+}
+
+function addUsage(
+  left: { inputTokens: number; outputTokens: number; costUsd: number },
+  right: { inputTokens: number; outputTokens: number; costUsd: number },
+) {
+  return {
+    inputTokens: left.inputTokens + right.inputTokens,
+    outputTokens: left.outputTokens + right.outputTokens,
+    costUsd: left.costUsd + right.costUsd,
+  }
+}
+
+function repairableSelectionError(error: Error) {
+  return /writer context selection|context specification|selected context|preservation literal/i.test(error.message)
+}
+
+function attempt<T>(evaluate: () => T | Promise<T>) {
+  return Promise.resolve()
+    .then(evaluate)
+    .then(
+      (value) => ({ ok: true as const, value }),
+      (cause) => ({ ok: false as const, error: cause instanceof Error ? cause : new Error(String(cause)) }),
+    )
+}
 
 export * as WriterSession from "./session"

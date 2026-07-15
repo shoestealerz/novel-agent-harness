@@ -12,7 +12,10 @@ export const writerSelectionSystemPrompt = [
   "Use only novel_list, novel_read, novel_context, and the read-only novel_state tool to inspect the Git-backed novel.",
   "Return stable passage references, not prose answers or edits.",
   "Choose the smallest packet that covers the focus, causal dependencies, and explicit preservation constraints.",
+  "Use preservationLiterals only for wording the author explicitly requires verbatim; never turn motifs, voice, ideas, facts, or paraphrasable constraints into exact literals.",
   "Set throughRef whenever the request has a story-time, chapter, scene, or character-knowledge boundary; never select later passages beyond it.",
+  "Do not infer throughRef from chapter order or boundary wording alone when the boundary event is absent; keep it unset and retain every passage that directly answers a requested facet.",
+  "Before finalizing, account for every inspected passage as selected or explicitly excluded, and never exclude directly responsive evidence merely because it occurs in a later chapter.",
   "Use novel_state with the same throughRef to locate typed facts, events, relationships, and character knowledge, then select their cited manuscript evidence.",
   "Do not use novel_proposal unless the author asks about an existing proposal.",
 ].join(" ")
@@ -59,7 +62,7 @@ export function renderWriterSelectionRequest(input: { request: string; job: Writ
 }
 
 export function parseWriterContextSelection(value: unknown): WriterContextSelection {
-  const input = record(value, "writer context selection")
+  const input = record(normalizeWriterContextSelection(value), "writer context selection")
   const focusRefs = refs(input.focusRefs, "focusRefs")
   if (!focusRefs.length) throw new Error("writer context selection requires at least one focus reference")
   const dependencyRefs = refs(input.dependencyRefs, "dependencyRefs")
@@ -79,7 +82,10 @@ export function parseWriterContextSelection(value: unknown): WriterContextSelect
     return { ref, text: text(literal.text, `writer context selection preservationLiterals[${index}].text`) }
   })
   const throughRef =
-    input.throughRef === null ? undefined : text(input.throughRef, "writer context selection throughRef")
+    input.throughRef === null ||
+    (typeof input.throughRef === "string" && /^(?:null|none)$/i.test(input.throughRef.trim()))
+      ? undefined
+      : text(input.throughRef, "writer context selection throughRef")
   return {
     focusRefs,
     dependencyRefs,
@@ -89,6 +95,52 @@ export function parseWriterContextSelection(value: unknown): WriterContextSelect
     ...(throughRef ? { throughRef } : {}),
     rationale: text(input.rationale, "writer context selection rationale"),
   }
+}
+
+export function normalizeWriterContextSelection(value: unknown): unknown {
+  const outer = value && typeof value === "object" && !Array.isArray(value) ? (value as Record<string, unknown>) : null
+  const candidate = (() => {
+    if (!outer || Object.keys(outer).length !== 1) return value
+    const key = "input" in outer ? "input" : "answer" in outer ? "answer" : undefined
+    if (!key) return value
+    const nested = outer[key]
+    if (nested && typeof nested === "object" && !Array.isArray(nested)) return nested
+    if (typeof nested !== "string") return value
+    try {
+      return JSON.parse(nested) as unknown
+    } catch {
+      return value
+    }
+  })()
+  if (!candidate || typeof candidate !== "object" || Array.isArray(candidate)) return candidate
+  const input = candidate as Record<string, unknown>
+  const required = [
+    "focusRefs",
+    "dependencyRefs",
+    "preservationRefs",
+    "preservationLiterals",
+    "excludeRefs",
+    "throughRef",
+    "rationale",
+  ]
+  if (!required.every((field) => field in input)) return candidate === value ? candidate : value
+  return {
+    ...input,
+    focusRefs: normalizeRefs(input.focusRefs),
+    dependencyRefs: normalizeRefs(input.dependencyRefs),
+    preservationRefs: normalizeRefs(input.preservationRefs),
+    excludeRefs: normalizeRefs(input.excludeRefs),
+    preservationLiterals:
+      input.preservationLiterals && typeof input.preservationLiterals === "object" && !Array.isArray(input.preservationLiterals)
+        ? [input.preservationLiterals]
+        : input.preservationLiterals,
+  }
+}
+
+function normalizeRefs(value: unknown) {
+  if (typeof value !== "string") return value
+  const items = value.split(",").map((item) => item.trim())
+  return items.every((item) => /^[a-z][a-z0-9_-]*:[a-z][a-z0-9_-]*$/i.test(item)) ? items : value
 }
 
 function refs(value: unknown, label: string) {

@@ -38,6 +38,11 @@ function checkValue(check: Check, response: ExecutionResponse) {
   if (check.kind === "contains") return response.text.includes(check.value) ? 1 : 0
   if (check.kind === "not_contains") return response.text.includes(check.value) ? 0 : 1
   if (check.kind === "regex") return new RegExp(check.pattern, check.flags).test(response.text) ? 1 : 0
+  if (check.kind === "response_regex") {
+    return new RegExp(check.pattern, check.flags).test(JSON.stringify({ text: response.text, artifacts: response.artifacts ?? {} }))
+      ? 1
+      : 0
+  }
   if (check.kind === "word_count") {
     const count = response.text.trim() ? response.text.trim().split(/\s+/).length : 0
     return (check.min === undefined || count >= check.min) && (check.max === undefined || count <= check.max) ? 1 : 0
@@ -49,6 +54,11 @@ function checkValue(check: Check, response: ExecutionResponse) {
       const count = edit.replacement!.trim().split(/\s+/).length
       return (check.min === undefined || count >= check.min) && (check.max === undefined || count <= check.max)
     }) ? 1 : 0
+  }
+  if (check.kind === "edit_regex") {
+    const edits = response.artifacts?.edits ?? []
+    if (!edits.length || edits.some((edit) => typeof edit.replacement !== "string" || !edit.replacement.trim())) return 0
+    return edits.every((edit) => new RegExp(check.pattern, check.flags).test(edit.replacement!)) ? 1 : 0
   }
   if (check.kind === "artifact_contains") return JSON.stringify(response.artifacts ?? {}).includes(check.value) ? 1 : 0
   if (check.kind === "finding_recall") {

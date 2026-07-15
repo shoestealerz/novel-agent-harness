@@ -64,6 +64,35 @@ describe("structured-output.OutputFormat", () => {
   })
 })
 
+describe("structured-output tool choice", () => {
+  test("omits forced tool choice for DeepSeek V4 thinking mode", () => {
+    expect(
+      SessionPrompt.structuredOutputToolChoice({
+        providerID: "deepseek",
+        id: "deepseek-v4-pro",
+        api: { id: "deepseek-v4-pro" },
+      }),
+    ).toBeUndefined()
+  })
+
+  test("keeps required tool choice for other models", () => {
+    expect(
+      SessionPrompt.structuredOutputToolChoice({
+        providerID: "deepseek",
+        id: "deepseek-chat",
+        api: { id: "deepseek-chat" },
+      }),
+    ).toBe("required")
+    expect(
+      SessionPrompt.structuredOutputToolChoice({
+        providerID: "openai",
+        id: "gpt-5",
+        api: { id: "gpt-5" },
+      }),
+    ).toBe("required")
+  })
+})
+
 describe("structured-output.StructuredOutputError", () => {
   test("creates error with message and retries", () => {
     const error = new SessionV1.StructuredOutputError({

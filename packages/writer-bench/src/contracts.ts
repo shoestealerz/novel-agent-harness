@@ -49,8 +49,10 @@ export type Check = {
   | { kind: "contains"; value: string }
   | { kind: "not_contains"; value: string }
   | { kind: "regex"; pattern: string; flags?: string }
+  | { kind: "response_regex"; pattern: string; flags?: string }
   | { kind: "word_count"; min?: number; max?: number }
   | { kind: "edit_word_count"; min?: number; max?: number }
+  | { kind: "edit_regex"; pattern: string; flags?: string }
   | { kind: "finding_recall"; expected: string[]; forbidden?: string[] }
   | { kind: "finding_content"; required: FindingPattern[]; forbidden?: FindingPattern[] }
   | { kind: "artifact_contains"; value: string }
