@@ -1,19 +1,33 @@
-name: 🚀 Feature Request
-description: Suggest an idea, feature, or enhancement
-title: "[FEATURE]:"
-
+name: Feature request
+description: Propose a writer capability, reliability mechanism, or evaluation improvement
+title: "[Feature]: "
+labels: [enhancement]
 body:
-  - type: checkboxes
-    id: verified
-    attributes:
-      label: Feature hasn't been suggested before.
-      options:
-        - label: I have verified this feature I'm about to request hasn't been suggested before.
-          required: true
-
   - type: textarea
+    id: problem
     attributes:
-      label: Describe the enhancement you want to request
-      description: What do you want to change or add? What are the benefits of implementing this? Try to be detailed so we can understand your request better :)
+      label: Writer problem
+      description: What author workflow or reliability problem should the harness solve?
     validations:
       required: true
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Desired outcome
+      description: Describe observable behavior without prescribing an implementation when possible.
+    validations:
+      required: true
+  - type: textarea
+    id: authority
+    attributes:
+      label: Author authority and failure cases
+      description: What must the model never do, and how should stale, ambiguous, or unsafe requests fail?
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evaluation evidence
+      description: How could we measure that this helps without hiding a safety regression in an aggregate score?
+    validations:
+      required: false

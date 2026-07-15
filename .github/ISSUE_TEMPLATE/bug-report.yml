@@ -1,66 +1,58 @@
 name: Bug report
-description: Report an issue that should be fixed (avoid pasting giant AI generated summaries or your issue may be closed/ignored)
+description: Report a reproducible problem in the writer harness or benchmark runner
+title: "[Bug]: "
+labels: [bug]
 body:
   - type: textarea
     id: description
     attributes:
-      label: Description
-      description: Describe the bug you encountered
-      placeholder: What happened?
+      label: What happened?
+      description: Describe the observed behavior and what you expected instead. Remove private manuscript text and secrets.
     validations:
       required: true
-
-  - type: input
-    id: plugins
+  - type: dropdown
+    id: area
     attributes:
-      label: Plugins
-      description: What plugins are you using?
+      label: Area
+      options:
+        - Writer CLI or session
+        - Workspace, proposal, or commit transaction
+        - Story state
+        - Benchmark runner or evaluation target
+        - Generic OpenCode runtime
+        - Documentation or CI
     validations:
-      required: false
-
-  - type: input
-    id: opencode-version
-    attributes:
-      label: OpenCode version
-      description: What version of OpenCode are you using?
-    validations:
-      required: false
-
+      required: true
   - type: textarea
     id: reproduce
     attributes:
-      label: Steps to reproduce
-      description: How can we reproduce this issue?
+      label: Minimal reproduction
+      description: Include commands and a synthetic or redacted workspace when possible.
       placeholder: |
-        1.
-        2.
-        3.
+        1. Run ...
+        2. Review ...
+        3. Observe ...
     validations:
-      required: false
-
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Harness version or commit
+      placeholder: v0.1.0-alpha.1 or commit SHA
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      placeholder: Windows 11, Bun 1.3.14, Node 22
+    validations:
+      required: true
   - type: textarea
-    id: screenshot-or-link
+    id: logs
     attributes:
-      label: Screenshot and/or share link
-      description: Run `/share` to get a share link, or attach a screenshot
-      placeholder: Paste link or drag and drop screenshot here
-    validations:
-      required: false
-
-  - type: input
-    id: os
-    attributes:
-      label: Operating System
-      description: what OS are you using?
-      placeholder: e.g., macOS 26.0.1, Ubuntu 22.04, Windows 11
-    validations:
-      required: false
-
-  - type: input
-    id: terminal
-    attributes:
-      label: Terminal
-      description: what terminal are you using?
-      placeholder: e.g., iTerm2, Ghostty, Alacritty, Windows Terminal
+      label: Relevant redacted output
+      description: Do not include API keys, private prose, or provider credentials.
+      render: shell
     validations:
       required: false

@@ -1,9 +1,14 @@
 {
   "$schema": "https://json.schemastore.org/package.json",
   "name": "@novel-agent-harness/bench",
-  "version": "0.1.0",
+  "version": "0.1.0-alpha.1",
   "type": "module",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/shoestealerz/novel-agent-harness.git",
+    "directory": "packages/writer-bench"
+  },
   "private": true,
   "dependencies": {
     "@novel-agent-harness/writer": "workspace:*"
@@ -12,7 +17,7 @@
     "writer-bench": "./src/cli.ts"
   },
   "scripts": {
-    "test": "node --experimental-strip-types --test src/*.test.ts",
+    "test": "node --experimental-strip-types --test \"src/**/*.test.ts\"",
     "typecheck": "tsgo --noEmit",
     "smoke": "node --experimental-strip-types src/cli.ts run --suite fixtures/smoke.jsonl --targets fixtures/targets.json --out .results/smoke --trials 3",
     "smoke:compare": "node --experimental-strip-types src/cli.ts compare --run .results/smoke/run.json --baseline raw-model --candidate writer-harness --gates fixtures/gates.json --out .results/comparison",

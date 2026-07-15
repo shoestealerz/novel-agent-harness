@@ -1,15 +1,20 @@
 {
   "$schema": "https://json.schemastore.org/package.json",
   "name": "@novel-agent-harness/writer",
-  "version": "0.1.0",
+  "version": "0.1.0-alpha.1",
   "description": "Writer-owned workspace and proposal primitives for the Novel Agent Harness",
   "type": "module",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/shoestealerz/novel-agent-harness.git",
+    "directory": "packages/writer"
+  },
   "exports": {
     ".": "./src/index.ts"
   },
   "scripts": {
-    "test": "node --experimental-strip-types --test 'src/**/*.test.ts'",
+    "test": "node --experimental-strip-types --test \"src/**/*.test.ts\"",
     "typecheck": "tsgo --noEmit"
   },
   "devDependencies": {

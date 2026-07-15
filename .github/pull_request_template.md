@@ -1,29 +1,34 @@
 ### Issue for this PR
 
-Closes #
+Closes # (or explain why no issue is needed)
 
 ### Type of change
 
 - [ ] Bug fix
 - [ ] New feature
 - [ ] Refactor / code improvement
-- [ ] Documentation
+- [ ] Tests or benchmark
+- [ ] Documentation or maintenance
 
 ### What does this PR do?
 
-Please provide a description of the issue, the changes you made to fix it, and why they work. It is expected that you understand why your changes work and if you do not understand why at least say as much so a maintainer knows how much to value the PR.
+Describe the behavior, the writer-facing or reliability effect, and important tradeoffs.
 
-**If you paste a large clearly AI generated description here your PR may be IGNORED or CLOSED!**
+### Author authority and data safety
+
+Explain any effect on model-visible context, proposal scope, confirmation, commits, credentials, or manuscript data. Write "No change" when none apply.
 
 ### How did you verify your code works?
 
+List the exact commands, fixtures, platforms, and benchmark gates used.
+
 ### Screenshots / recordings
 
-_If this is a UI change, please include a screenshot or recording._
+Not applicable unless this changes a user interface.
 
 ### Checklist
 
-- [ ] I have tested my changes locally
-- [ ] I have not included unrelated changes in this PR
-
-_If you do not follow this template your PR will be automatically rejected._
+- [ ] I tested the relevant packages locally
+- [ ] I preserved the author-confirmation boundary
+- [ ] I did not include secrets, private manuscripts, or unlicensed corpus text
+- [ ] I did not include unrelated changes
