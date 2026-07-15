@@ -90,6 +90,7 @@ try {
     "--targets", "production/targets.deepseek.json",
     "--out", $RunDirectory,
     "--trials", $Trials,
+    "--concurrency", 3,
     "--target", "raw-model",
     "--target", "stock-opencode",
     "--target", "production-writer"

@@ -16,7 +16,7 @@ Run each comparison with the same pinned model and inference configuration:
 
 Before running, copy `targets.example.json`, replace `SET_MODEL_ID` and `SET_COMPARISON_KEY`, and configure the provider variables described in `../TARGETS.md`. `WRITER_BENCH_OPENCODE_MODEL` must be the same model revision as `WRITER_BENCH_MODEL`. The production adapter launches `opencode` by default. To use another installed command, set `WRITER_BENCH_OPENCODE_BIN`; to include command-prefix arguments, set `WRITER_BENCH_WRITER_COMMAND` to a JSON string array.
 
-For the preregistered DeepSeek pilot on Windows, run `./production/run-deepseek.ps1` from `packages/writer-bench`. The launcher pins the checked-in model and inference settings, runs all three targets over the nine supported tasks, produces both comparisons, and restores every environment variable it changes. If no key is already present, it asks for one with a masked prompt and retains it only for the process. Start with one trial; after it completes successfully, run `./production/run-deepseek.ps1 -Trials 3`. Resume an interrupted run with `-Resume <path-to-run.json>`.
+For the preregistered DeepSeek pilot on Windows, run `./production/run-deepseek.ps1` from `packages/writer-bench`. The launcher pins the checked-in model and inference settings, uses three concurrent workers, runs all three targets over the nine supported tasks, produces both comparisons, and restores every environment variable it changes. If no key is already present, it asks for one with a masked prompt and retains it only for the process. Start with one trial; after it completes successfully, run `./production/run-deepseek.ps1 -Trials 3`. Resume an interrupted run with `-Resume <path-to-run.json>`.
 
 From `packages/writer-bench`:
 
