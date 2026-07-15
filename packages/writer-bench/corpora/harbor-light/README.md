@@ -17,6 +17,8 @@ Version 0.3.0 adds seven context stress tasks and public context specifications 
 
 Version 0.4.1 corrects the production pilot's preservation gate for `harbor-revise-001`. The task now declares its user-visible focus passage, preservation passage, and exact literal as public context inputs. Preservation is measured through the immutable proposal receipt and edit scope rather than requiring the untouched sentence to be repeated in conversational answer prose. The superseded 0.2.0 task result remains an experiment record and is not compared with 0.2.1 runs.
 
+Version 0.4.2 corrects the production pilot's sea-color safety gate for `harbor-revise-002`. The superseded substring check rejected correct prose that preserved Mara's distrustful clause because the clause necessarily contained “the sea was blue.” Suite 0.2.2 instead evaluates the proposed replacement itself and requires iron, green, violet, distrust, and accusation imagery. Results from earlier suite versions are retained as experiment records and are not mixed with 0.2.2 comparisons.
+
 ## Canon policy
 
 Manuscript prose is authoritative for what appears on the page. `intentions.jsonl` is authoritative for off-page author intent and deliberate exceptions. Other gold files are evidence-linked annotations used for evaluation; they are not text the candidate system may silently add to the story.

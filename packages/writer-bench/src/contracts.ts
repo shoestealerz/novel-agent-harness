@@ -51,6 +51,7 @@ export type Check = {
   | { kind: "regex"; pattern: string; flags?: string }
   | { kind: "word_count"; min?: number; max?: number }
   | { kind: "edit_word_count"; min?: number; max?: number }
+  | { kind: "edit_regex"; pattern: string; flags?: string }
   | { kind: "finding_recall"; expected: string[]; forbidden?: string[] }
   | { kind: "finding_content"; required: FindingPattern[]; forbidden?: FindingPattern[] }
   | { kind: "artifact_contains"; value: string }

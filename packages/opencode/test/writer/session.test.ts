@@ -89,7 +89,7 @@ describe("WriterSession", () => {
     expect(await Bun.file(output.proposalPath!).exists()).toBe(true)
   })
 
-  test("runs through the OpenCode session service", async () => {
+  test("retries through the OpenCode session service when structured output is omitted", async () => {
     await using tmp = await writerWorkspace()
     const sessionID = SessionID.make("ses_writer_run")
     const structured = {
@@ -99,13 +99,21 @@ describe("WriterSession", () => {
       edits: [],
       data: { observations: [], inferences: [], unresolved: [], preservation: [] },
     }
+    const state = { calls: 0 }
     const layer = Layer.mock(SessionPrompt.Service, {
       prompt: (input) => {
         expect(input.agent).toBe("writer")
         expect(input.format?.type).toBe("json_schema")
+        const retry = state.calls++ > 0
+        if (retry) {
+          expect(input.parts[0]?.type).toBe("text")
+          if (input.parts[0]?.type === "text") {
+            expect(input.parts[0].text).toContain("previous response was not captured")
+          }
+        }
         return Effect.succeed({
           info: {
-            id: MessageID.make("msg_writer_answer"),
+            id: MessageID.make(`msg_writer_answer_${state.calls}`),
             sessionID,
             role: "assistant",
             time: { created: Date.now(), completed: Date.now() },
@@ -117,7 +125,7 @@ describe("WriterSession", () => {
             path: { cwd: tmp.path, root: tmp.path },
             cost: 0,
             tokens: { input: 1, output: 1, reasoning: 0, cache: { read: 0, write: 0 } },
-            structured,
+            structured: retry ? structured : undefined,
             finish: "stop",
           },
           parts: [],
@@ -137,7 +145,8 @@ describe("WriterSession", () => {
 
     expect(output.result.answer).toContain("ch01:p001")
     expect(output.result.proposal).toBeUndefined()
-    expect(output.usage).toEqual({ inputTokens: 1, outputTokens: 1, costUsd: 0 })
+    expect(state.calls).toBe(2)
+    expect(output.usage).toEqual({ inputTokens: 2, outputTokens: 2, costUsd: 0 })
   })
 
   test("selects context before executing an unscoped writer request", async () => {

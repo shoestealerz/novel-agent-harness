@@ -136,6 +136,20 @@ export function selectionPromptInput(input: Pick<Input, "sessionID" | "model" | 
   }
 }
 
+export function structuredRetryInput<
+  T extends ReturnType<typeof promptInput> | ReturnType<typeof selectionPromptInput>,
+>(input: T): T {
+  return {
+    ...input,
+    parts: [
+      {
+        type: "text" as const,
+        text: "Your previous response was not captured as structured output. Do not restate prose. Call StructuredOutput now with one complete object matching the requested schema and task.",
+      },
+    ],
+  } as T
+}
+
 export async function finalize(root: string, turn: PreparedTurn, value: unknown): Promise<Omit<Output, "usage">> {
   const result = parseWriterResult(turn.task, value)
   const proposalPath = result.proposal ? await saveEditProposal(root, result.proposal) : undefined
@@ -159,10 +173,17 @@ export const run = Effect.fn("WriterSession.run")(function* (input: Input) {
               : parent?.model,
             metadata: { "novel.writer.phase": "context-selection" },
           })
-          const response = yield* session.prompt(selectionPromptInput({ ...input, sessionID: selector.id }))
-          const info = response.info
+          const request = selectionPromptInput({ ...input, sessionID: selector.id })
+          let response = yield* session.prompt(request)
+          let info = response.info
           if (info.role !== "assistant")
             throw new Error("writer context selection did not return an assistant response")
+          if (info.structured === undefined) {
+            response = yield* session.prompt(structuredRetryInput(request))
+            info = response.info
+            if (info.role !== "assistant")
+              throw new Error("writer context selection retry did not return an assistant response")
+          }
           if (info.structured === undefined)
             throw new Error("writer context selection did not return structured output")
           const selection = parseWriterContextSelection(info.structured)
@@ -192,21 +213,48 @@ export const run = Effect.fn("WriterSession.run")(function* (input: Input) {
           }
         })
   const turn = yield* Effect.promise(() => prepare(admission.input))
-  const response = yield* session.prompt(promptInput(input, turn))
-  const info = response.info
+  const request = promptInput(input, turn)
+  let response = yield* session.prompt(request)
+  let info = response.info
   if (info.role !== "assistant") throw new Error("writer session did not return an assistant response")
+  let executionUsage = assistantUsage(info)
+  if (info.structured === undefined) {
+    response = yield* session.prompt(structuredRetryInput(request))
+    info = response.info
+    if (info.role !== "assistant") throw new Error("writer session retry did not return an assistant response")
+    executionUsage = addUsage(executionUsage, assistantUsage(info))
+  }
   if (info.structured === undefined) throw new Error("writer session did not return structured output")
   const output = yield* Effect.promise(() => finalize(input.root, turn, info.structured))
   const selectionUsage = admission.selection?.usage ?? { inputTokens: 0, outputTokens: 0, costUsd: 0 }
   return {
     ...output,
     usage: {
-      inputTokens: info.tokens.input + info.tokens.cache.read + info.tokens.cache.write + selectionUsage.inputTokens,
-      outputTokens: info.tokens.output + info.tokens.reasoning + selectionUsage.outputTokens,
-      costUsd: info.cost + selectionUsage.costUsd,
+      inputTokens: executionUsage.inputTokens + selectionUsage.inputTokens,
+      outputTokens: executionUsage.outputTokens + selectionUsage.outputTokens,
+      costUsd: executionUsage.costUsd + selectionUsage.costUsd,
     },
     ...(admission.selection ? { selection: admission.selection } : {}),
   }
 })
+
+function assistantUsage(info: SessionV1.Assistant) {
+  return {
+    inputTokens: info.tokens.input + info.tokens.cache.read + info.tokens.cache.write,
+    outputTokens: info.tokens.output + info.tokens.reasoning,
+    costUsd: info.cost,
+  }
+}
+
+function addUsage(
+  left: { inputTokens: number; outputTokens: number; costUsd: number },
+  right: { inputTokens: number; outputTokens: number; costUsd: number },
+) {
+  return {
+    inputTokens: left.inputTokens + right.inputTokens,
+    outputTokens: left.outputTokens + right.outputTokens,
+    costUsd: left.costUsd + right.costUsd,
+  }
+}
 
 export * as WriterSession from "./session"
