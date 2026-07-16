@@ -160,6 +160,17 @@ The active Alpha 3 milestone is preregistered at `packages/writer-bench/experime
 5. complete a blinded human review before making prose, voice, pacing, dramatic-effect, or usefulness claims; and
 6. select Alpha 3's first new authoring capability from the evidence rather than presuming that Generate, retrieval, or another mechanism should graduate.
 
+Current Alpha 3 checkpoint (July 16, 2026):
+
+- Complete: the wholly synthetic 36,122-word, 14-chapter *Saltglass Vigil* novella, frozen architecture and gold story state, isolated defect variants, and the complete 132-task Explain/Diagnose/Plan/Revise matrix.
+- Complete: released-CLI dogfood across initialization, context selection, all four supported jobs, proposal review and approval, verified Git commits, stale rejection, and resumed sessions. Material failures are recorded in `packages/writer-bench/experiments/book-scale-alpha3/dogfood/failures.jsonl` with benchmark and regression-test dispositions.
+- Complete: public validation of the frozen candidate. Commit `4e53b3086a060d392d6d352358d81d59ebff7405`, tagged `alpha3-book-scale-candidate-4e53b3086`, completed 36/36 validation tasks with mean reliability 0.9521, zero deterministic safety failures, perfect required-evidence recall and grounding, and all proposal invariants at 1.0000. Complete bounded context is validated only at the preregistered novella scale; it is not evidence for broad retrieval or larger manuscripts.
+- Complete: the sealed-task, controlled-context, and blinded-human-review manifests are hash-frozen. The 48-task review selection contains 96 randomized pairs and requires at least 288 independent ratings before unblinding.
+- Invalid and preserved: authoritative attempt `A3-PRIMARY-001` produced 300 successful cells but cannot support comparisons. It exposed detached-worktree installation, raw cache-telemetry, transient Windows cleanup, transport, and provider-credit failures. Revision 3 of `authoritative-run.freeze.json` pins infrastructure-only corrections and permits reuse of only 121 successful stock-OpenCode cells.
+- Pending: restore DeepSeek API credit and resume 419 provider calls: all 180 raw-model cells for exact cache-aware cost, 59 failed stock-OpenCode cells, and all 180 production-Writer cells. Then run the 216-cell controlled track, conduct the frozen blinded review, publish results and limitations, and make the evidence-based Alpha 3 capability decision.
+
+PR #53 merged the frozen candidate, public validation receipts, dogfood record, comparable stock-OpenCode workspace adapter, and infrastructure-only resume corrections. No broad retrieval system or private UI work has started.
+
 The private UI remains deferred. Broad semantic retrieval remains experimental because both held-out retrieval candidates failed their preregistered graduation gates.
 
 ### Phase 10: Private web application
@@ -208,3 +219,10 @@ Build the private UI only after the harness protocol stabilizes: agent chat, man
 - PR #38: cross-platform commit-test stabilization; merged.
 - PR #39: prerelease tag validation correction; merged.
 - PR #40: globally linked interactive `novel` CLI and Alpha 2 release; merged.
+- PR #41: Alpha 3 book-scale evaluation preregistration; merged.
+- PR #42: frozen synthetic novella architecture; merged.
+- PRs #43–#49: staged drafting and completion of the 36,122-word *Saltglass Vigil* manuscript; merged.
+- PR #50: isolated book-scale defect variants; merged.
+- PR #51: typed book-scale gold records; merged.
+- PR #52: 132-task book-scale matrix and public/controlled/sealed split tooling; merged.
+- PR #53: bounded book-scale Writer candidate, dogfood and public validation evidence, evaluation adapters, run freeze, and infrastructure-only resume corrections; merged.
