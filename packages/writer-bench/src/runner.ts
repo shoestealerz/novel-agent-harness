@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto"
 import { basename, join } from "node:path"
-import type { ExecutionRequest, ExecutionTask, JudgeRequest, RunFile, RunRecord, Target, TargetFile, Task } from "./contracts.ts"
+import type { ExecutionRequest, ExecutionTask, JudgeRequest, ResumeMode, RunFile, RunRecord, Target, TargetFile, Task } from "./contracts.ts"
 import { protocolVersion } from "./contracts.ts"
 import { writeJson, writeJsonl } from "./io.ts"
 import { executeJudge, executeTarget } from "./process.ts"
@@ -16,6 +16,7 @@ export async function runBenchmark(input: {
   rerunCells?: string[]
   out: string
   resume?: RunFile
+  resumeMode?: ResumeMode
 }) {
   validateResume(input)
   const runId = `${new Date().toISOString().replaceAll(/[:.]/g, "-")}-${randomUUID().slice(0, 8)}`
@@ -34,6 +35,7 @@ export async function runBenchmark(input: {
     concurrency: input.concurrency ?? 1,
     records,
     resumedFromRunId: input.resume?.runId,
+    resumeMode: input.resume ? (input.resumeMode ?? "exact") : undefined,
     metrics: nativeMetrics(records),
   }
   await writeJson(join(input.out, "run.json"), run)
@@ -50,7 +52,7 @@ async function executeCell(
 ) {
   const previous = input.resume?.records.find((record) =>
     record.targetId === cell.target.id && record.task.id === cell.task.id && record.trial === cell.trial)
-  const rerun = input.rerunCells?.includes(`${cell.target.id}:${cell.task.id}`)
+  const rerun = input.rerunCells?.some((requested) => rerunCellMatches(requested, cell))
   if (previous?.response && !previous.error && !rerun) {
     if (input.targets.judge) return { ...previous, task: cell.task, targetId: cell.target.id, trial: cell.trial }
     return { task: cell.task, targetId: cell.target.id, trial: cell.trial, response: previous.response, ...evaluateResponse(cell.target, cell.task, previous.response) }
@@ -97,25 +99,35 @@ async function mapConcurrent<T, R>(values: T[], requested: number, execute: (val
   return lanes.flat().sort((left, right) => left.index - right.index).map((item) => item.result)
 }
 
-function validateResume(input: {
+export function validateResume(input: {
   tasks: Task[]
   targets: TargetFile
   trials: number
   concurrency?: number
   rerunCells?: string[]
   resume?: RunFile
+  resumeMode?: ResumeMode
 }) {
   if (input.concurrency !== undefined && (!Number.isInteger(input.concurrency) || input.concurrency < 1)) {
     throw new Error("concurrency must be a positive integer")
   }
   if (input.rerunCells?.length && !input.resume) throw new Error("rerun-cell requires --resume")
   input.rerunCells?.forEach((cell) => {
-    const [targetId, taskId, extra] = cell.split(":")
-    if (!targetId || !taskId || extra || !input.targets.systems.some((target) => target.id === targetId) || !input.tasks.some((task) => task.id === taskId)) {
-      throw new Error(`rerun-cell must identify a configured target and task: ${cell}`)
+    const [targetId, taskId, trialText, extra] = cell.split(":")
+    const trial = trialText === undefined ? undefined : Number(trialText)
+    if (!targetId || !taskId || extra
+      || trialText !== undefined && (!Number.isInteger(trial) || trial! < 0 || trial! >= input.trials)
+      || !input.targets.systems.some((target) => target.id === targetId)
+      || !input.tasks.some((task) => task.id === taskId)) {
+      throw new Error(`rerun-cell must identify a configured target, task, and optional trial: ${cell}`)
     }
   })
-  if (!input.resume) return
+  if (!input.resume) {
+    if (input.resumeMode) throw new Error("resume-mode requires --resume")
+    return
+  }
+  const resumeMode = input.resumeMode ?? "exact"
+  if (resumeMode !== "exact" && resumeMode !== "scoring-only") throw new Error(`unsupported resume mode: ${resumeMode}`)
   if (!!input.targets.judge !== !!input.resume.judge
     || input.targets.judge && input.resume.judge && (
       input.targets.judge.id !== input.resume.judge.id
@@ -131,8 +143,29 @@ function validateResume(input: {
   }
   for (const task of input.tasks) {
     const previous = input.resume.records.find((record) => record.task.id === task.id)
-    if (!previous || previous.task.suiteVersion !== task.suiteVersion) throw new Error(`resume task mismatch: ${task.id}`)
+    if (!previous) throw new Error(`resume task mismatch: ${task.id}`)
+    if (resumeMode === "exact" && previous.task.suiteVersion !== task.suiteVersion) {
+      throw new Error(`resume task mismatch: ${task.id}`)
+    }
+    if (resumeMode === "scoring-only" && !scoringOnlyTaskChange(previous.task, task)) {
+      throw new Error(`scoring-only resume changed model-visible task material: ${task.id}`)
+    }
   }
+}
+
+export function rerunCellMatches(requested: string, cell: { target: Target; task: Task; trial: number }) {
+  const [targetId, taskId, trialText] = requested.split(":")
+  return targetId === cell.target.id
+    && taskId === cell.task.id
+    && (trialText === undefined || Number(trialText) === cell.trial)
+}
+
+function scoringOnlyTaskChange(previous: Task, current: Task) {
+  const before = publicTask(previous)
+  const after = publicTask(current)
+  before.suiteVersion = after.suiteVersion
+  return JSON.stringify(before) === JSON.stringify(after)
+    && JSON.stringify(previous.criteria ?? []) === JSON.stringify(current.criteria ?? [])
 }
 
 function publicTask(task: Task): ExecutionTask {

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { resolve, join } from "node:path"
-import { parseTargetFile, parseTask, type GateConfig, type MetricRecord, type RunFile } from "./contracts.ts"
+import { parseTargetFile, parseTask, type GateConfig, type MetricRecord, type ResumeMode, type RunFile } from "./contracts.ts"
 import { importConStory, importWritingBench } from "./adapters.ts"
 import { readJson, readJsonl, writeJson } from "./io.ts"
 import { renderComparisonReport } from "./report.ts"
@@ -69,6 +69,7 @@ async function run() {
     rerunCells: values(args, "rerun-cell"),
     out,
     resume,
+    resumeMode: optional(args, "resume-mode") as ResumeMode | undefined,
   })
   console.log(join(out, "report.md"))
   if (result.records.some((record) => record.error)) process.exitCode = 2
@@ -242,7 +243,7 @@ function optionalNumber(input: Map<string, string[]>, key: string) {
 function usage(code: number): never {
   console.error(`writer-bench
 
-  run --suite tasks.jsonl [--suite more.jsonl] --targets targets.json --out results [--trials 3] [--concurrency 3] [--context-mode full|controlled] [--task id] [--target id] [--resume previous/run.json] [--rerun-cell target:task]
+  run --suite tasks.jsonl [--suite more.jsonl] --targets targets.json --out results [--trials 3] [--concurrency 3] [--context-mode full|controlled] [--task id] [--target id] [--resume previous/run.json] [--resume-mode exact|scoring-only] [--rerun-cell target:task[:trial]]
   compare --run results/run.json --baseline raw --candidate harness --gates gates.json --out comparison
   import writingbench --source benchmark_all.jsonl --out writing.jsonl [--domain "Literature & Art"] [--language en]
   import constory --source prompts.jsonl --out constory.jsonl [--language en]
