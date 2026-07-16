@@ -52,3 +52,7 @@ Validate the complete canonical manuscript from `packages/writer-bench`:
 ```sh
 bun run corpus:validate:book
 ```
+
+## Isolated defect patches
+
+`variants/defects.jsonl` registers two defects in each preregistered category without modifying or duplicating the canonical manuscript. Each record names one stable passage, pins its canonical LF-normalized SHA-256 digest, and defines a single exact-match replacement. Validation rejects a patch when its source passage has changed, its match is absent or ambiguous, or its category and review disposition are invalid. Evaluation tooling must apply at most the task-named patch to an ephemeral manuscript copy and must never expose the patch record or frozen architecture to the target.

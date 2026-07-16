@@ -1,6 +1,6 @@
 import assert from "node:assert/strict"
 import { createHash } from "node:crypto"
-import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises"
+import { cp, mkdtemp, readFile, rm, writeFile } from "node:fs/promises"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import test from "node:test"
@@ -110,5 +110,26 @@ test("validates the complete Saltglass Vigil canonical manuscript", async () => 
   assert.equal(result.wordCount, 36122)
   assert.equal(result.passages, 252)
   assert.equal(result.goldRecords, 0)
+  assert.equal(result.variants, 14)
+  assert.deepEqual(result.variantCategories, {
+    factual: 2,
+    temporal: 2,
+    spatial: 2,
+    causal: 2,
+    emotional: 2,
+    knowledge: 2,
+    voice: 2,
+  })
   assert.equal(result.tasks, 0)
+})
+
+test("rejects a Saltglass Vigil defect patch after its source passage changes", async (context) => {
+  const root = await mkdtemp(join(tmpdir(), "saltglass-variant-stale-"))
+  context.after(() => rm(root, { recursive: true, force: true }))
+  await cp("corpora/saltglass-vigil", root, { recursive: true })
+  const path = join(root, "variants", "defects.jsonl")
+  const records = (await readJsonl(path)) as Record<string, unknown>[]
+  records[0].sourceSha256 = "0".repeat(64)
+  await writeFile(path, `${records.map((record) => JSON.stringify(record)).join("\n")}\n`)
+  await assert.rejects(validateCorpus(root), /stale source hash/)
 })
