@@ -136,6 +136,8 @@ export type ExecutionArtifacts = {
 
 export type Usage = {
   inputTokens?: number
+  inputCacheHitTokens?: number
+  inputCacheMissTokens?: number
   outputTokens?: number
   costUsd?: number
   latencyMs?: number

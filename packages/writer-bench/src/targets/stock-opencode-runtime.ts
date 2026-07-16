@@ -46,7 +46,22 @@ export async function executeStockOpenCode(
       },
     }
   } finally {
-    await rm(root, { recursive: true, force: true })
+    await removeStockWorkspace(root)
+  }
+}
+
+export async function removeStockWorkspace(
+  root: string,
+  remove: (path: string, options: { recursive: true; force: true }) => Promise<void> = (path, options) => rm(path, options),
+) {
+  for (let attempt = 0; ; attempt++) {
+    try {
+      await remove(root, { recursive: true, force: true })
+      return
+    } catch (error) {
+      if (attempt >= 9 || !retryableRemoval(error)) throw error
+      await new Promise((resolve) => setTimeout(resolve, 50 * (attempt + 1)))
+    }
   }
 }
 
@@ -155,4 +170,8 @@ async function head(root: string) {
 
 function missingFile(error: unknown) {
   return error instanceof Error && "code" in error && error.code === "ENOENT"
+}
+
+function retryableRemoval(error: unknown) {
+  return error instanceof Error && "code" in error && ["EBUSY", "EPERM", "ENOTEMPTY"].includes(String(error.code))
 }

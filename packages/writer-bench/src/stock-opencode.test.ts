@@ -4,7 +4,7 @@ import { tmpdir } from "node:os"
 import { join } from "node:path"
 import test from "node:test"
 import type { ExecutionTask } from "./contracts.ts"
-import { collectStockEdits, stockPrompt, writeStockWorkspace } from "./targets/stock-opencode-runtime.ts"
+import { collectStockEdits, removeStockWorkspace, stockPrompt, writeStockWorkspace } from "./targets/stock-opencode-runtime.ts"
 
 const task: ExecutionTask = {
   id: "stock-task",
@@ -65,4 +65,13 @@ test("fails closed on damaged passage markers", async (context) => {
     { target: "ch01:p002" },
     { target: `workspace:unparseable:${first.path.split(/[\\/]/).at(-1)}` },
   ])
+})
+
+test("retries transient Windows workspace cleanup locks", async () => {
+  let calls = 0
+  await removeStockWorkspace("ignored", async () => {
+    calls++
+    if (calls < 3) throw Object.assign(new Error("locked"), { code: "EBUSY" })
+  })
+  assert.equal(calls, 3)
 })
