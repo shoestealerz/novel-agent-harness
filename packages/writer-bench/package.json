@@ -25,6 +25,8 @@
     "corpus:validate:book": "node --experimental-strip-types src/cli.ts corpus validate --corpus corpora/saltglass-vigil",
     "corpus:architecture": "node --experimental-strip-types src/cli.ts corpus architecture --corpus corpora/saltglass-vigil",
     "corpus:draft": "node --experimental-strip-types src/cli.ts corpus draft --corpus corpora/saltglass-vigil",
+    "corpus:tasks:build": "node --experimental-strip-types scripts/build-saltglass-public-tasks.ts",
+    "corpus:tasks:validate": "node --experimental-strip-types src/cli.ts corpus task-matrix --corpus corpora/saltglass-vigil",
     "baseline:doctor": "node --experimental-strip-types src/baseline-doctor.ts"
   },
   "devDependencies": {
