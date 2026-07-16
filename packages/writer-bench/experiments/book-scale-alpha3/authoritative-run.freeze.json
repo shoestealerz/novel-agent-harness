@@ -1,9 +1,14 @@
 {
   "formatVersion": 1,
+  "revision": 2,
   "status": "frozen-before-sealed-execution",
-  "frozenAt": "2026-07-16T11:12:09.2805847Z",
+  "frozenAt": "2026-07-16T11:18:43.1510901Z",
+  "supersedesRevision": 1,
+  "supersededReason": "Pre-execution inspection found that revision 1's stock OpenCode adapter pasted the materialized manuscript into one prompt instead of opening the preregistered isolated Git manuscript workspace. No sealed task was loaded or executed. Revision 2 pins the corrected evaluation-only adapter after deterministic tests and one public smoke.",
+  "sealedTasksExecutedBeforeRevision": false,
   "candidateCommit": "4e53b3086a060d392d6d352358d81d59ebff7405",
   "candidateTag": "alpha3-book-scale-candidate-4e53b3086",
+  "evaluationCommit": "a1ad033cf8509a1f679e7269be51387985238d25",
   "corpusVersion": "0.2.3",
   "suiteVersion": "0.3.3",
   "model": {
@@ -14,7 +19,14 @@
   },
   "targets": {
     "ids": ["raw-model", "stock-opencode", "production-writer"],
-    "manifestSha256": "dc2acb88c3d54f3e514e8134e525527a7a8d12ed18224da3a77220a3d72282a7"
+    "manifestSha256": "dc2acb88c3d54f3e514e8134e525527a7a8d12ed18224da3a77220a3d72282a7",
+    "adapterReceipts": {
+      "rawModelSha256": "da6fda382002b35c5b573327cb96dda836c2c666bd91d6ef60170e6618a26edd",
+      "stockOpenCodeEntrypointSha256": "91099a7357b907d680f17008bb486a37be0d4b8e2cd3baaf2f514a337fae8660",
+      "stockOpenCodeRunnerSha256": "d147b3182284aec32bd80514ceae0a5539598d2ae30ead463169b2afd20144dc",
+      "stockOpenCodeWorkspaceSha256": "273375c61d023e2ae1be1d095a73bcb86e8f6679f1bf74d0f845b3881875522c"
+    },
+    "stockOpenCodeProtocol": "Create a fresh Git repository containing only plain bounded chapter files with stable passage comments; send the public author request and authority but no manuscript body, benchmark material, Writer contract, gold, checks, or narrative tools in the prompt; capture passage, file, marker, and HEAD mutations as edit artifacts; delete the workspace after the cell."
   },
   "runtime": {
     "stockOpenCodeVersion": "1.17.18",
