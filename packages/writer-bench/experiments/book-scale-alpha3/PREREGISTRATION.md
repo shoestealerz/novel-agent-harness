@@ -2,7 +2,7 @@
 
 Registered: 2026-07-15, before corpus prose generation, task authoring, dogfood runs, model evaluation, or human review.
 
-Execution receipts: `candidate.freeze.json` pins the public-validation candidate; `authoritative-run.freeze.json` pins the two comparison tracks and gates; `human-review.receipt.json` records the pre-output hash of the private blinded-review manifest. These receipts add concrete identities to this preregistered protocol without changing its hypotheses or thresholds.
+Execution receipts: `candidate.freeze.json` pins the public-validation candidate; `authoritative-run.freeze.json` pins the two comparison tracks and gates; `human-review.receipt.json` records the pre-output hash of the private blinded-review manifest; and `human-review-run.freeze.json` pins the full-context output track needed for the already-selected development, validation, and sealed review tasks. These receipts add concrete identities to this preregistered protocol without changing its hypotheses or thresholds.
 
 ## Decision this study must support
 

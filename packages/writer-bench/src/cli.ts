@@ -9,9 +9,18 @@ import { compareRun } from "./stats.ts"
 import { validateCorpus, validateCorpusArchitecture, validateCorpusDraft } from "./corpus.ts"
 import { validateBookTaskMatrix } from "./book-suite.ts"
 import { materializeNativeTasks, type NativeContextMode } from "./native-source.ts"
+import {
+  analyzeHumanReview,
+  assembleHumanReviewRun,
+  parseHumanReviewManifest,
+  parseReviewSubmission,
+  prepareReviewPacket,
+  renderHumanReviewAnalysis,
+  renderReviewHtml,
+} from "./human-review.ts"
 
 const [command, subcommand] = process.argv.slice(2)
-const args = parseArgs(process.argv.slice(command === "import" || command === "corpus" ? 4 : 3))
+const args = parseArgs(process.argv.slice(command === "import" || command === "corpus" || command === "human-review" ? 4 : 3))
 
 if (command === "run") await run()
 else if (command === "compare") await compare()
@@ -22,6 +31,9 @@ else if (command === "corpus" && subcommand === "validate") await corpusValidate
 else if (command === "corpus" && subcommand === "architecture") await corpusArchitecture()
 else if (command === "corpus" && subcommand === "draft") await corpusDraft()
 else if (command === "corpus" && subcommand === "task-matrix") await corpusTaskMatrix()
+else if (command === "human-review" && subcommand === "prepare") await humanReviewPrepare()
+else if (command === "human-review" && subcommand === "assemble") await humanReviewAssemble()
+else if (command === "human-review" && subcommand === "analyze") await humanReviewAnalyze()
 else if (command === "doctor") doctor()
 else usage(1)
 
@@ -131,6 +143,44 @@ async function corpusTaskMatrix() {
   console.log(JSON.stringify(await validateBookTaskMatrix(required(args, "corpus"), optional(args, "sealed")), null, 2))
 }
 
+async function humanReviewPrepare() {
+  const run = (await readJson(resolve(required(args, "run")))) as RunFile
+  const manifest = parseHumanReviewManifest(await readJson(resolve(required(args, "manifest"))))
+  const packet = prepareReviewPacket(run, manifest, required(args, "reviewer"))
+  const out = resolve(required(args, "out"))
+  const { mkdir, writeFile } = await import("node:fs/promises")
+  await mkdir(out, { recursive: true })
+  await writeJson(join(out, "packet.json"), packet)
+  await writeFile(join(out, "review.html"), renderReviewHtml(packet))
+  console.log(join(out, "review.html"))
+}
+
+async function humanReviewAssemble() {
+  const primary = (await readJson(resolve(required(args, "primary")))) as RunFile
+  const supplemental = (await readJson(resolve(required(args, "supplemental")))) as RunFile
+  const manifest = parseHumanReviewManifest(await readJson(resolve(required(args, "manifest"))))
+  const assembly = assembleHumanReviewRun(primary, supplemental, manifest)
+  const out = resolve(required(args, "out"))
+  await writeJson(join(out, "run.json"), assembly.run)
+  await writeJson(join(out, "assembly.json"), assembly.receipt)
+  console.log(join(out, "run.json"))
+}
+
+async function humanReviewAnalyze() {
+  const manifest = parseHumanReviewManifest(await readJson(resolve(required(args, "manifest"))))
+  const ratingPaths = values(args, "rating")
+  if (!ratingPaths.length) throw new Error("human-review analyze requires at least one --rating")
+  const submissions = await Promise.all(ratingPaths.map(async (path) => parseReviewSubmission(await readJson(resolve(path)))))
+  const analysis = analyzeHumanReview(manifest, submissions, number(args, "bootstrap", 10_000))
+  const out = resolve(required(args, "out"))
+  const { mkdir, writeFile } = await import("node:fs/promises")
+  await mkdir(out, { recursive: true })
+  await writeJson(join(out, "quantitative.json"), analysis)
+  await writeFile(join(out, "quantitative.md"), renderHumanReviewAnalysis(analysis))
+  console.log(join(out, "quantitative.md"))
+  if (!analysis.complete) process.exitCode = 2
+}
+
 function doctor() {
   console.log(JSON.stringify({ node: process.version, protocolVersion: 1, platform: process.platform }, null, 2))
 }
@@ -184,6 +234,9 @@ function usage(code: number): never {
   corpus architecture --corpus corpora/saltglass-vigil
   corpus draft --corpus corpora/saltglass-vigil
   corpus task-matrix --corpus corpora/saltglass-vigil [--sealed path/to/sealed.jsonl]
+  human-review prepare --run results/run.json --manifest manifest.json --reviewer reviewer-code --out packet
+  human-review assemble --primary primary/run.json --supplemental public/run.json --manifest manifest.json --out composite
+  human-review analyze --manifest manifest.json --rating reviewer-1.json [--rating reviewer-2.json] --out analysis [--bootstrap 10000]
   doctor`)
   process.exit(code)
 }
