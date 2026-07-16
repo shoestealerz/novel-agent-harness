@@ -3,7 +3,15 @@ import type { WriterJob } from "./contract.ts"
 
 export const writerSelectionVersion = 1 as const
 
-export type WriterContextSelection = WriterContextSpec & {
+export type WriterContextSelection = Omit<
+  WriterContextSpec,
+  "focusRefs" | "dependencyRefs" | "preservationRefs" | "preservationLiterals" | "excludeRefs"
+> & {
+  focusRefs: string[]
+  dependencyRefs: string[]
+  preservationRefs: string[]
+  preservationLiterals: { ref: string; text: string }[]
+  excludeRefs: string[]
   rationale: string
 }
 
@@ -17,9 +25,8 @@ export const writerSelectionSystemPrompt = [
   "Use preservationLiterals only for wording the author explicitly requires verbatim; never turn motifs, voice, ideas, facts, or paraphrasable constraints into exact literals.",
   "Set throughRef whenever the request has a story-time, chapter, scene, or character-knowledge boundary; never select later passages beyond it.",
   "Do not infer throughRef from chapter order or boundary wording alone when the boundary event is absent; keep it unset and retain every passage that directly answers a requested facet.",
-  "Before finalizing, account for every inspected passage as selected or explicitly excluded, and never exclude directly responsive evidence merely because it occurs in a later chapter.",
-  "Use novel_state with the same throughRef to locate typed facts, events, relationships, and character knowledge, then select their cited manuscript evidence.",
-  "Do not use novel_proposal unless the author asks about an existing proposal.",
+  "Do not select passages merely because you inspected them. Keep unrelated or redundant passages out of every returned reference array.",
+  "Return every reference field as a JSON array of exact stable references, even when it contains zero or one item.",
 ].join(" ")
 
 export const writerSelectionSchema = {
@@ -106,31 +113,22 @@ export function parseWriterContextSelection(value: unknown): WriterContextSelect
 
 export function normalizeWriterContextSelection(value: unknown): unknown {
   const outer = value && typeof value === "object" && !Array.isArray(value) ? (value as Record<string, unknown>) : null
-  const candidate = (() => {
-    if (!outer || Object.keys(outer).length !== 1) return value
-    const key = "input" in outer ? "input" : "answer" in outer ? "answer" : "output" in outer ? "output" : undefined
-    if (!key) return value
-    const nested = outer[key]
-    if (nested && typeof nested === "object" && !Array.isArray(nested)) return nested
-    if (typeof nested !== "string") return value
-    try {
-      return JSON.parse(nested) as unknown
-    } catch {
-      return value
-    }
-  })()
+  const candidate = completeSelection(outer)
+    ? outer
+    : [outer?.input, outer?.answer, outer?.output]
+        .map((item) => {
+          if (item && typeof item === "object" && !Array.isArray(item)) return item
+          if (typeof item !== "string") return
+          try {
+            return JSON.parse(item) as unknown
+          } catch {
+            return
+          }
+        })
+        .find((item) => completeSelection(item)) ?? value
   if (!candidate || typeof candidate !== "object" || Array.isArray(candidate)) return candidate
   const input = candidate as Record<string, unknown>
-  const required = [
-    "focusRefs",
-    "dependencyRefs",
-    "preservationRefs",
-    "preservationLiterals",
-    "excludeRefs",
-    "throughRef",
-    "rationale",
-  ]
-  if (!required.every((field) => field in input)) return candidate === value ? candidate : value
+  if (!completeSelection(input)) return candidate === value ? candidate : value
   return {
     ...input,
     focusRefs: normalizeRefs(input.focusRefs),
@@ -142,6 +140,19 @@ export function normalizeWriterContextSelection(value: unknown): unknown {
         ? [input.preservationLiterals]
         : input.preservationLiterals,
   }
+}
+
+function completeSelection(value: unknown): boolean {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return false
+  return [
+    "focusRefs",
+    "dependencyRefs",
+    "preservationRefs",
+    "preservationLiterals",
+    "excludeRefs",
+    "throughRef",
+    "rationale",
+  ].every((field) => field in value)
 }
 
 function normalizeRefs(value: unknown) {

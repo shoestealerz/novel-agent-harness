@@ -23,7 +23,7 @@ test("materializes a complete, temporally bounded native manuscript and isolated
   assert.match(materialized.context?.find((item) => item.ref === "ch13:p013")?.text ?? "", /Opening the upper gates early/)
   assert.deepEqual(materialized.metadata?.nativeContext, {
     corpus: "saltglass-vigil",
-    corpusVersion: "0.2.1",
+    corpusVersion: "0.2.2",
     mode: "full",
     contextItems: materialized.context?.length,
     throughRef: "ch13:p013",

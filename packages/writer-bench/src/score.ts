@@ -1,7 +1,7 @@
 import type { Check, ComponentScore, ExecutionResponse, JudgeResponse, Task } from "./contracts.ts"
 
 export function scoreResponse(task: Task, response: ExecutionResponse, judgment?: JudgeResponse) {
-  const components = (task.checks ?? []).map((check) => scoreCheck(check, response))
+  const components = (task.checks ?? []).map((check) => scoreCheck(task, check, response))
   for (const criterion of task.criteria ?? []) {
     const score = judgment?.scores[criterion.id]
     if (typeof score !== "number") continue
@@ -22,8 +22,8 @@ export function scoreResponse(task: Task, response: ExecutionResponse, judgment?
   }
 }
 
-function scoreCheck(check: Check, response: ExecutionResponse): ComponentScore {
-  const score = checkValue(check, response)
+function scoreCheck(task: Task, check: Check, response: ExecutionResponse): ComponentScore {
+  const score = checkValue(task, check, response)
   return {
     id: check.id,
     kind: "check",
@@ -34,7 +34,7 @@ function scoreCheck(check: Check, response: ExecutionResponse): ComponentScore {
   }
 }
 
-function checkValue(check: Check, response: ExecutionResponse) {
+function checkValue(task: Task, check: Check, response: ExecutionResponse) {
   if (check.kind === "contains") return response.text.includes(check.value) ? 1 : 0
   if (check.kind === "not_contains") return response.text.includes(check.value) ? 0 : 1
   if (check.kind === "regex") return new RegExp(check.pattern, check.flags).test(response.text) ? 1 : 0
@@ -80,11 +80,17 @@ function checkValue(check: Check, response: ExecutionResponse) {
     return (required + forbidden) / 2
   }
   if (check.kind === "evidence") {
-    const actual = new Set([
+    const cited = new Set([
       ...(response.artifacts?.evidence ?? []),
       ...(response.artifacts?.findings?.flatMap((finding) => finding.evidence ?? []) ?? []),
     ])
+    const selected = selectedRefs(task, response)
+    if (check.metric === "grounding") {
+      return cited.size ? [...cited].filter((ref) => selected.has(ref)).length / cited.size : 0
+    }
+    const actual = check.metric === "context_recall" ? selected : cited
     const recall = check.required.length ? check.required.filter((ref) => actual.has(ref)).length / check.required.length : 1
+    if (check.metric === "context_recall") return recall
     if (!check.allowed) return recall
     const precision = actual.size ? [...actual].filter((ref) => check.allowed?.includes(ref)).length / actual.size : 0
     if (!check.required.length) return precision
@@ -106,6 +112,15 @@ function checkValue(check: Check, response: ExecutionResponse) {
   if (check.kind === "max_findings") return (response.artifacts?.findings?.length ?? 0) <= check.max ? 1 : 0
   const edits = response.artifacts?.edits ?? []
   return edits.length > 0 && edits.every((edit) => check.allowed.includes(edit.target)) ? 1 : 0
+}
+
+function selectedRefs(task: Task, response: ExecutionResponse) {
+  const trace = response.metadata?.contextTrace
+  if (trace && typeof trace === "object" && !Array.isArray(trace)) {
+    const refs = (trace as Record<string, unknown>).selectedRefs
+    if (Array.isArray(refs) && refs.every((ref) => typeof ref === "string")) return new Set(refs)
+  }
+  return new Set(task.context?.map((item) => item.ref) ?? [])
 }
 
 function matchesContent(content: string, pattern: { all: string[]; flags?: string }) {

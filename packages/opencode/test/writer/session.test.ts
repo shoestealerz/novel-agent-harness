@@ -16,6 +16,36 @@ const unusedSessionLayer = Layer.mock(Session.Service, {
 })
 
 describe("WriterSession", () => {
+  test("merges automatic selection without weakening author constraints", () => {
+    const merged = WriterSession.mergeSelectionConstraints(
+      {
+        focusRefs: ["ch01:p002", "ch01:p003"],
+        dependencyRefs: ["ch01:p004"],
+        preservationRefs: ["ch01:p005"],
+        preservationLiterals: [{ ref: "ch01:p005", text: "selector paraphrase" }],
+        excludeRefs: ["ch01:p006"],
+        throughRef: "ch01:p007",
+        rationale: "Selected cross-scene context.",
+      },
+      {
+        focusRefs: ["ch01:p001"],
+        preservationRefs: ["ch01:p005"],
+        preservationLiterals: [{ ref: "ch01:p005", text: "Mara waited at the locked door." }],
+        excludeRefs: ["ch01:p008"],
+        throughRef: "ch01:p009",
+      },
+    )
+
+    expect(merged.focusRefs).toEqual(["ch01:p001"])
+    expect(merged.dependencyRefs).toEqual(["ch01:p002", "ch01:p003", "ch01:p004"])
+    expect(merged.preservationRefs).toEqual(["ch01:p005"])
+    expect(merged.preservationLiterals).toEqual([
+      { ref: "ch01:p005", text: "Mara waited at the locked door." },
+    ])
+    expect(merged.excludeRefs).toEqual(["ch01:p008", "ch01:p006"])
+    expect(merged.throughRef).toBe("ch01:p009")
+  })
+
   test("prepares a least-authority task-aware OpenCode turn", async () => {
     await using tmp = await writerWorkspace()
     const turn = await WriterSession.prepare({
@@ -346,6 +376,8 @@ describe("WriterSession", () => {
         sessionID,
         root: tmp.path,
         request: "Explain what the bell means for Mara",
+        autoContext: true,
+        contextSpec: { focusRefs: ["ch01:p001"], preservationRefs: ["ch01:p002"] },
       }).pipe(Effect.provide(Layer.merge(layer, sessionLayer))),
     )
 

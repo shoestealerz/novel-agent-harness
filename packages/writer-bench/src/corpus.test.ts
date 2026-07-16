@@ -107,7 +107,7 @@ test("validates the complete Saltglass Vigil canonical manuscript", async () => 
   const result = await validateCorpus("corpora/saltglass-vigil")
   assert.equal(result.corpus, "saltglass-vigil")
   assert.equal(result.status, "canonical-prose")
-  assert.equal(result.version, "0.2.1")
+  assert.equal(result.version, "0.2.2")
   assert.equal(result.chapters, 14)
   assert.equal(result.wordCount, 36122)
   assert.equal(result.passages, 252)

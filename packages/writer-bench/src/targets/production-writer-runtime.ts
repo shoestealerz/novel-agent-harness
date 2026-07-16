@@ -87,8 +87,18 @@ export async function writeProductionWorkspace(root: string, task: ExecutionTask
 export function buildWriterArguments(task: ExecutionTask, root: string, model: string) {
   validateTask(task)
   const args = ["writer", "run", task.prompt, "--dir", root, "--job", task.job, "--model", model, "--format", "json"]
-  if (task.contextSelection === "automatic") return args
   const contextSpec = task.contextSpec
+  if (task.contextSelection === "automatic") {
+    args.push("--auto-context")
+    appendMany(args, "--focus", contextSpec?.focusRefs)
+    appendMany(args, "--preserve", contextSpec?.preservationRefs)
+    appendMany(
+      args,
+      "--preserve-literal",
+      contextSpec?.preservationLiterals?.map((item) => `${item.ref}=${item.text}`),
+    )
+    return args
+  }
   if (!contextSpec) return args
   appendMany(args, "--focus", contextSpec.focusRefs)
   appendMany(args, "--preserve", contextSpec.preservationRefs)
@@ -150,7 +160,7 @@ export function productionWriterCommand() {
   return parsed
 }
 
-async function invoke(command: string[], args: string[], timeoutMs = 240_000, env = process.env) {
+async function invoke(command: string[], args: string[], timeoutMs = 540_000, env = process.env) {
   const executable = command[0]
   if (!executable) throw new Error("production Writer command is empty")
   const child = spawn(executable, [...command.slice(1), ...args], {

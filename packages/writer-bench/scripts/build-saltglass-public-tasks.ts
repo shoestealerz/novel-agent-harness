@@ -5,7 +5,7 @@ import { writeJsonl } from "../src/io.ts"
 
 const root = resolve("corpora/saltglass-vigil")
 const suite = "writer-harness-book-scale-alpha3"
-const suiteVersion = "0.3.1"
+const suiteVersion = "0.3.2"
 const source = "native:saltglass-vigil"
 
 type Coverage = "long-range" | "temporal" | "distractor" | "ambiguous" | "human-review" | "controlled-context"

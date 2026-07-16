@@ -120,6 +120,11 @@ export const WriterRunCommand = effectCmd({
       .option("model", { alias: "m", type: "string", describe: "model as provider/model" })
       .option("variant", { type: "string", describe: "provider-specific model variant" })
       .option("session", { type: "string", describe: "resume a prior headless Writer session" })
+      .option("auto-context", {
+        type: "boolean",
+        default: false,
+        describe: "automatically add dependencies while preserving explicit focus and preservation constraints",
+      })
       .option("focus", { type: "string", array: true, describe: "stable focus passage reference" })
       .option("dependency", { type: "string", array: true, describe: "stable dependency passage reference" })
       .option("preserve", { type: "string", array: true, describe: "stable passage reference to preserve" })
@@ -174,6 +179,7 @@ export const WriterRunCommand = effectCmd({
       request,
       job: args.job as WriterJob | undefined,
       ...(contextSpec ? { contextSpec } : {}),
+      ...(args["auto-context"] ? { autoContext: true } : {}),
       ...(parsed ? { model: parsed } : {}),
       ...(args.variant ? { variant: args.variant } : {}),
       onProgress: (event) => console.error(writerProgressLine(session.id, event)),

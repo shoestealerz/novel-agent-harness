@@ -37,6 +37,7 @@ export type Input = {
   job?: WriterJob
   context?: WriterContextItem[]
   contextSpec?: WriterContextSpec
+  autoContext?: boolean
   contextStrategy?: ContextStrategy
   model?: { providerID: ProviderV2.ID; modelID: ModelV2.ID }
   variant?: string
@@ -164,6 +165,45 @@ export function selectionPromptInput(
   }
 }
 
+export function mergeSelectionConstraints(
+  selection: WriterContextSelection,
+  constraints?: WriterContextSpec,
+): WriterContextSelection {
+  if (!constraints) return selection
+  const declaredFocus = new Set(constraints.focusRefs)
+  const declaredPreservation = new Set(constraints.preservationRefs ?? [])
+  const focusRefs = constraints.focusRefs.length
+    ? [...constraints.focusRefs]
+    : selection.focusRefs.filter((ref) => !declaredPreservation.has(ref))
+  const preservationRefs = unique([
+    ...(constraints.preservationRefs ?? []),
+    ...selection.preservationRefs.filter((ref) => !declaredFocus.has(ref)),
+  ])
+  const selectedFocusDependencies = constraints.focusRefs.length
+    ? selection.focusRefs.filter((ref) => !declaredFocus.has(ref) && !declaredPreservation.has(ref))
+    : []
+  const occupied = new Set([...focusRefs, ...preservationRefs])
+  const dependencyRefs = unique([
+    ...(constraints.dependencyRefs ?? []),
+    ...selectedFocusDependencies,
+    ...selection.dependencyRefs,
+  ]).filter((ref) => !occupied.has(ref))
+  const declaredLiteralRefs = new Set(constraints.preservationLiterals?.map((item) => item.ref) ?? [])
+  const preservationLiterals = [
+    ...selection.preservationLiterals.filter((item) => !declaredLiteralRefs.has(item.ref)),
+    ...(constraints.preservationLiterals ?? []),
+  ]
+  return {
+    ...selection,
+    focusRefs,
+    dependencyRefs,
+    preservationRefs,
+    preservationLiterals,
+    excludeRefs: unique([...(constraints.excludeRefs ?? []), ...selection.excludeRefs]),
+    throughRef: constraints.throughRef ?? selection.throughRef,
+  }
+}
+
 export function structuredRetryInput<
   T extends ReturnType<typeof promptInput> | ReturnType<typeof selectionPromptInput>,
 >(input: T): T {
@@ -208,7 +248,7 @@ export async function finalize(root: string, turn: PreparedTurn, value: unknown)
 export const run = Effect.fn("WriterSession.run")(function* (input: Input) {
   const session = yield* SessionPrompt.Service
   const admission =
-    input.context?.length || input.contextSpec
+    input.context?.length || (input.contextSpec && !input.autoContext)
       ? {
           input,
           selection: undefined,
@@ -251,7 +291,7 @@ export const run = Effect.fn("WriterSession.run")(function* (input: Input) {
           const selectionValue = info.structured
           const admit = (value: unknown) =>
             attempt(async () => {
-              const selection = parseWriterContextSelection(value)
+              const selection = mergeSelectionConstraints(parseWriterContextSelection(value), input.contextSpec)
               const contextSpec: WriterContextSpec = {
                 focusRefs: selection.focusRefs,
                 dependencyRefs: selection.dependencyRefs,
@@ -368,6 +408,10 @@ function addUsage(
     outputTokens: left.outputTokens + right.outputTokens,
     costUsd: left.costUsd + right.costUsd,
   }
+}
+
+function unique(values: string[]) {
+  return [...new Set(values)]
 }
 
 function repairableSelectionError(error: Error) {

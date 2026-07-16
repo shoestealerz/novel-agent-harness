@@ -34,6 +34,13 @@ test("pins comparable raw, stock, and production DeepSeek targets", async () => 
   assert.match(launcher, /"--concurrency", 3/)
 })
 
+test("pins a longer timeout for full book-scale selection", async () => {
+  const path = fileURLToPath(new URL("../experiments/book-scale-alpha3/targets.deepseek.json", import.meta.url))
+  const targets = parseTargetFile(JSON.parse(await readFile(path, "utf8")))
+  assert.equal(new Set(targets.systems.map((target) => target.comparisonKey)).size, 1)
+  assert.ok(targets.systems.every((target) => target.timeoutMs === 600_000))
+})
+
 test("executes the shipped Writer command protocol against an isolated manuscript workspace", async () => {
   const fixture = fileURLToPath(new URL("./targets/production-writer-fixture.ts", import.meta.url))
   const response = await executeProductionWriter(task, {
@@ -104,25 +111,17 @@ test("delegates unspecified context to the production Writer selector", () => {
   ])
 })
 
-test("delegates materialized native manuscripts to automatic Writer selection without gold hints", () => {
+test("delegates materialized native manuscripts to automatic selection with author constraints but no gold dependencies", () => {
   const args = buildWriterArguments(
     { ...task, contextSelection: "automatic" },
     "/novel",
     "provider/model",
   )
-  assert.deepEqual(args, [
-    "writer",
-    "run",
-    task.prompt,
-    "--dir",
-    "/novel",
-    "--job",
-    "explain",
-    "--model",
-    "provider/model",
-    "--format",
-    "json",
-  ])
+  assert.ok(args.includes("--auto-context"))
+  assert.ok(args.includes("--focus"))
+  assert.ok(args.includes("ch01:p001"))
+  assert.equal(args.includes("--dependency"), false)
+  assert.equal(args.includes("--through"), false)
 })
 
 test("rejects jobs and context that the production MVP does not support", async () => {

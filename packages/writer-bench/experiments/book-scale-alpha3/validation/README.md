@@ -13,6 +13,16 @@ The validation split is run one trial at a time against the production Writer ta
 
 The adapter now marks materialized native manuscripts for automatic selection and withholds gold context hints from the Writer CLI. The task generator includes every required preservation passage in its grounding allowlist. Because this corrects invalid validation tasks, the corpus manifest moves from 0.2.0 to 0.2.1, the suite moves from 0.3.0 to 0.3.1, and the sealed receipt is regenerated before any sealed task is executed.
 
+## Attempt 2 decision
+
+`A3-VAL-002` completed 30 of 36 public validation tasks but also cannot support a candidate freeze.
+
+- Four cells exceeded the production adapter's internal four-minute timeout. Two more failed because the non-strict selector returned malformed array or preservation fields. These are execution failures, not benchmark misses.
+- The scorer mixed required-evidence recall with a minimal-gold precision penalty. It also treated the small required-evidence set as an exhaustive grounding allowlist, so a detailed answer citing other passages from its admitted packet could be marked unsafe.
+- The selector prompt simultaneously encouraged accounting for inspected passages while forbidding explicit exclusions, causing avoidable over-selection.
+
+The runtime timeout is now nine minutes beneath a ten-minute cell limit. Selector output is normalized more defensively, author-declared focus and exact preservation constraints remain authoritative during automatic selection, and the prompt asks for a minimal relevant packet. Context recall is now pure required-reference recall over the selector trace; grounding checks citations against the actual admitted packet. These benchmark-semantic corrections move the corpus manifest from 0.2.1 to 0.2.2 and the suite from 0.3.1 to 0.3.2. Attempt 2's reported recall and grounding remain in the ledger but must not be compared with corrected runs.
+
 ## Reproduction contract
 
 - Candidate source is launched directly from the recorded Git commit.
