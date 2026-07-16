@@ -24,6 +24,7 @@
   ],
   "gold": [],
   "tasks": [],
+  "variants": ["variants/defects.jsonl"],
   "minimumWords": 36000,
   "maximumWords": 44000,
   "minimumPassages": 252,

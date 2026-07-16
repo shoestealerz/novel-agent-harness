@@ -14,6 +14,7 @@ type CorpusManifest = {
   manuscript: string[]
   gold: string[]
   tasks: string[]
+  variants: string[]
   minimumWords: number
   maximumWords?: number
   minimumPassages?: number
@@ -75,6 +76,42 @@ export async function validateCorpus(path: string) {
       goldIds.add(id)
       passageRefs(record).forEach((ref) => requirePassage(passages, ref, `${relative}:${id}`))
       goldRecords++
+    }
+  }
+
+  const variantIds = new Set<string>()
+  const variantCategories = new Map<string, number>()
+  for (const relative of manifest.variants) {
+    for (const value of await readJsonl(resolve(root, relative))) {
+      const record = requireObject(value, `${relative} record`)
+      const id = requireString(record.id, `${relative}.id`)
+      if (variantIds.has(id)) throw new Error(`duplicate variant id: ${id}`)
+      variantIds.add(id)
+      const category = requireString(record.category, `${relative}:${id}.category`)
+      if (!["factual", "temporal", "spatial", "causal", "emotional", "knowledge", "voice"].includes(category)) {
+        throw new Error(`${relative}:${id} has unknown variant category ${category}`)
+      }
+      variantCategories.set(category, (variantCategories.get(category) ?? 0) + 1)
+      const sourceRef = requireString(record.sourceRef, `${relative}:${id}.sourceRef`)
+      requirePassage(passages, sourceRef, `${relative}:${id}`)
+      const source = passageText.get(sourceRef)!
+      const sourceSha256 = requireString(record.sourceSha256, `${relative}:${id}.sourceSha256`)
+      if (!/^[0-9a-f]{64}$/.test(sourceSha256)) {
+        throw new Error(`${relative}:${id}.sourceSha256 must be a lowercase SHA-256 digest`)
+      }
+      const actualHash = createHash("sha256").update(source.replaceAll("\r\n", "\n")).digest("hex")
+      if (sourceSha256 !== actualHash) throw new Error(`${relative}:${id} has a stale source hash for ${sourceRef}`)
+      const operation = requireObject(record.operation, `${relative}:${id}.operation`)
+      const match = requireString(operation.match, `${relative}:${id}.operation.match`)
+      const replacement = requireString(operation.replacement, `${relative}:${id}.operation.replacement`)
+      requireString(record.description, `${relative}:${id}.description`)
+      if (requireString(record.expectedDisposition, `${relative}:${id}.expectedDisposition`) !== "flag") {
+        throw new Error(`${relative}:${id}.expectedDisposition must be flag`)
+      }
+      if (match === replacement) throw new Error(`${relative}:${id} replacement must change the source`)
+      if (source.split(match).length - 1 !== 1) {
+        throw new Error(`${relative}:${id} match must occur exactly once in ${sourceRef}`)
+      }
     }
   }
 
@@ -151,6 +188,8 @@ export async function validateCorpus(path: string) {
     chapters: manifest.manuscript.length,
     passages: passages.size,
     goldRecords,
+    variants: variantIds.size,
+    variantCategories: Object.fromEntries(variantCategories),
     tasks: tasks.length,
     jobs: Object.fromEntries(
       [...new Set(tasks.map((task) => task.job))].map((job) => [job, tasks.filter((task) => task.job === job).length]),
@@ -342,6 +381,7 @@ function parseManifest(value: unknown): CorpusManifest {
     manuscript: requireStringArray(input.manuscript, "corpus.manuscript"),
     gold: requireStringArray(input.gold, "corpus.gold"),
     tasks: requireStringArray(input.tasks, "corpus.tasks"),
+    variants: input.variants === undefined ? [] : requireStringArray(input.variants, "corpus.variants"),
     minimumWords: input.minimumWords,
     maximumWords: optionalPositiveInteger(input.maximumWords, "corpus.maximumWords"),
     minimumPassages: optionalPositiveInteger(input.minimumPassages, "corpus.minimumPassages"),
