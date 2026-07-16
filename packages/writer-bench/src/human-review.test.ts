@@ -8,6 +8,7 @@ import { promisify } from "node:util"
 import type { RunFile, RunRecord, Task } from "./contracts.ts"
 import {
   analyzeHumanReview,
+  assembleHumanReviewRun,
   parseHumanReviewManifest,
   parseReviewSubmission,
   prepareReviewPacket,
@@ -155,17 +156,44 @@ test("excludes ineligible submissions and reports the reason", () => {
   assert.equal(analysis.totalRatings, 1)
 })
 
+test("assembles frozen sealed and supplemental outputs without outcome selection", () => {
+  const supplemental = structuredClone(run)
+  supplemental.runId = "supplemental"
+  supplemental.trials = 1
+  supplemental.records[1]!.response!.text = "Supplemental writer answer"
+  const sealed = assembleHumanReviewRun(run, supplemental, manifest)
+  assert.equal(sealed.run.records.length, 2)
+  assert.equal(sealed.run.records.find((record) => record.targetId === "production-writer")?.response?.text, "production-writer answer")
+  assert.equal(sealed.receipt.primaryRunId, "run")
+  assert.equal(sealed.receipt.supplementalRunId, "supplemental")
+
+  const developmentManifest = structuredClone(manifest)
+  developmentManifest.tasks[0]!.split = "development"
+  const development = assembleHumanReviewRun(run, supplemental, developmentManifest)
+  assert.equal(development.run.records.find((record) => record.targetId === "production-writer")?.response?.text, "Supplemental writer answer")
+
+  const mismatch = structuredClone(supplemental)
+  mismatch.targets[0]!.comparisonKey = "different"
+  assert.throws(() => assembleHumanReviewRun(run, mismatch, manifest), /source target mismatch/)
+})
+
 test("runs the offline prepare and quantitative-analysis CLI end to end", async () => {
   const root = await mkdtemp(join(tmpdir(), "writer-bench-human-review-"))
   try {
     const runPath = join(root, "run.json")
     const manifestPath = join(root, "manifest.json")
+    const supplementalPath = join(root, "supplemental.json")
+    const assemblyOut = join(root, "assembly")
     const packetOut = join(root, "packet")
     const analysisOut = join(root, "analysis")
     await writeFile(runPath, JSON.stringify(run))
     await writeFile(manifestPath, JSON.stringify(manifest))
+    await writeFile(supplementalPath, JSON.stringify({ ...run, runId: "supplemental" }))
     const cli = resolve("src/cli.ts")
-    await execute(process.execPath, [cli, "human-review", "prepare", "--run", runPath, "--manifest", manifestPath, "--reviewer", "reviewer-cli", "--out", packetOut])
+    await execute(process.execPath, [cli, "human-review", "assemble", "--primary", runPath, "--supplemental", supplementalPath, "--manifest", manifestPath, "--out", assemblyOut])
+    const receipt = JSON.parse(await readFile(join(assemblyOut, "assembly.json"), "utf8")) as { records: number }
+    assert.equal(receipt.records, 2)
+    await execute(process.execPath, [cli, "human-review", "prepare", "--run", join(assemblyOut, "run.json"), "--manifest", manifestPath, "--reviewer", "reviewer-cli", "--out", packetOut])
     const packet = JSON.parse(await readFile(join(packetOut, "packet.json"), "utf8")) as { pairs: unknown[] }
     assert.equal(packet.pairs.length, 1)
     assert.match(await readFile(join(packetOut, "review.html"), "utf8"), /Blinded fiction review/)

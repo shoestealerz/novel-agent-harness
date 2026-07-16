@@ -13,9 +13,10 @@ The private manifest receipt is
 It selects trial zero for 96 comparisons across 48 Plan and Revise tasks. Each
 pair compares Production Writer independently with raw model or stock OpenCode.
 The separate `human-review-run.freeze.json` pins the required 144-cell
-full-context output track. After the accepted primary run, 63 sealed trial-zero
-cells are reused and 81 development/validation cells are executed; review
-outputs are never selected by score or preference.
+full-context output track. After the accepted primary run, 81
+development/validation cells are executed in a separate one-trial run and
+deterministically assembled with 63 sealed trial-zero cells from primary;
+review outputs are never selected by score or preference.
 
 ## Rating instrument
 
@@ -56,11 +57,23 @@ substantively edits fiction, did not author either output, and consents to
 de-identified publication. Use pseudonymous reviewer codes; do not put names or
 email addresses in packets or submissions.
 
-After the authoritative run succeeds, generate one offline packet per reviewer:
+After the authoritative primary and supplemental review runs succeed, assemble
+the frozen sources without reading response content:
+
+```powershell
+bun src/cli.ts human-review assemble `
+  --primary <accepted-primary-run.json> `
+  --supplemental <public-split-review-run.json> `
+  --manifest <private-manifest.json> `
+  --out <private-composite-directory>
+```
+
+Verify and freeze `assembly.json`, then generate one offline packet per
+reviewer from the composite `run.json`:
 
 ```powershell
 bun src/cli.ts human-review prepare `
-  --run <authoritative-run.json> `
+  --run <private-composite-directory/run.json> `
   --manifest <private-manifest.json> `
   --reviewer <pseudonymous-code> `
   --out <private-packet-directory>

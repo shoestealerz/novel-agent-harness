@@ -85,6 +85,7 @@ export type ReviewSubmission = {
 }
 
 export type HumanReviewAnalysis = ReturnType<typeof analyzeHumanReview>
+export type HumanReviewAssembly = ReturnType<typeof assembleHumanReviewRun>
 
 export function parseHumanReviewManifest(value: unknown): HumanReviewManifest {
   const input = object(value, "human-review manifest")
@@ -198,6 +199,69 @@ export function prepareReviewPacket(run: RunFile, manifest: HumanReviewManifest,
       "Optional rationales are hidden from quantitative analysis until that aggregate is frozen.",
     ],
     pairs,
+  }
+}
+
+export function assembleHumanReviewRun(primary: RunFile, supplemental: RunFile, manifest: HumanReviewManifest) {
+  const trial = manifest.outputSelection.trial
+  if (trial >= primary.trials) throw new Error("primary run does not contain the frozen human-review trial")
+  if (supplemental.trials !== 1 || trial !== 0) {
+    throw new Error("supplemental human-review execution must contain only frozen trial zero")
+  }
+  const targets = unique(manifest.comparisons.flatMap((pair) => [pair.leftTargetId, pair.rightTargetId]))
+  for (const targetId of targets) {
+    const left = primary.targets.find((target) => target.id === targetId)
+    const right = supplemental.targets.find((target) => target.id === targetId)
+    if (!left || !right || left.baseModel !== right.baseModel || left.comparisonKey !== right.comparisonKey || JSON.stringify(left.command) !== JSON.stringify(right.command)) {
+      throw new Error(`human-review source target mismatch: ${targetId}`)
+    }
+  }
+  const primaryRecords = new Map(primary.records.map((record) => [recordKey(record.targetId, record.task.id, record.trial), record]))
+  const supplementalRecords = new Map(supplemental.records.map((record) => [recordKey(record.targetId, record.task.id, record.trial), record]))
+  const taskOrder = new Map(manifest.tasks.map((task, index) => [task.id, index]))
+  const targetOrder = new Map(targets.map((target, index) => [target, index]))
+  const records = unique(manifest.comparisons.flatMap((pair) => [
+    `${pair.leftTargetId}\u0000${pair.taskId}`,
+    `${pair.rightTargetId}\u0000${pair.taskId}`,
+  ])).map((key) => {
+    const [targetId, taskId] = key.split("\u0000") as [string, string]
+    const metadata = manifest.tasks.find((task) => task.id === taskId)
+    if (!metadata) throw new Error(`human-review assembly task is missing: ${taskId}`)
+    const source = metadata.split === "sealed" ? primaryRecords : supplementalRecords
+    return requiredRecord(source, targetId, taskId, trial)
+  }).sort((left, right) =>
+    (targetOrder.get(left.targetId) ?? Number.MAX_SAFE_INTEGER) - (targetOrder.get(right.targetId) ?? Number.MAX_SAFE_INTEGER)
+    || (taskOrder.get(left.task.id) ?? Number.MAX_SAFE_INTEGER) - (taskOrder.get(right.task.id) ?? Number.MAX_SAFE_INTEGER)
+  ).map((record) => ({ ...record, trial: 0 }))
+  const expectedRecords = new Set(manifest.comparisons.flatMap((pair) => [
+    `${pair.leftTargetId}\u0000${pair.taskId}`,
+    `${pair.rightTargetId}\u0000${pair.taskId}`,
+  ])).size
+  if (records.length !== expectedRecords) throw new Error("human-review assembly record count mismatch")
+  const digest = createHash("sha256").update(JSON.stringify(records)).digest("hex")
+  const run: RunFile = {
+    formatVersion: 1,
+    runId: `human-review-${digest.slice(0, 16)}`,
+    createdAt: [primary.createdAt, supplemental.createdAt].sort().at(-1)!,
+    suiteFiles: ["human-review-composite.jsonl"],
+    targets: targets.map((targetId) => primary.targets.find((target) => target.id === targetId)!),
+    trials: 1,
+    concurrency: supplemental.concurrency,
+    records,
+  }
+  return {
+    run,
+    receipt: {
+      formatVersion: 1 as const,
+      study: manifest.study,
+      primaryRunId: primary.runId,
+      supplementalRunId: supplemental.runId,
+      trial,
+      tasks: new Set(records.map((record) => record.task.id)).size,
+      records: records.length,
+      recordsSha256: digest,
+      rule: "sealed outputs come from the accepted primary run; development and validation outputs come from the frozen one-trial supplemental run; no output is selected by score or content",
+    },
   }
 }
 

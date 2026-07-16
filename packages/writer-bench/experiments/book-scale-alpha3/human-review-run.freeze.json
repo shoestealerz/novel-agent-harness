@@ -28,8 +28,8 @@
     "jobs": { "plan": 24, "revise": 24 },
     "splits": { "development": 16, "validation": 11, "sealed": 21 }
   },
-  "resumeAfterPrimary": {
-    "rule": "Resume from the accepted primary full-context run. Reuse trial-zero outputs for the 21 sealed review tasks across all three targets; execute the 27 development and validation tasks across all three targets.",
+  "assemblyAfterPrimary": {
+    "rule": "Execute the 27 development and validation tasks as a separate one-trial full-context run across all three targets. Deterministically assemble those records with trial-zero outputs for the 21 sealed review tasks from the accepted primary run. Do not alter or select responses by score or content.",
     "reusedCells": 63,
     "newProviderCalls": 81
   },
@@ -42,6 +42,5 @@
     "forcedPreference": ["left", "tie", "right"],
     "analysis": "quantitative first; deterministic 10000-draw task-clustered bootstrap by named baseline; rationales inspected only after the quantitative aggregate and its hash are frozen"
   },
-  "executionRule": "Generate the review track only after the primary run is accepted. Preserve every failed cell. Do not replace outputs, select a different trial, alter the packet, or inspect rationales before the quantitative freeze. A failed automated safety gate blocks creative-quality improvement claims regardless of human preference."
+  "executionRule": "Generate the supplemental review outputs only after the primary run is accepted. Preserve every failed cell. Assemble only the frozen trial-zero records from the named sources. Do not replace outputs, select by outcome, alter the packet, or inspect rationales before the quantitative freeze. A failed automated safety gate blocks creative-quality improvement claims regardless of human preference."
 }
-
