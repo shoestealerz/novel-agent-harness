@@ -1,0 +1,21 @@
+{"id":"entity:neris","kind":"character","name":"Neris Aul","aliases":["Neris","Surveyor Aul"],"evidence":["ch01:p001","ch01:p002"]}
+{"id":"entity:tovan","kind":"character","name":"Tovan Rusk","aliases":["Tovan","Merrin"],"evidence":["ch02:p001","ch08:p007"]}
+{"id":"entity:orra","kind":"character","name":"Orra Pell","aliases":["Orra","Director Pell","the director"],"evidence":["ch01:p008","ch01:p009"]}
+{"id":"entity:cael","kind":"character","name":"Cael Rusk","aliases":["Cael","Tovan's sibling"],"evidence":["ch02:p002","ch02:p003"]}
+{"id":"entity:yara","kind":"character","name":"Yara Aul","aliases":["Yara","Neris's aunt"],"evidence":["ch02:p002","ch04:p001"]}
+{"id":"entity:janek","kind":"character","name":"Janek Voss","aliases":["Janek","chief bellkeeper"],"evidence":["ch02:p006","ch03:p010"]}
+{"id":"entity:sera","kind":"character","name":"Sera Nymm","aliases":["Sera","Engineer Nymm"],"evidence":["ch01:p001","ch05:p001"]}
+{"id":"entity:pel","kind":"character","name":"Pel Anik","aliases":["Pel","the runner","apprentice bellkeeper"],"evidence":["ch01:p004","ch05:p014"]}
+{"id":"entity:issa","kind":"character","name":"Issa Dar","aliases":["Issa","the comptroller"],"evidence":["ch01:p017","ch03:p002"]}
+{"id":"entity:silt-archive","kind":"location","name":"Silt Archive","aliases":["the Archive","Archive hill"],"evidence":["ch01:p007","ch02:p004"]}
+{"id":"entity:lower-wards","kind":"location","name":"Lower Wards","aliases":["lower wards","lower districts"],"evidence":["ch01:p006","ch02:p005"]}
+{"id":"entity:seaward-lock","kind":"location","name":"Seaward Lock","aliases":["the lock","seaward gate"],"evidence":["ch05:p001","ch13:p006"]}
+{"id":"entity:bellhouse","kind":"location","name":"Nine Bellhouse","aliases":["the Bellhouse","the tower"],"evidence":["ch01:p014","ch02:p006"]}
+{"id":"entity:lantern-market","kind":"location","name":"Lantern Market","aliases":["the market","market court"],"evidence":["ch02:p001","ch10:p001"]}
+{"id":"entity:north-ferry","kind":"location","name":"North Ferry Steps","aliases":["North Ferry","the ferry steps"],"evidence":["ch04:p001","ch08:p001"]}
+{"id":"entity:saltglass-lens","kind":"artifact","name":"Cracked saltglass survey lens","aliases":["the lens","survey lens"],"evidence":["ch01:p002","ch05:p003"]}
+{"id":"entity:red-ledger","kind":"artifact","name":"Red pressure ledger","aliases":["the red ledger","pressure ledger"],"evidence":["ch01:p012","ch03:p004"]}
+{"id":"entity:bell-key","kind":"artifact","name":"Retired master bell-key","aliases":["master key","retired key","master pattern"],"evidence":["ch06:p014","ch06:p015"]}
+{"id":"entity:ferry-token","kind":"artifact","name":"Blue ceramic ferry token","aliases":["the token","ferry token"],"evidence":["ch02:p018","ch08:p004"]}
+{"id":"entity:iron-vial","kind":"artifact","name":"Medicine vial of iron filings","aliases":["the vial","medicine vial","seam sample"],"evidence":["ch05:p005","ch11:p002"]}
+{"id":"entity:knot-cord","kind":"artifact","name":"Pel's knotted message cord","aliases":["knot cord","message cord","knots"],"evidence":["ch06:p003","ch06:p005"]}

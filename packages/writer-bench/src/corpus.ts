@@ -67,8 +67,10 @@ export async function validateCorpus(path: string) {
   }
 
   const goldIds = new Set<string>()
+  const goldFiles = new Map<string, number>()
   let goldRecords = 0
   for (const relative of manifest.gold) {
+    let fileRecords = 0
     for (const value of await readJsonl(resolve(root, relative))) {
       const record = requireObject(value, `${relative} record`)
       const id = requireString(record.id, `${relative}.id`)
@@ -76,7 +78,9 @@ export async function validateCorpus(path: string) {
       goldIds.add(id)
       passageRefs(record).forEach((ref) => requirePassage(passages, ref, `${relative}:${id}`))
       goldRecords++
+      fileRecords++
     }
+    goldFiles.set(relative, fileRecords)
   }
 
   const variantIds = new Set<string>()
@@ -188,6 +192,7 @@ export async function validateCorpus(path: string) {
     chapters: manifest.manuscript.length,
     passages: passages.size,
     goldRecords,
+    goldFiles: Object.fromEntries(goldFiles),
     variants: variantIds.size,
     variantCategories: Object.fromEntries(variantCategories),
     tasks: tasks.length,

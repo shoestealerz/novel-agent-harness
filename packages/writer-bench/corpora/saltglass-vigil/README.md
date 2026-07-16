@@ -56,3 +56,7 @@ bun run corpus:validate:book
 ## Isolated defect patches
 
 `variants/defects.jsonl` registers two defects in each preregistered category without modifying or duplicating the canonical manuscript. Each record names one stable passage, pins its canonical LF-normalized SHA-256 digest, and defines a single exact-match replacement. Validation rejects a patch when its source passage has changed, its match is absent or ambiguous, or its category and review disposition are invalid. Evaluation tooling must apply at most the task-named patch to an ephemeral manuscript copy and must never expose the patch record or frozen architecture to the target.
+
+## Hidden gold foundation
+
+The `gold` directory contains 113 evidence-linked records: 21 entities, eight world rules, 25 facts, 20 ordered events, 19 asymmetric-knowledge states, and 20 author-intent constraints. Together they cover the recurring cast and setting, causal and temporal spine, viewpoint knowledge boundaries, all twelve intentional ambiguities, both POV voices, the distributed resolution, and disclosure limits. These records support task construction and scoring only; evaluated targets may receive cited manuscript passages but never the gold files themselves.
