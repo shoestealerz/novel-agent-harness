@@ -1,0 +1,736 @@
+{
+  "id": "saltglass-vigil",
+  "version": "0.1.0",
+  "title": "Saltglass Vigil",
+  "status": "architecture-frozen",
+  "language": "en",
+  "license": "CC0-1.0",
+  "provenance": "Wholly synthetic story architecture created for Novel Agent Harness book-scale evaluation. It contains no user manuscript or copied novel text.",
+  "premise": "During an eight-day storm vigil in the lock-city of Veyru, a precise junior surveyor and a disgraced bell courier uncover different halves of a suppressed structural failure. To keep the seaward lock from killing the lower wards, they must distinguish sabotage from desperate truth-telling, expose an institution without destroying public trust, and coordinate a repair that neither can understand alone.",
+  "target": {
+    "words": [36000, 44000],
+    "chapters": [14, 14],
+    "minimumPassages": 252,
+    "storyDays": 8,
+    "chapterWords": [2500, 3300],
+    "chapterPassages": [18, 22]
+  },
+  "povs": [
+    {
+      "id": "neris",
+      "name": "Neris Aul",
+      "person": "close-third",
+      "voice": "Measured, spatially exact, and syntactically complete. Notices load, distance, alignment, temperature, and the cost of uncertainty before faces.",
+      "constraints": [
+        "Use cartographic or mechanical comparisons only when Neris would know the underlying mechanism.",
+        "Render fear through checking, counting, jaw tension, or recalibration until chapter 11.",
+        "Avoid casual slang, rhetorical questions, and unexplained certainty.",
+        "Her later voice may admit uncertainty but must not become lyrical or impulsive."
+      ]
+    },
+    {
+      "id": "tovan",
+      "name": "Tovan Rusk",
+      "person": "close-third",
+      "voice": "Oral, people-first, and rhythmically uneven. Notices voices, bargains, silences, and exits; uses dry humor to test whether a room is safe.",
+      "constraints": [
+        "Mix short declarative lines with longer accumulative sentences and occasional rhetorical questions.",
+        "Use bell, song, crowd, or debt comparisons more often than visual geometry.",
+        "Tideworker cant may appear in dialogue or thought, but never as decorative dialect spelling.",
+        "Tovan must misuse or paraphrase technical map language unless quoting Neris."
+      ]
+    }
+  ],
+  "characters": [
+    {
+      "id": "neris",
+      "name": "Neris Aul",
+      "role": "junior lock surveyor and POV",
+      "desire": "Prove that exact records can protect people without requiring political judgment.",
+      "fear": "That uncertainty makes her as unreliable as her vanished father.",
+      "secret": "She altered a harmless calibration total as a student to protect Orra from an audit.",
+      "arc": "Learns that honest uncertainty and accountable choice are more trustworthy than immaculate-looking records."
+    },
+    {
+      "id": "tovan",
+      "name": "Tovan Rusk",
+      "role": "disgraced bell courier and POV",
+      "desire": "Keep his younger sibling Cael alive without owing any institution obedience.",
+      "fear": "That truth is merely another lever powerful people use on the exposed.",
+      "secret": "He still possesses a retired master bell-key and answers to the old courier alias Merrin.",
+      "arc": "Moves from protective concealment to consent-based disclosure and shared responsibility."
+    },
+    {
+      "id": "orra",
+      "name": "Orra Pell",
+      "role": "director of the Silt Archive and Neris's mentor",
+      "desire": "Preserve the lock service long enough to repair it without a lethal panic.",
+      "fear": "Public knowledge arriving before public coordination.",
+      "secret": "She suppressed two pressure deviations and plans an unannounced partial evacuation.",
+      "arc": "Accepts external scrutiny after her paternal secrecy becomes part of the danger."
+    },
+    {
+      "id": "cael",
+      "name": "Cael Rusk",
+      "role": "glass polisher and member of the Low Choir",
+      "desire": "Force the council to acknowledge lower-ward risk before the Vigil.",
+      "fear": "That gradual reform is a polite name for preventable deaths.",
+      "secret": "They copied, but did not steal, the red pressure ledger and staged the archive break-in.",
+      "arc": "Learns to separate urgency from unilateral control while retaining justified anger."
+    },
+    {
+      "id": "yara",
+      "name": "Yara Aul",
+      "role": "Neris's aunt, lower-ward brine physician, and former courier",
+      "desire": "Keep the clinic functioning through the Vigil.",
+      "fear": "Losing Neris to the same institutional loyalty that consumed Neris's father.",
+      "secret": "She knows Tovan's old alias and the true circumstances of Hal Aul's disappearance.",
+      "arc": "Stops rationing family history as if truth were medicine."
+    },
+    {
+      "id": "janek",
+      "name": "Janek Voss",
+      "role": "chief bellkeeper",
+      "desire": "Complete his last Vigil without the city hearing his injured hand fail.",
+      "fear": "Being replaced before he can train Pel in the emergency codes.",
+      "secret": "His grip fails intermittently, so the seventh bell sometimes doubles in the west arcade.",
+      "arc": "Chooses a visible accommodation over a dangerous performance of competence."
+    },
+    {
+      "id": "sera",
+      "name": "Sera Nymm",
+      "role": "lock engineer responsible for the seaward bearings",
+      "desire": "Secure one low-tide maintenance window before the king tide.",
+      "fear": "Being blamed for iron crazing caused by the council's procurement shortcut.",
+      "secret": "She found iron filings in the bearing housings and hid a sample in a medicine vial.",
+      "arc": "Moves from defensive expertise to legible, shared evidence."
+    },
+    {
+      "id": "pel",
+      "name": "Pel Anik",
+      "role": "teenage market runner and apprentice bellkeeper",
+      "desire": "Earn a permanent tower place rather than being treated as an errand child.",
+      "fear": "That admitting a missed message will end the apprenticeship.",
+      "secret": "Pel delivered Orra's evacuation draft one hour late after helping at a ferry collision.",
+      "arc": "Confesses the delay and becomes the clearest communicator during the emergency."
+    },
+    {
+      "id": "issa",
+      "name": "Issa Dar",
+      "role": "council comptroller and public face of the Vigil",
+      "desire": "Prevent a run on the upper gates while keeping trade open.",
+      "fear": "A true warning delivered badly will kill more people than the lock failure.",
+      "secret": "Issa approved cheaper iron-shod service carts after being shown incomplete risk tables.",
+      "arc": "Accepts responsibility publicly without falsely claiming sole causation."
+    }
+  ],
+  "locations": [
+    {
+      "id": "silt-archive",
+      "name": "Silt Archive",
+      "geometry": "Terraced record rooms above the inner lock; one public stair and one floodable service descent."
+    },
+    {
+      "id": "lower-wards",
+      "name": "Lower Wards",
+      "geometry": "Clinic lanes and brine kilns below the second flood line, connected by raised blue walks."
+    },
+    {
+      "id": "seaward-lock",
+      "name": "Seaward Lock",
+      "geometry": "Twin gates, three bearing galleries, a west inspection cradle, and a tide-limited underpass."
+    },
+    {
+      "id": "bellhouse",
+      "name": "Nine Bellhouse",
+      "geometry": "Central tower with east and west arcades whose echoes reach different districts."
+    },
+    {
+      "id": "lantern-market",
+      "name": "Lantern Market",
+      "geometry": "Covered market bridging the archive hill and lower wards; shutters turn aisles into evacuation lanes."
+    },
+    {
+      "id": "north-ferry",
+      "name": "North Ferry Steps",
+      "geometry": "Tidal landing outside the inner gate, inaccessible for forty minutes around high water."
+    }
+  ],
+  "objects": [
+    {
+      "id": "saltglass-lens",
+      "name": "Cracked saltglass survey lens",
+      "consequence": "Reveals pressure memory only when oriented with its maker's notch seaward; reversing it mirrors the crack."
+    },
+    {
+      "id": "red-ledger",
+      "name": "Red pressure ledger",
+      "consequence": "Contains handwritten deviations and a deliberately removed blank folio; Cael's copy lacks indentation evidence."
+    },
+    {
+      "id": "bell-key",
+      "name": "Retired master bell-key",
+      "consequence": "Can unlock the manual code carriage but cannot itself sound a bell."
+    },
+    {
+      "id": "ferry-token",
+      "name": "Blue ceramic ferry token",
+      "consequence": "Its civic-year stamp proves a disputed trip only if converted from the harbor calendar."
+    },
+    {
+      "id": "iron-vial",
+      "name": "Medicine vial of iron filings",
+      "consequence": "Links bearing damage to service carts but not to the person who authorized them."
+    },
+    {
+      "id": "knot-cord",
+      "name": "Pel's knotted message cord",
+      "consequence": "Preserves message order and delay intervals without revealing message content."
+    }
+  ],
+  "worldRules": [
+    {
+      "id": "rule-pressure-memory",
+      "rule": "Fresh saltglass records the greatest pressure applied since its last kiln reset; reheating erases the prior record."
+    },
+    {
+      "id": "rule-lens-orientation",
+      "rule": "A survey lens must face its maker's notch seaward or its stress image is laterally mirrored."
+    },
+    {
+      "id": "rule-lock-window",
+      "rule": "The seaward bearings can be unloaded only while the tide is below the blue mark, for at most seventy minutes."
+    },
+    {
+      "id": "rule-service-descent",
+      "rule": "The archive service descent becomes one-way toward the lower wards once the inner float rises."
+    },
+    {
+      "id": "rule-iron-crazing",
+      "rule": "Repeated vibration from iron-shod loads causes charged saltglass to craze; ordinary hand tools do not."
+    },
+    {
+      "id": "rule-bell-codes",
+      "rule": "Emergency bell meaning depends on count, pause, and arcade; echoes may add an audible strike without changing the sent code."
+    },
+    {
+      "id": "rule-civic-calendar",
+      "rule": "Veyru's civic year begins at the first neap tide after winter, eleven days later than the mainland year in this story."
+    },
+    {
+      "id": "rule-public-gates",
+      "rule": "Opening the upper evacuation gates before market shutters lock creates a counterflow that blocks the lower blue walks."
+    }
+  ],
+  "arcs": [
+    {
+      "id": "arc-neris",
+      "type": "character",
+      "owner": "neris",
+      "setupChapter": "ch01",
+      "payoffChapter": "ch13",
+      "movement": "certainty as virtue to accountable uncertainty"
+    },
+    {
+      "id": "arc-tovan",
+      "type": "character",
+      "owner": "tovan",
+      "setupChapter": "ch02",
+      "payoffChapter": "ch14",
+      "movement": "protective secrecy to consent-based disclosure"
+    },
+    {
+      "id": "arc-orra",
+      "type": "character",
+      "owner": "orra",
+      "setupChapter": "ch03",
+      "payoffChapter": "ch13",
+      "movement": "paternal control to public accountability"
+    },
+    {
+      "id": "arc-partnership",
+      "type": "relationship",
+      "owner": "neris+tovan",
+      "setupChapter": "ch02",
+      "payoffChapter": "ch12",
+      "movement": "mutual suspicion to bounded operational trust"
+    },
+    {
+      "id": "arc-siblings",
+      "type": "relationship",
+      "owner": "tovan+cael",
+      "setupChapter": "ch04",
+      "payoffChapter": "ch14",
+      "movement": "rescue without consent to honest loyalty with boundaries"
+    },
+    {
+      "id": "arc-lock",
+      "type": "external",
+      "owner": "veyru",
+      "setupChapter": "ch01",
+      "payoffChapter": "ch14",
+      "movement": "hidden progressive failure to coordinated repair and truthful warning"
+    }
+  ],
+  "knowledgeCheckpoints": [
+    {
+      "id": "k-day1",
+      "afterChapter": "ch02",
+      "states": {
+        "neris": ["lens has an unexplained stress fork", "archive figures were recopied"],
+        "tovan": ["Cael is involved with the Low Choir", "Merrin alias can still open courier contacts"],
+        "orra": ["two pressure deviations were suppressed"],
+        "cael": ["red ledger copy exists", "no proof yet links iron carts to crazing"]
+      }
+    },
+    {
+      "id": "k-day2",
+      "afterChapter": "ch04",
+      "states": {
+        "neris": ["ledger folio was removed before binding", "Tovan has access she lacks"],
+        "tovan": ["Neris once adjusted an audit total", "Cael staged the break-in but denies damage"],
+        "yara": ["Hal Aul left voluntarily after discovering the first deviation"]
+      }
+    },
+    {
+      "id": "k-day3",
+      "afterChapter": "ch06",
+      "states": {
+        "neris": ["lens orientation explains one apparent contradiction", "service carts may be causal"],
+        "tovan": ["Pel delayed Orra's message", "Sera possesses a physical sample"],
+        "issa": ["a partial evacuation is being considered", "not yet aware of iron evidence"]
+      }
+    },
+    {
+      "id": "k-day5",
+      "afterChapter": "ch09",
+      "states": {
+        "neris": ["failure is progressive and repairable", "Orra hid evidence", "Tovan is Merrin"],
+        "tovan": ["opening upper gates early is dangerous", "Neris's model needs a missing tide minute"],
+        "cael": ["public bell alone could trigger counterflow", "not yet aware of Janek's hand"]
+      }
+    },
+    {
+      "id": "k-day6",
+      "afterChapter": "ch11",
+      "states": {
+        "neris": ["Hal's disappearance was voluntary", "exact failure minute remains a range"],
+        "tovan": ["retired key can enable but not sound the warning", "Cael plans to seize the carriage"],
+        "janek": ["Pel knows the correct split-arcade code"]
+      }
+    },
+    {
+      "id": "k-day8",
+      "afterChapter": "ch14",
+      "states": {
+        "public": ["lock risk, procurement contribution, and safe sequence are disclosed"],
+        "neris": ["responsibility is distributed and uncertainty can be stated"],
+        "tovan": ["Cael chose to delay the bell after informed consent"],
+        "unresolved": ["whether Hal will return", "whether Orra remains director"]
+      }
+    }
+  ],
+  "chapters": [
+    {
+      "id": "ch01",
+      "number": 1,
+      "day": 1,
+      "pov": "neris",
+      "locations": ["silt-archive", "seaward-lock"],
+      "summary": "Neris records a forked stress image in a routine Vigil survey, then discovers that the clean archive copy omits the fluctuation her lens retains.",
+      "intent": "Establish her exactness, the lock stakes, the mirrored-lens uncertainty, and her trust in Orra.",
+      "setups": ["saltglass crack", "missing pressure deviation", "Hal's map notation"],
+      "payoffs": [],
+      "knowledgeChanges": ["Neris knows the official record and physical trace disagree."]
+    },
+    {
+      "id": "ch02",
+      "number": 2,
+      "day": 1,
+      "pov": "tovan",
+      "locations": ["lantern-market", "lower-wards"],
+      "summary": "Tovan intercepts Cael after a staged archive break-in and hears a seven-strike warning that the west arcade makes sound like eight.",
+      "intent": "Establish courier hearing, sibling conflict, the Merrin alias, and an apparent bell-count contradiction.",
+      "setups": ["red-ledger copy", "west-arcade echo", "old courier chorus"],
+      "payoffs": [],
+      "knowledgeChanges": ["Tovan knows Cael copied evidence and plans a public warning."]
+    },
+    {
+      "id": "ch03",
+      "number": 3,
+      "day": 2,
+      "pov": "neris",
+      "locations": ["silt-archive", "bellhouse"],
+      "summary": "Orra assigns Neris to disprove sabotage rumors; comparison of binding holes shows the ledger's absent folio was removed while blank.",
+      "intent": "Complicate the easy theft theory and introduce the safe evacuation bell sequence.",
+      "setups": ["three-pause-three code", "Orra's institutional we", "blank folio evidence"],
+      "payoffs": [],
+      "knowledgeChanges": ["Neris knows the missing page does not itself prove suppression."]
+    },
+    {
+      "id": "ch04",
+      "number": 4,
+      "day": 2,
+      "pov": "tovan",
+      "locations": ["lower-wards", "north-ferry"],
+      "summary": "Yara hires Tovan to bring Neris a ferry token tied to Hal Aul, while Cael admits staging entry but denies touching the lock.",
+      "intent": "Bind family mystery to present risk and make Tovan choose partial cooperation over flight.",
+      "setups": ["future-looking ferry stamp", "Cael doorway wording", "Hal's voluntary departure"],
+      "payoffs": [],
+      "knowledgeChanges": ["Tovan learns Neris once protected Orra in an audit."]
+    },
+    {
+      "id": "ch05",
+      "number": 5,
+      "day": 3,
+      "pov": "neris",
+      "locations": ["seaward-lock", "silt-archive"],
+      "summary": "Neris and Sera inspect the bearings during low tide; a clock gap prevents them from fixing the failure minute, and mirrored readings implicate the wrong gallery until Neris turns the lens.",
+      "intent": "Demonstrate epistemic correction and establish the missing-minute dependency.",
+      "setups": ["missing clock minute", "medicine vial", "one-way service descent"],
+      "payoffs": [],
+      "knowledgeChanges": ["Neris knows bearing damage is real but not whether sabotage or carts caused it."]
+    },
+    {
+      "id": "ch06",
+      "number": 6,
+      "day": 3,
+      "pov": "tovan",
+      "locations": ["lantern-market", "bellhouse"],
+      "summary": "Tovan traces Pel's delayed message through knots rather than testimony and sees Janek hide a failed grip during rehearsal.",
+      "intent": "Separate messenger failure from moral blame and set up the accommodation Janek resists.",
+      "setups": ["iron cart scars", "Pel's knot intervals", "Janek's intermittent hand"],
+      "payoffs": [],
+      "knowledgeChanges": ["Tovan knows the warning delay had an innocent cause and Janek's performance is unsafe."]
+    },
+    {
+      "id": "ch07",
+      "number": 7,
+      "day": 4,
+      "pov": "neris",
+      "locations": ["silt-archive", "lower-wards"],
+      "summary": "Neris proves the lens crack predates Cael's break-in, confronts Orra, and receives a technically truthful denial that conceals the suppressed deviations.",
+      "intent": "Pay off physical lens evidence while breaking Neris's trust without resolving Orra's motive.",
+      "setups": ["Neris's oath not to ring the bell", "audit alteration confession"],
+      "payoffs": ["saltglass crack"],
+      "knowledgeChanges": ["Neris knows Orra is withholding something and admits her own old alteration to Tovan."]
+    },
+    {
+      "id": "ch08",
+      "number": 8,
+      "day": 5,
+      "pov": "tovan",
+      "locations": ["north-ferry", "lower-wards"],
+      "summary": "Tovan converts the token's civic date, finds a ferryman who remembers Hal, and learns the red copy cannot show which entries pressed through later pages.",
+      "intent": "Pay off the token and ledger-copy limitations; expose Tovan's alias to Neris.",
+      "setups": ["Hal's sealed map tube", "Merrin recognition"],
+      "payoffs": ["red-ledger copy", "future-looking ferry stamp"],
+      "knowledgeChanges": ["Neris learns Tovan is Merrin; Tovan learns Hal left after documenting a deviation."]
+    },
+    {
+      "id": "ch09",
+      "number": 9,
+      "day": 5,
+      "pov": "neris",
+      "locations": ["bellhouse", "seaward-lock"],
+      "summary": "Neris reconstructs the split-arcade warning and models a safe sequence: close market shutters, clear blue walks, then sound three-pause-three.",
+      "intent": "Turn scattered facts into an actionable but still uncertain plan.",
+      "setups": ["failure window as a range", "manual carriage requirement"],
+      "payoffs": ["three-pause-three code"],
+      "knowledgeChanges": ["Neris knows an early undirected alarm is itself hazardous."]
+    },
+    {
+      "id": "ch10",
+      "number": 10,
+      "day": 6,
+      "pov": "tovan",
+      "locations": ["lantern-market", "silt-archive"],
+      "summary": "Tovan assembles retired couriers to route a quiet pre-warning, but refuses Cael's demand to seize the bell carriage before the market is prepared.",
+      "intent": "Pay off his people network and force a consent boundary with Cael.",
+      "setups": ["distributed verbal countersign", "Cael's carriage plan"],
+      "payoffs": ["old courier chorus"],
+      "knowledgeChanges": ["Cael learns Tovan will not equate loyalty with obedience."]
+    },
+    {
+      "id": "ch11",
+      "number": 11,
+      "day": 6,
+      "pov": "neris",
+      "locations": ["silt-archive", "seaward-lock"],
+      "summary": "Hal's map and Sera's vial connect iron-shod carts to progressive crazing; Orra reveals her partial evacuation plan, and Neris states the unresolved timing range aloud.",
+      "intent": "Resolve cause without inventing a single villain and complete Neris's first honest uncertainty turn.",
+      "setups": ["procurement table", "seventy-minute repair sequence"],
+      "payoffs": ["ferry token", "medicine vial", "Hal's map notation"],
+      "knowledgeChanges": [
+        "Neris knows the likely cause and Orra's motive; Issa learns the tables she saw were incomplete."
+      ]
+    },
+    {
+      "id": "ch12",
+      "number": 12,
+      "day": 7,
+      "pov": "tovan",
+      "locations": ["bellhouse", "lantern-market"],
+      "summary": "A rehearsal reveals the missing clock minute in the bellhouse maintenance roll; Tovan gives Neris the master key only after they agree who may halt the sequence.",
+      "intent": "Pay off partnership trust, the missing minute, and Janek's concealed disability through an operational agreement.",
+      "setups": ["Pel on west arcade", "explicit abort condition"],
+      "payoffs": ["missing clock minute", "Janek's intermittent hand", "bounded partnership"],
+      "knowledgeChanges": ["The core group shares the safe sequence and the limits of each person's authority."]
+    },
+    {
+      "id": "ch13",
+      "number": 13,
+      "day": 8,
+      "pov": "neris",
+      "locations": ["seaward-lock", "silt-archive", "lower-wards"],
+      "summary": "As the king tide rises, Neris publishes the evidence ledger with confidence ranges, Orra submits to oversight, and the team begins the bearing unload while Cael disappears toward the tower.",
+      "intent": "Complete the accountability arcs while tightening the physical emergency.",
+      "setups": ["Cael at the carriage", "second bearing lag"],
+      "payoffs": ["iron cart scars", "Neris certainty arc", "Orra control arc", "Hal's map"],
+      "knowledgeChanges": ["The public knows enough to act safely but not every private family fact."]
+    },
+    {
+      "id": "ch14",
+      "number": 14,
+      "day": 8,
+      "pov": "tovan",
+      "locations": ["bellhouse", "lantern-market", "seaward-lock"],
+      "summary": "Tovan finds Cael at the carriage, shares the abort condition, and lets them choose to wait; Pel sounds the split-arcade warning after shutters close, the bearing is unloaded, and Tovan releases the key rather than keeping a private lever.",
+      "intent": "Resolve the lock crisis through coordinated authority, not solitary heroics, while leaving institutional and family futures open.",
+      "setups": [],
+      "payoffs": [
+        "Neris's bell oath",
+        "Cael's carriage plan",
+        "sibling boundary",
+        "Tovan secrecy arc",
+        "external lock arc"
+      ],
+      "knowledgeChanges": [
+        "Cael understands the delay and consents; the city learns the repair sequence succeeded within a stated range."
+      ]
+    }
+  ],
+  "dependencies": [
+    {
+      "id": "dep-lens",
+      "type": "physical-evidence",
+      "setupChapter": "ch01",
+      "payoffChapter": "ch07",
+      "constraint": "The crack must predate the break-in and mirror when reversed."
+    },
+    {
+      "id": "dep-ledger",
+      "type": "evidence-limit",
+      "setupChapter": "ch02",
+      "payoffChapter": "ch08",
+      "constraint": "The copy proves content but cannot preserve indentation evidence."
+    },
+    {
+      "id": "dep-bell",
+      "type": "world-rule",
+      "setupChapter": "ch03",
+      "payoffChapter": "ch09",
+      "constraint": "Count, pause, and arcade jointly determine the warning."
+    },
+    {
+      "id": "dep-token",
+      "type": "chronology",
+      "setupChapter": "ch04",
+      "payoffChapter": "ch11",
+      "constraint": "Convert the civic stamp before using it to date Hal's trip."
+    },
+    {
+      "id": "dep-minute",
+      "type": "temporal",
+      "setupChapter": "ch05",
+      "payoffChapter": "ch12",
+      "constraint": "The failure time remains a range until the bellhouse roll supplies the missing minute."
+    },
+    {
+      "id": "dep-iron",
+      "type": "causal",
+      "setupChapter": "ch06",
+      "payoffChapter": "ch13",
+      "constraint": "Cart scars plus filings support progressive vibration damage, not intentional sabotage."
+    },
+    {
+      "id": "dep-oath",
+      "type": "language",
+      "setupChapter": "ch07",
+      "payoffChapter": "ch14",
+      "constraint": "Neris promised not to ring the bell herself, not to prohibit an authorized warning."
+    },
+    {
+      "id": "dep-chorus",
+      "type": "relationship",
+      "setupChapter": "ch02",
+      "payoffChapter": "ch10",
+      "constraint": "Tovan's retired courier ties become useful only after he asks rather than commands."
+    },
+    {
+      "id": "dep-map",
+      "type": "arc",
+      "setupChapter": "ch01",
+      "payoffChapter": "ch13",
+      "constraint": "Hal's notation enables honest uncertainty rather than a perfectly exact answer."
+    }
+  ],
+  "intentionalAmbiguities": [
+    {
+      "id": "amb-bell-count",
+      "apparent": "Tovan hears eight strikes where Neris's record says seven.",
+      "authorIntent": "The west arcade echo adds an audible strike; both perceptions are honest."
+    },
+    {
+      "id": "amb-lens-side",
+      "apparent": "The lens crack appears on opposite sides in two inspections.",
+      "authorIntent": "The lens was reversed; the stress image mirrors under the orientation rule."
+    },
+    {
+      "id": "amb-merrin",
+      "apparent": "Yara calls Tovan Merrin without explanation.",
+      "authorIntent": "Merrin is Tovan's retired courier alias, not a mistaken identity."
+    },
+    {
+      "id": "amb-future-token",
+      "apparent": "The ferry token appears dated eleven days in the future.",
+      "authorIntent": "The civic and mainland years begin on different dates."
+    },
+    {
+      "id": "amb-blank-folio",
+      "apparent": "A numbered ledger folio is missing.",
+      "authorIntent": "It was removed blank during binding and is not the suppressed evidence."
+    },
+    {
+      "id": "amb-cael-entry",
+      "apparent": "Cael says they never entered the Archive but admits staging the break-in.",
+      "authorIntent": "Cael opened the outer grille and remained in the threshold while an accomplice copied the ledger."
+    },
+    {
+      "id": "amb-wet-boots",
+      "apparent": "Pel arrives wet despite the north ferry being tide-closed.",
+      "authorIntent": "Pel crossed a leaking brine-kiln lane, not the ferry."
+    },
+    {
+      "id": "amb-janek-hand",
+      "apparent": "Janek uses his injured hand successfully in one scene and fails in another.",
+      "authorIntent": "The grip impairment is intermittent and worsens with repeated load."
+    },
+    {
+      "id": "amb-orra-we",
+      "apparent": "Orra says 'we corrected the figures' although no co-conspirator is named.",
+      "authorIntent": "Her institutional 'we' diffuses responsibility; it does not prove a secret group."
+    },
+    {
+      "id": "amb-smoke",
+      "apparent": "Smoke is smelled in the lower wards although no fire alarm sounds.",
+      "authorIntent": "The odor comes from normal brine kilns restarting after rain."
+    },
+    {
+      "id": "amb-before-dawn",
+      "apparent": "Two characters place a meeting 'before dawn' on different calendar days.",
+      "authorIntent": "One speaks before sleeping and one after midnight; the meeting time itself is consistent."
+    },
+    {
+      "id": "amb-oath",
+      "apparent": "Neris promises not to ring the bell but helps initiate the warning.",
+      "authorIntent": "She does not strike or order it; she supplies evidence and an abort condition to the authorized bellkeepers."
+    }
+  ],
+  "variantDefects": [
+    {
+      "id": "def-factual-01",
+      "category": "factual",
+      "targetChapter": "ch08",
+      "mutation": "Change the ferry token from blue ceramic to brass despite earlier and later handling evidence."
+    },
+    {
+      "id": "def-factual-02",
+      "category": "factual",
+      "targetChapter": "ch11",
+      "mutation": "State that the red ledger retains pressure indentations although only Cael's flat copy is present."
+    },
+    {
+      "id": "def-temporal-01",
+      "category": "temporal",
+      "targetChapter": "ch09",
+      "mutation": "Place king tide on day 6 rather than day 8 without changing the countdown."
+    },
+    {
+      "id": "def-temporal-02",
+      "category": "temporal",
+      "targetChapter": "ch12",
+      "mutation": "Have Tovan use the recovered clock minute before Pel reveals the maintenance roll."
+    },
+    {
+      "id": "def-spatial-01",
+      "category": "spatial",
+      "targetChapter": "ch05",
+      "mutation": "Let Neris climb the flooded service descent back into the Archive after the float rises."
+    },
+    {
+      "id": "def-spatial-02",
+      "category": "spatial",
+      "targetChapter": "ch14",
+      "mutation": "Move from west arcade to seaward bearing gallery in one minute despite the established route."
+    },
+    {
+      "id": "def-causal-01",
+      "category": "causal",
+      "targetChapter": "ch11",
+      "mutation": "Claim ordinary iron hand tools caused the crazing rather than repeated cart vibration."
+    },
+    {
+      "id": "def-causal-02",
+      "category": "causal",
+      "targetChapter": "ch13",
+      "mutation": "Treat opening upper gates early as a way to clear, rather than block, the lower blue walks."
+    },
+    {
+      "id": "def-emotional-01",
+      "category": "emotional",
+      "targetChapter": "ch10",
+      "mutation": "Have Tovan cheerfully endorse Cael's carriage seizure immediately after setting a consent boundary."
+    },
+    {
+      "id": "def-emotional-02",
+      "category": "emotional",
+      "targetChapter": "ch13",
+      "mutation": "Have Neris feel no conflict about publishing Orra's suppression after their mentor bond breaks."
+    },
+    {
+      "id": "def-knowledge-01",
+      "category": "knowledge",
+      "targetChapter": "ch06",
+      "mutation": "Let Tovan identify the lens orientation error before Neris tells him or demonstrates it."
+    },
+    {
+      "id": "def-knowledge-02",
+      "category": "knowledge",
+      "targetChapter": "ch09",
+      "mutation": "Let Cael know Janek's intermittent grip before anyone outside Tovan and Janek has observed it."
+    },
+    {
+      "id": "def-voice-01",
+      "category": "voice",
+      "targetChapter": "ch07",
+      "mutation": "Give Neris slang-heavy fragments and a decorative song metaphor during confrontation."
+    },
+    {
+      "id": "def-voice-02",
+      "category": "voice",
+      "targetChapter": "ch10",
+      "mutation": "Give Tovan exact unexplained bearing tolerances and Neris's geometric internal diction."
+    }
+  ],
+  "frozenDecisions": [
+    "Canonical prose will contain no planted defects; every defect is an isolated patch with source preconditions.",
+    "Orra is culpable for suppression but is not the sole cause of the lock failure.",
+    "Cael stages the archive entry but does not damage the lock.",
+    "The repair succeeds through coordinated bounded authority; no single protagonist performs every critical action.",
+    "Hal Aul remains alive but off-page, and whether he returns remains unresolved.",
+    "The Neris-Tovan relationship resolves as earned operational trust, not mandatory romance.",
+    "Intentional ambiguities remain unresolved or explainable without being continuity errors.",
+    "Public disclosure excludes private facts that are unnecessary for safe collective action."
+  ]
+}
