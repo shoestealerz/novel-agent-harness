@@ -38,5 +38,6 @@ Word counts exclude headings and passage-reference comments.
 | Batch | Chapters | Words | Passages | Status                                    |
 | ----- | -------- | ----: | -------: | ----------------------------------------- |
 | 1     | 1–2      | 5,041 |       36 | drafted; automated structure audit passed |
+| 2     | 3–4      | 5,011 |       36 | drafted; automated structure audit passed |
 
-Batch 1 establishes the two voice exemplars and their asymmetric day-one knowledge. It intentionally leaves the forked pressure line, copied ledger, extra audible bell, Merrin alias, and Hal Aul ferry token unresolved for their later dependencies.
+The canonical draft currently contains 10,052 words in 72 stable passages. Batch 1 establishes the two voice exemplars and their asymmetric day-one knowledge. Batch 2 resolves the blank-folio accusation without resolving the pressure discrepancy, fixes the evacuation-code sequence, converts the apparently future ferry token, and begins the protagonists' mutual leverage. The forked pressure line, copied-ledger limitations, Merrin alias, Hal Aul's departure, and other registered dependencies remain open for later payoffs.
