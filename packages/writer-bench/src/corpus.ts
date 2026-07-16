@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto"
-import { readFile } from "node:fs/promises"
+import { readFile, readdir } from "node:fs/promises"
 import { dirname, resolve } from "node:path"
 import { parseTask, requireObject, requireString, type Check, type Task } from "./contracts.ts"
 import { readJson, readJsonl } from "./io.ts"
@@ -48,12 +48,7 @@ export async function validateCorpus(path: string) {
     )) {
       passageText.set(match[1]!, match.groups!.text.trim())
     }
-    wordCount += content
-      .replaceAll(/<!--.*?-->/gs, " ")
-      .replaceAll(/^#.*$/gm, " ")
-      .trim()
-      .split(/\s+/)
-      .filter(Boolean).length
+    wordCount += manuscriptWordCount(content)
   }
   if (wordCount < manifest.minimumWords)
     throw new Error(`corpus has ${wordCount} words; expected at least ${manifest.minimumWords}`)
@@ -155,10 +150,11 @@ export async function validateCorpusArchitecture(path: string) {
   const root = resolve(path)
   const architectureBytes = await readFile(resolve(root, "architecture.json"))
   const expectedHash = (await readFile(resolve(root, "architecture.sha256"), "utf8")).trim().split(/\s+/)[0]
-  const actualHash = createHash("sha256").update(architectureBytes).digest("hex")
+  const architectureText = architectureBytes.toString("utf8").replaceAll("\r\n", "\n")
+  const actualHash = createHash("sha256").update(architectureText).digest("hex")
   if (expectedHash !== actualHash) throw new Error("architecture.sha256 does not match architecture.json")
 
-  const input = requireObject(JSON.parse(architectureBytes.toString("utf8")), "corpus architecture")
+  const input = requireObject(JSON.parse(architectureText), "corpus architecture")
   const target = requireObject(input.target, "architecture.target")
   const wordRange = requireNumberPair(target.words, "architecture.target.words")
   if (wordRange[0] < 30_000 || wordRange[1] > 50_000 || wordRange[0] >= wordRange[1]) {
@@ -268,6 +264,54 @@ export async function validateCorpusArchitecture(path: string) {
   }
 }
 
+export async function validateCorpusDraft(path: string) {
+  const root = resolve(path)
+  const architecture = await validateCorpusArchitecture(root)
+  const input = requireObject(await readJson(resolve(root, "architecture.json")), "corpus architecture")
+  const target = requireObject(input.target, "architecture.target")
+  const wordRange = requireNumberPair(target.chapterWords, "architecture.target.chapterWords")
+  const passageRange = requireNumberPair(target.chapterPassages, "architecture.target.chapterPassages")
+  const chapters = requireChapters(input.chapters)
+  const files = (await readdir(resolve(root, "manuscript"), { withFileTypes: true }))
+    .filter((entry) => entry.isFile() && /^ch\d{2}\.md$/.test(entry.name))
+    .map((entry) => entry.name)
+    .sort()
+  if (!files.length) throw new Error("corpus draft has no manuscript chapters")
+  if (files.length > chapters.length) throw new Error("corpus draft has more manuscript files than planned chapters")
+
+  const summaries = await Promise.all(
+    files.map(async (file, index) => {
+      const chapter = chapters[index]!
+      if (file !== `${chapter.id}.md`) throw new Error(`expected ${chapter.id}.md but found ${file}`)
+      const content = await readFile(resolve(root, "manuscript", file), "utf8")
+      const refs = [...content.matchAll(/<!--\s*ref:\s*([^\s]+)\s*-->/g)].map((match) => match[1]!)
+      if (refs.length < passageRange[0] || refs.length > passageRange[1]) {
+        throw new Error(`${file} has ${refs.length} passages outside target range`)
+      }
+      refs.forEach((ref, passage) => {
+        const expected = `${chapter.id}:p${String(passage + 1).padStart(3, "0")}`
+        if (ref !== expected) throw new Error(`${file} expected passage ${expected} but found ${ref}`)
+      })
+      const words = manuscriptWordCount(content)
+      if (words < wordRange[0] || words > wordRange[1])
+        throw new Error(`${file} has ${words} words outside target range`)
+      return { chapter: chapter.id, pov: chapter.pov, day: chapter.day, words, passages: refs.length }
+    }),
+  )
+
+  return {
+    corpus: architecture.corpus,
+    version: architecture.version,
+    architectureHash: architecture.architectureHash,
+    draftedChapters: summaries.length,
+    plannedChapters: chapters.length,
+    complete: summaries.length === chapters.length,
+    wordCount: summaries.reduce((total, chapter) => total + chapter.words, 0),
+    passages: summaries.reduce((total, chapter) => total + chapter.passages, 0),
+    chapters: summaries,
+  }
+}
+
 function parseManifest(value: unknown): CorpusManifest {
   const input = requireObject(value, "corpus manifest")
   if (typeof input.minimumWords !== "number" || input.minimumWords < 1)
@@ -326,6 +370,15 @@ function requirePositiveInteger(value: unknown, label: string) {
 function requireUniqueIds(records: ArchitectureRecord[], label: string) {
   const ids = records.map((record) => record.id)
   if (new Set(ids).size !== ids.length) throw new Error(`architecture has duplicate ${label} ids`)
+}
+
+function manuscriptWordCount(content: string) {
+  return content
+    .replaceAll(/<!--.*?-->/gs, " ")
+    .replaceAll(/^#.*$/gm, " ")
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean).length
 }
 
 function passageRefs(record: Record<string, unknown>) {

@@ -39,6 +39,12 @@ Validate the book-scale architecture with:
 bun run corpus:architecture
 ```
 
+Audit the in-progress canonical draft with:
+
+```sh
+bun run corpus:draft
+```
+
 ## Quick start
 
 From this package directory:
