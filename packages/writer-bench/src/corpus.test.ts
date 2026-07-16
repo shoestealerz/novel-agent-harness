@@ -5,7 +5,7 @@ import { tmpdir } from "node:os"
 import { join } from "node:path"
 import test from "node:test"
 import { parseTask, protocolVersion } from "./contracts.ts"
-import { validateCorpus, validateCorpusArchitecture } from "./corpus.ts"
+import { validateCorpus, validateCorpusArchitecture, validateCorpusDraft } from "./corpus.ts"
 import { readJsonl } from "./io.ts"
 import { scoreResponse } from "./score.ts"
 
@@ -87,4 +87,17 @@ test("rejects an architecture whose long-range payoff is too close", async (cont
   await writeFile(join(root, "architecture.json"), bytes)
   await writeFile(join(root, "architecture.sha256"), createHash("sha256").update(bytes).digest("hex"))
   await assert.rejects(validateCorpusArchitecture(root), /at least four chapters/)
+})
+
+test("validates the in-progress Saltglass Vigil canonical draft", async () => {
+  const result = await validateCorpusDraft("corpora/saltglass-vigil")
+  assert.equal(result.draftedChapters, 2)
+  assert.equal(result.plannedChapters, 14)
+  assert.equal(result.complete, false)
+  assert.equal(result.wordCount, 5041)
+  assert.equal(result.passages, 36)
+  assert.deepEqual(
+    result.chapters.map((chapter) => chapter.pov),
+    ["neris", "tovan"],
+  )
 })

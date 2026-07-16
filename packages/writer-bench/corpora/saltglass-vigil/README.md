@@ -1,6 +1,6 @@
 # Saltglass Vigil book-scale corpus
 
-`Saltglass Vigil` is the wholly synthetic, CC0 novella planned for the Alpha 3 book-scale evaluation. This directory currently contains the frozen pre-prose architecture only. Canonical prose, gold records, isolated variants, task splits, and human-review packets will be added in separately auditable stages.
+`Saltglass Vigil` is the wholly synthetic, CC0 novella planned for the Alpha 3 book-scale evaluation. Its pre-prose architecture is frozen, and canonical drafting is in progress. Gold records, isolated variants, task splits, and human-review packets will be added in separately auditable stages.
 
 The architecture fixes the story's causal spine before prose generation:
 
@@ -13,7 +13,7 @@ The architecture fixes the story's causal spine before prose generation:
 - twelve deliberate ambiguities that must not be misdiagnosed;
 - two planned isolated defects in each of the seven preregistered categories.
 
-The SHA-256 receipt records the exact architecture bytes used to begin drafting. Any intentional architecture correction must update the corpus version and receipt, explain the correction here, and preserve the superseded result in Git history.
+The SHA-256 receipt records the architecture's canonical UTF-8 content with LF line endings, so Git checkouts verify identically across operating systems. Any intentional architecture correction must update the corpus version and receipt, explain the correction here, and preserve the superseded result in Git history.
 
 Validate the frozen architecture from `packages/writer-bench`:
 
@@ -21,6 +21,22 @@ Validate the frozen architecture from `packages/writer-bench`:
 bun run corpus:architecture
 ```
 
+Audit every currently drafted chapter against its planned filename, sequential passage IDs, 2,500–3,300-word range, and 18–22-passage range:
+
+```sh
+bun run corpus:draft
+```
+
 ## Prose-generation boundary
 
 No manuscript prose or evaluation task was written before the Alpha 3 protocol and this architecture were frozen. Drafting must preserve the decisions in `frozenDecisions`, keep the canonical manuscript free of planted errors, and assign at least 18 stable passage references per chapter. Evaluation candidates may never receive this architecture file, hidden author intent, gold annotations, or variant definitions.
+
+## Canonical drafting ledger
+
+Word counts exclude headings and passage-reference comments.
+
+| Batch | Chapters | Words | Passages | Status                                    |
+| ----- | -------- | ----: | -------: | ----------------------------------------- |
+| 1     | 1–2      | 5,041 |       36 | drafted; automated structure audit passed |
+
+Batch 1 establishes the two voice exemplars and their asymmetric day-one knowledge. It intentionally leaves the forked pressure line, copied ledger, extra audible bell, Merrin alias, and Hal Aul ferry token unresolved for their later dependencies.

@@ -6,7 +6,7 @@ import { readJson, readJsonl, writeJson } from "./io.ts"
 import { renderComparisonReport } from "./report.ts"
 import { runBenchmark } from "./runner.ts"
 import { compareRun } from "./stats.ts"
-import { validateCorpus, validateCorpusArchitecture } from "./corpus.ts"
+import { validateCorpus, validateCorpusArchitecture, validateCorpusDraft } from "./corpus.ts"
 
 const [command, subcommand] = process.argv.slice(2)
 const args = parseArgs(process.argv.slice(command === "import" || command === "corpus" ? 4 : 3))
@@ -18,6 +18,7 @@ else if (command === "import" && subcommand === "constory") await importStory()
 else if (command === "attach-metrics") await attachMetrics()
 else if (command === "corpus" && subcommand === "validate") await corpusValidate()
 else if (command === "corpus" && subcommand === "architecture") await corpusArchitecture()
+else if (command === "corpus" && subcommand === "draft") await corpusDraft()
 else if (command === "doctor") doctor()
 else usage(1)
 
@@ -114,6 +115,10 @@ async function corpusArchitecture() {
   console.log(JSON.stringify(await validateCorpusArchitecture(required(args, "corpus")), null, 2))
 }
 
+async function corpusDraft() {
+  console.log(JSON.stringify(await validateCorpusDraft(required(args, "corpus")), null, 2))
+}
+
 function doctor() {
   console.log(JSON.stringify({ node: process.version, protocolVersion: 1, platform: process.platform }, null, 2))
 }
@@ -165,6 +170,7 @@ function usage(code: number): never {
   attach-metrics --run results/run.json --source official-metrics.jsonl --out results/run-with-metrics.json
   corpus validate --corpus corpora/harbor-light
   corpus architecture --corpus corpora/saltglass-vigil
+  corpus draft --corpus corpora/saltglass-vigil
   doctor`)
   process.exit(code)
 }
