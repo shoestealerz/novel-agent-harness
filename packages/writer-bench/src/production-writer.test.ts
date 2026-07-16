@@ -149,4 +149,12 @@ test("records a failed production provider process instead of fabricating a resp
     }),
     /exited 17: provider unavailable/,
   )
+  await assert.rejects(
+    executeProductionWriter(task, {
+      command: [process.execPath, "-e", "process.stdout.write('usage error');process.exit(2)"],
+      model: "fixture/model",
+      timeoutMs: 10_000,
+    }),
+    /exited 2: usage error/,
+  )
 })

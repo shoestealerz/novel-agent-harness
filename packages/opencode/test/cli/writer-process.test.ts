@@ -315,6 +315,80 @@ describe("writer CLI subprocess", () => {
   )
 
   cliIt.concurrent(
+    "runs complete bounded context without invoking the selector",
+    ({ home, llm, opencode }) =>
+      Effect.gen(function* () {
+        yield* Effect.promise(async () => {
+          await Bun.write(
+            path.join(home, "novel.json"),
+            JSON.stringify({
+              formatVersion: 1,
+              title: "Bounded Bell House",
+              chapters: [{ id: "ch01", path: "ch01.md" }],
+            }),
+          )
+          await Bun.write(
+            path.join(home, "ch01.md"),
+            [
+              "<!-- novel-agent:passage ch01:p001 -->",
+              "The bell rang once.",
+              "",
+              "<!-- novel-agent:passage ch01:p002 -->",
+              "Mara waited at the locked door.",
+            ].join("\n"),
+          )
+        })
+        yield* llm.push(
+          reply().tool("StructuredOutput", {
+            answer: "The ring leads directly to Mara's wait [ch01:p001] [ch01:p002].",
+            evidence: ["ch01:p001", "ch01:p002"],
+            findings: [],
+            edits: [],
+            data: { observations: [], inferences: [], unresolved: [], preservation: [] },
+          }),
+        )
+
+        const result = yield* opencode.spawn([
+          "writer",
+          "run",
+          "Explain the complete beat",
+          "--model",
+          testModelID,
+          "--dir",
+          home,
+          "--job",
+          "explain",
+          "--maximum-context",
+          "--focus",
+          "ch01:p001",
+          "--through",
+          "ch01:p002",
+        ])
+        opencode.expectExit(result, 0, "writer maximum context")
+        expect(result.stderr).not.toContain('"phase":"context-selection"')
+        const output = JSON.parse(result.stdout)
+        expect(output.selection).toBeUndefined()
+        expect(output.contextTrace.strategy).toBe("maximum")
+        expect(output.contextTrace.selectedRefs).toEqual(["ch01:p001", "ch01:p002"])
+
+        const conflict = yield* opencode.spawn([
+          "writer",
+          "run",
+          "Explain the beat",
+          "--dir",
+          home,
+          "--auto-context",
+          "--maximum-context",
+          "--focus",
+          "ch01:p001",
+        ])
+        opencode.expectExit(conflict, 1, "writer context policy conflict")
+        expect(conflict.stderr).toContain("cannot be used together")
+      }),
+    60_000,
+  )
+
+  cliIt.concurrent(
     "runs revise, review, and explicit author-confirmed commit end to end",
     ({ home, llm, opencode }) =>
       Effect.gen(function* () {

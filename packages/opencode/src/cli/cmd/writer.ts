@@ -130,7 +130,6 @@ export const WriterRunCommand = effectCmd({
         default: false,
         describe: "use the complete manuscript through the declared temporal boundary",
       })
-      .conflicts("auto-context", "maximum-context")
       .option("focus", { type: "string", array: true, describe: "stable focus passage reference" })
       .option("dependency", { type: "string", array: true, describe: "stable dependency passage reference" })
       .option("preserve", { type: "string", array: true, describe: "stable passage reference to preserve" })
@@ -143,6 +142,8 @@ export const WriterRunCommand = effectCmd({
       .option("through", { type: "string", describe: "inclusive temporal boundary passage reference" })
       .option("format", { type: "string", choices: ["json", "text"] as const, default: "json" }),
   handler: Effect.fn("Cli.writer.run")(function* (args) {
+    if (args["auto-context"] && args["maximum-context"])
+      return yield* fail("--auto-context and --maximum-context cannot be used together")
     const root = path.resolve(process.cwd(), args.dir ?? ".")
     const request = args.request.join(" ").trim()
     if (!request) return yield* fail("Writer request must not be empty")

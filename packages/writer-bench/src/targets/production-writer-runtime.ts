@@ -184,7 +184,9 @@ async function invoke(command: string[], args: string[], timeoutMs = 540_000, en
   }).finally(() => clearTimeout(timeout))
   if (timedOut) throw new Error(`production Writer timed out after ${timeoutMs}ms`)
   if (code !== 0) {
-    throw new Error(`production Writer exited ${code}: ${Buffer.concat(stderr).toString("utf8").trim()}`)
+    const stderrText = Buffer.concat(stderr).toString("utf8").trim()
+    const stdoutText = Buffer.concat(stdout).toString("utf8").trim()
+    throw new Error(`production Writer exited ${code}: ${stderrText || stdoutText || "no diagnostic output"}`)
   }
   const text = Buffer.concat(stdout).toString("utf8").trim()
   if (!text) throw new Error("production Writer returned no output")
