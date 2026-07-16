@@ -1,14 +1,14 @@
 {
   "formatVersion": 1,
-  "revision": 3,
-  "status": "frozen-for-infrastructure-only-resume",
-  "frozenAt": "2026-07-16T13:43:39.5769683Z",
-  "supersedesRevision": 2,
-  "supersededReason": "A3-PRIMARY-001 loaded the sealed split but failed as an infrastructure attempt: the detached evaluation worktree had not been installed in its own directory, raw cache telemetry needed for exact cost was discarded, one successful stock cell was lost to a transient Windows cleanup lock, one raw call reset, provider credit was exhausted after 300 completed cells, and Writer never launched. Revision 3 changes only dependency setup, transport/cleanup reliability, and raw usage telemetry; the candidate, prompts, tasks, outputs, scoring, targets, model behavior, gates, and human-review selection remain frozen.",
+  "revision": 4,
+  "status": "frozen-for-observability-only-resume",
+  "frozenAt": "2026-07-16T14:38:50.8855987Z",
+  "supersedesRevision": 3,
+  "supersededReason": "The pre-resume audit found that revision 3 retained exact raw cache cost but could not satisfy the preregistered requirement to report Writer cost and latency by phase and percentile, and its adapter receipt method was not explicitly reproducible across line-ending checkouts. Revision 4 changes only benchmark observability: it derives selector and execution usage from existing writer-progress events, adds a fail-closed authoritative gate auditor, and defines receipts as SHA-256 over exact Git blob bytes. No accepted model output exists; sealed response content was not inspected. The candidate, prompts, tasks, context policy, scoring, targets, model behavior, gates, resume cells, and human-review selection remain frozen.",
   "sealedTasksExecutedBeforeRevision": true,
   "candidateCommit": "4e53b3086a060d392d6d352358d81d59ebff7405",
   "candidateTag": "alpha3-book-scale-candidate-4e53b3086",
-  "evaluationCommit": "4920567ac46d47ec6e5a9de1a50d973f951f086c",
+  "evaluationCommit": "1f8228a0335b552cd0156d5ed587b5b579b016fd",
   "corpusVersion": "0.2.3",
   "suiteVersion": "0.3.3",
   "model": {
@@ -20,14 +20,18 @@
   "targets": {
     "ids": ["raw-model", "stock-opencode", "production-writer"],
     "manifestSha256": "dc2acb88c3d54f3e514e8134e525527a7a8d12ed18224da3a77220a3d72282a7",
+    "receiptMethod": "SHA-256 of exact Git blob bytes at evaluationCommit, read with git cat-file blob <commit>:<path>",
     "adapterReceipts": {
-      "rawModelSha256": "da6fda382002b35c5b573327cb96dda836c2c666bd91d6ef60170e6618a26edd",
-      "rawClientSha256": "62e85171324e91188416106aa68f76be81e482fe3e750d05bed382bf7046f644",
-      "stockOpenCodeEntrypointSha256": "91099a7357b907d680f17008bb486a37be0d4b8e2cd3baaf2f514a337fae8660",
-      "stockOpenCodeRunnerSha256": "13d0cc95f7bb5f330d816c0f059d3412706da594df0a34e5b647dbaf6b358c1d",
+      "rawModelSha256": "f086faa269fa72bc734f91d4d3751564293ba517f9cebad950872c58dbe9da9c",
+      "rawClientSha256": "5175a6d13d4b1627c24cdfec5c0c1e7af6ad39586dc22256e44d71083fc24317",
+      "stockOpenCodeEntrypointSha256": "89ea6c92aac75ecfd9cc5bc1b58c372a6c040ee6333fd68da581aceacce301f0",
+      "stockOpenCodeRunnerSha256": "18eedf45143b8c6307d81495e590555ec77087740655c218e5bb0ecafef1e21e",
       "stockOpenCodeWorkspaceSha256": "04d041e3d33d244a6048b001185a4cc90a0cffec5fc7755249dc1dd690b984fa",
-      "runnerTransportSha256": "d5adb841897c072b1f886d50ad674f214ccbba390e3043d75f80247e662ee267",
-      "usageContractSha256": "2444fbaac1c3aba7026799243f2a7e0517a57cdc4c3d8865cd97141cc58d5651"
+      "productionWriterRuntimeSha256": "b6dec0a7195030c03a95a57bda6909dd3afca5b0e32211be23915577d5ca716a",
+      "runnerTransportSha256": "1cc72b4b2233fb0a097a0eb714dec8adeb7a2b4473317850a6f47241a60c9c9f",
+      "usageContractSha256": "94ea7324b9708915739328d91ca53ad7eadf0ec9d6a788b477cd5e01a1ec0b9f",
+      "authoritativeAuditSha256": "c461f2348ebe58faa0872af1d3bf801c170b9ede54a9ce7d3522105d1474f778",
+      "benchmarkCliSha256": "32525d3e50152824a0f62286a931c9f16be82da5e276a4c9d24c777de6d7a6f2"
     },
     "stockOpenCodeProtocol": "Create a fresh Git repository containing only plain bounded chapter files with stable passage comments; send the public author request and authority but no manuscript body, benchmark material, Writer contract, gold, checks, or narrative tools in the prompt; capture passage, file, marker, and HEAD mutations as edit artifacts; delete the workspace after the cell."
   },
@@ -90,6 +94,12 @@
     "longRangeRequiredEvidenceRecallMinimum": 0.75,
     "meanReliabilityRegressionMaximum": 0,
     "requireSameComparisonKey": true
+  },
+  "telemetryGates": {
+    "requireCompleteUsage": true,
+    "requireRawCacheBreakdown": true,
+    "requireWriterPhases": true,
+    "requirePhaseTotalReconciliation": true
   },
   "executionRule": "Run both tracks from the frozen candidate source and task receipts. Preserve every failed cell. Do not inspect sealed outputs to alter code, prompts, context policy, scorer, tasks, targets, gates, or human-review selection. Any infrastructure-only recovery is a separate immutable attempt."
 }
