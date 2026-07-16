@@ -41,6 +41,12 @@ The audit is therefore rejected for the production candidate. For the preregiste
 
 `A3-PROBE-002` then exercised a distant-constraint Revise task through the exact complete-bounded CLI path. It admitted 200 passages and 28,364 words, proposed an edit only to `ch12:p002`, and scored 1.0000 on recall, grounding, scope, proposal validity, source preconditions, preservation, and uncommitted authority. The $0.0293, 55-second smoke supports proceeding to full validation but does not replace it.
 
+## Attempt 4 decision
+
+`A3-VAL-004` completed 36/36 tasks with complete bounded context. Overall and long-range recall, grounding, proposal validity, source preconditions, preservation, and uncommitted authority were all 1.0000. Mean context was 206.6 passages and 29,336 words; the run cost $1.1153 and its mean cell latency was 85.9 seconds. These costs and the absence of compression are required limitations.
+
+The candidate still cannot freeze because four Diagnose tasks produced five safety failures. Three resolved intentional controls were expanded into multiple structured findings even when the answer correctly said there was no contradiction. The blank-folio control also omitted the explicit no-error/intentional verdict required by its control check. The Neris voice diagnosis identified the register shift in prose and findings, but its finding statement did not explicitly name the voice inconsistency category. The next candidate keeps complete bounded context and tightens the Diagnose contract: lead with a problem/no-problem/unresolved verdict, reserve structured findings for actual defects, put confirmations and resolved apparent problems in observations, and explicitly name the violated narrative constraint in every true finding.
+
 ## Reproduction contract
 
 - Candidate source is launched directly from the recorded Git commit.

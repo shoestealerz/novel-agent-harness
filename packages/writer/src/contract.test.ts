@@ -35,6 +35,16 @@ test("renders the production contract without benchmark data", () => {
   assert.match(contract, /selectedContext/)
   assert.match(contract, /ch01:p001/)
   assert.doesNotMatch(contract, /checks|criteria|gold/)
+
+  const diagnose = createWriterTask({ request: "Diagnose the bell", job: "diagnose", context })
+  const diagnoseContract = renderWriterContract(diagnose)
+  assert.match(diagnoseContract, /not a continuity error because it is explained or intentional/)
+  assert.match(diagnoseContract, /return findings empty when there is no defect/)
+  const diagnoseSchema = writerResponseSchemaFor(diagnose)
+  assert.match(diagnoseSchema.properties.findings.description ?? "", /Actual narrative defects only/)
+  const statement = diagnoseSchema.properties.findings.items.properties.statement
+  assert.ok("description" in statement)
+  if ("description" in statement) assert.match(statement.description, /voice inconsistency/)
 })
 
 test("constrains structured evidence and edit targets to admitted passage references", () => {
