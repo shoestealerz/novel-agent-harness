@@ -47,6 +47,10 @@ The audit is therefore rejected for the production candidate. For the preregiste
 
 The candidate still cannot freeze because four Diagnose tasks produced five safety failures. Three resolved intentional controls were expanded into multiple structured findings even when the answer correctly said there was no contradiction. The blank-folio control also omitted the explicit no-error/intentional verdict required by its control check. The Neris voice diagnosis identified the register shift in prose and findings, but its finding statement did not explicitly name the voice inconsistency category. The next candidate keeps complete bounded context and tightens the Diagnose contract: lead with a problem/no-problem/unresolved verdict, reserve structured findings for actual defects, put confirmations and resolved apparent problems in observations, and explicitly name the violated narrative constraint in every true finding.
 
+## Diagnose-discipline probe decision
+
+`A3-PROBE-003` reran exactly the four failed Diagnose cells after tightening that contract. All four completed, all three intentional controls returned an explicit no-error verdict with zero findings, and recall and grounding were 1.0000. The remaining nominal safety failure was a benchmark false negative: the true Neris finding said her dialogue “violates her established character voice,” while suite 0.3.2 accepted only “inconsistent” or “constraint.” Corpus 0.2.3 / suite 0.3.3 broadens that one semantic pattern to equivalent violation, departure, break, and shift language and adds the observed statement as a scorer regression. No response is silently rescored into an authoritative result; the complete public validation split must be rerun on the corrected version.
+
 ## Reproduction contract
 
 - Candidate source is launched directly from the recorded Git commit.

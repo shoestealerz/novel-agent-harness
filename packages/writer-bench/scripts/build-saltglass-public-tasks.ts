@@ -5,7 +5,7 @@ import { writeJsonl } from "../src/io.ts"
 
 const root = resolve("corpora/saltglass-vigil")
 const suite = "writer-harness-book-scale-alpha3"
-const suiteVersion = "0.3.2"
+const suiteVersion = "0.3.3"
 const source = "native:saltglass-vigil"
 
 type Coverage = "long-range" | "temporal" | "distractor" | "ambiguous" | "human-review" | "controlled-context"
@@ -288,7 +288,7 @@ const variantCases: VariantCase[] = [
     ["ch07:p012"],
     ["ch01:p001", "ch05:p018", "ch07:p012"],
     "ch07:p012",
-    ["Neris", "slang|song|lyric|voice", "inconsistent|constraint"],
+    ["Neris", "slang|song|lyric|voice", "inconsisten|constraint|violat|depart|break|shift"],
     ["long-range"],
   ),
   v(

@@ -1,11 +1,11 @@
 {
   "id": "saltglass-vigil-alpha3",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "suite": "writer-harness-book-scale-alpha3",
   "publicFiles": ["tasks/development.jsonl", "tasks/validation.jsonl"],
   "sealed": {
     "count": 60,
-    "sha256": "265be591baff58cfdd7d9c82fdedc6480757ea7acefd5430078d4f90575301a9",
+    "sha256": "844f6fd84fe9819d996a66a370cb0cdb828ba1e6f54fc2b749565a2d4ba54cc5",
     "publicationStatus": "withheld-until-authoritative-run"
   },
   "expected": {

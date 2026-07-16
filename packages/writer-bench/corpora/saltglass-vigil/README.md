@@ -65,6 +65,8 @@ The `gold` directory contains 113 evidence-linked records: 21 entities, eight wo
 
 The deterministic public builder produces 36 development and 36 validation tasks. The 60 sealed release tasks are stored outside the public repository until the authoritative run; `task-matrix.json` freezes their LF-normalized SHA-256 receipt and the complete 132-task allocation. The matrix validator audits job and split counts, long-range evidence, temporal boundaries, declared distractors, ambiguous-intent links, Diagnose controls and variants, Revise proposal gates, the 24-task controlled-context subset, and the 48-task human-review sample.
 
+Corpus 0.2.3 / suite 0.3.3 corrects one validation false negative discovered by `A3-PROBE-003`: a true Neris voice finding said the passage “violates her established character voice,” but the 0.3.2 semantic pattern accepted only the literal words “inconsistent” or “constraint.” The corrected check accepts equivalent violation, departure, break, and shift language. It does not change the manuscript, gold evidence, target context, required diagnosis, or any safety threshold; earlier results remain immutable under their recorded versions.
+
 ```sh
 bun run corpus:tasks:build
 bun run corpus:tasks:validate

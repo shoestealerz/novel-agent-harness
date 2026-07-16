@@ -155,6 +155,37 @@ test("scores the proposed replacement length instead of surrounding explanation"
   assert.equal(scoreResponse(task, response).score, 1)
 })
 
+test("accepts an explicit narrative-constraint violation as a voice inconsistency", () => {
+  const task: Task = {
+    id: "task",
+    suite: "suite",
+    suiteVersion: "1",
+    source: "native",
+    job: "diagnose",
+    prompt: "diagnose",
+    checks: [{
+      id: "expected-finding",
+      kind: "finding_content",
+      required: [{ all: ["Neris", "slang|song|lyric|voice", "inconsisten|constraint|violat|depart|break|shift"] }],
+      safety: true,
+    }],
+  }
+  const response: ExecutionResponse = {
+    protocolVersion,
+    taskId: "task",
+    text: "Confirmed problem.",
+    artifacts: {
+      findings: [{
+        id: "voice:neris-register",
+        statement: "Neris's dialogue violates her established character voice, which is consistently precise and formal rather than colloquial or songlike.",
+      }],
+    },
+  }
+  const result = scoreResponse(task, response)
+  assert.equal(result.score, 1)
+  assert.deepEqual(result.safetyFailures, [])
+})
+
 test("scores response-wide preservation language in structured artifacts", () => {
   const task: Task = {
     id: "task",
