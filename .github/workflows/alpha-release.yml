@@ -7,7 +7,7 @@ on:
         description: Exact prerelease tag; must match v + root package version
         required: true
         type: string
-        default: v0.1.0-alpha.1
+        default: v0.1.0-alpha.2
 
 permissions:
   contents: read
@@ -33,13 +33,14 @@ jobs:
         with:
           node-version: 22
       - run: bun install --frozen-lockfile --ignore-scripts
+      - run: bun run verify:cli-install
       - run: bun run typecheck
         working-directory: packages/writer
       - run: bun run test
         working-directory: packages/writer
       - run: bun run typecheck
         working-directory: packages/opencode
-      - run: bun test --timeout 30000 test/writer/session.test.ts test/tool/novel.test.ts test/tool/registry.test.ts test/cli/writer.test.ts test/cli/writer-process.test.ts test/cli/help/help-snapshots.test.ts
+      - run: bun test --timeout 30000 test/writer/session.test.ts test/tool/novel.test.ts test/tool/registry.test.ts test/cli/writer.test.ts test/cli/writer-process.test.ts test/cli/novel-bin.test.ts test/cli/help/help-snapshots.test.ts
         working-directory: packages/opencode
       - run: bun test test/agent/agent.test.ts -t "writer agent remains proposal-only"
         working-directory: packages/opencode

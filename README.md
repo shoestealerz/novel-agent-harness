@@ -4,7 +4,7 @@ An open-source model harness for writing, editing, and translating long-form fic
 
 Novel Agent Harness adapts the reliable parts of coding agents—scoped tasks, controlled context, immutable patches, validation, review, and reversible commits—to novels. The author remains the final authority: analysis and proposed edits are distinct from applying changes.
 
-The project is currently building its public harness core. The private web application is intentionally deferred until the harness protocol is stable.
+The public harness core and first interactive CLI are available as an alpha. The private web application is intentionally deferred until the harness protocol is stable.
 
 ## Current capabilities
 
@@ -41,16 +41,17 @@ The integrated reliability evaluation completed 108/108 cells. The graduated har
 
 ## Alpha quick start
 
-The alpha is source-distributed and requires Git, Bun 1.3.14, and Node.js 22 or newer. Clone only from this repository, install the locked dependencies, and verify the Writer command before opening a manuscript workspace:
+The alpha is source-distributed and requires Git and Bun 1.3.14 or newer. Clone only from this repository, install the locked dependencies, and register the `novel` command once:
 
 ```bash
-git clone https://github.com/shoestealerz/novel-agent-harness.git
+git clone --branch v0.1.0-alpha.2 --depth 1 https://github.com/shoestealerz/novel-agent-harness.git
 cd novel-agent-harness
 bun install --frozen-lockfile --ignore-scripts
-bun run writer -- --help
+bun run install:cli
+novel --help
 ```
 
-The proposal-only Writer path does not require the inherited desktop/native lifecycle scripts. Full monorepo development and the interactive OpenCode surfaces use `bun install --frozen-lockfile`; on Windows that also requires Visual Studio Build Tools with the C++ workload.
+`bun run install:cli` uses Bun's global link mechanism, so the command continues to use this checked-out, locked source tree. Run it again if the checkout is moved. The proposal-only Writer path does not require inherited desktop/native lifecycle scripts. Full monorepo development and the inherited OpenCode surfaces use `bun install --frozen-lockfile`; on Windows that also requires Visual Studio Build Tools with the C++ workload. Node.js 22 or newer is needed for benchmark and full monorepo development commands, but not for the `novel` launcher itself.
 
 Provider credentials are read by the retained OpenCode model layer. Keep keys in its provider configuration or the current process environment; never add them to a novel repository. Manuscript passages and Writer session context are sent to the provider selected by the author.
 
@@ -66,7 +67,45 @@ bun run --cwd packages/writer-bench test
 
 Benchmark model credentials and local target files are intentionally excluded from Git. See [`packages/writer-bench/README.md`](packages/writer-bench/README.md) for runner usage.
 
-### Headless Writer workflow
+### Interactive Writer workflow
+
+Start with a separate, clean Git repository containing committed chapter files. `novel init` conservatively discovers tracked Markdown or text chapters under `manuscript/`, `chapter/`, `chapters/`, or `draft/`; explicit `--chapter stable-id=path` mappings remain available for other layouts.
+
+```bash
+cd my-novel
+novel init
+
+# Review the inserted stable passage markers, then establish the clean base.
+git add novel.json manuscript
+git commit -m "Initialize Novel Agent workspace"
+
+# One-time credential setup; choose a provider interactively or name it.
+novel login deepseek
+novel models deepseek
+
+# Open the Writer agent in the current novel.
+novel --model deepseek/deepseek-v4-pro
+```
+
+Inside the session, write normal requests or use:
+
+```text
+/status              workspace, model, job, Git, and pending proposal
+/job auto|JOB        automatic routing or explain, diagnose, plan, revise
+/model PROVIDER/ID   change the model for later prompts
+/review [ID]         render the latest or named immutable proposal diff
+/approve [ID]        render again, require typed APPLY, then verified Git commit
+/reject [ID]         dismiss without deleting the immutable audit artifact
+/new                 start a new conversation in the same novel
+/session             print the durable session ID
+/exit                save and leave
+```
+
+Resume with `novel --continue` or the exact command printed at exit, `novel --session ses_...`. A normal writing request can never bypass proposal review: scoped Revise produces an immutable artifact, and `/approve` is the only interactive path to the existing author-confirmed commit transaction.
+
+Provider credentials are stored by the retained OpenCode credential service outside the novel repository. Environment variables such as `DEEPSEEK_API_KEY` also remain supported. Manuscript passages and Writer session context are sent to the provider selected by the author.
+
+### Headless and automation workflow
 
 For a Git-backed novel workspace containing `novel.json` and stable passage markers:
 
@@ -108,4 +147,4 @@ The repository history begins with that source snapshot as a single baseline com
 
 ## Status
 
-Phase 7 experiments are complete. Phase 8—the public writing-harness MVP—is active. Version `0.1.0-alpha.1` supports Explain, Diagnose, Plan, and scoped Revise through the source-distributed headless workflow. Broader generation, translation, a stable installable binary, the private web application, and broad literary-quality claims remain outside this alpha. See [RELEASE.md](RELEASE.md) for the release gate and limitations.
+Phase 7 experiments and the public harness MVP are complete. Version `0.1.0-alpha.2` supports Explain, Diagnose, Plan, and scoped Revise through a globally linked interactive `novel` command and the structured headless workflow. Broader generation, translation, a standalone binary or package-registry distribution, the private web application, and broad literary-quality claims remain outside this alpha. See [RELEASE.md](RELEASE.md) for the release gate and limitations.
