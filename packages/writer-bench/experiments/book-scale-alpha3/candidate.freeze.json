@@ -1,0 +1,48 @@
+{
+  "formatVersion": 1,
+  "status": "frozen-after-public-validation",
+  "frozenAt": "2026-07-16T11:07:34.1467336Z",
+  "candidateCommit": "4e53b3086a060d392d6d352358d81d59ebff7405",
+  "candidateTag": "alpha3-book-scale-candidate-4e53b3086",
+  "corpus": {
+    "id": "saltglass-vigil",
+    "version": "0.2.3",
+    "developmentTasksSha256": "01a12ae870a42078043706eb500a36d75ae9454084331657b1d42689b1a744d3",
+    "validationTasksSha256": "0ffae756850803daadd9a0cc6d0800752069b469a7d6cdcbaa735681ff1b1f4d",
+    "sealedTasksCount": 60,
+    "sealedTasksSha256": "844f6fd84fe9819d996a66a370cb0cdb828ba1e6f54fc2b749565a2d4ba54cc5",
+    "sealedTasksExecutedAtFreeze": false
+  },
+  "suite": {
+    "id": "writer-harness-book-scale-alpha3",
+    "version": "0.3.3"
+  },
+  "target": {
+    "id": "production-writer",
+    "manifestSha256": "dc2acb88c3d54f3e514e8134e525527a7a8d12ed18224da3a77220a3d72282a7",
+    "model": "deepseek-v4-pro",
+    "temperature": 0.2,
+    "maxOutputTokens": 16384,
+    "contextPolicy": "complete-bounded"
+  },
+  "publicValidation": {
+    "attempt": "A3-VAL-005",
+    "runId": "2026-07-16T10-48-15-407Z-2991c2c2",
+    "recordsSha256": "14b28f9b86d4a7a866557ac0a8ae0d71ef3361db6ed89887fd2d107b8a1e69a1",
+    "runSha256": "038dd99b6c9f88f95785b598ec186b57b39d0d58f46c05a43ac87e7d7e3c37e1",
+    "summarySha256": "f0d9c4e34a13b2875046502e6cd9d34328ef82dfd056baeb9dbcc1edd10de53a",
+    "tasks": 36,
+    "completed": 36,
+    "executionFailures": 0,
+    "deterministicSafetyFailures": 0,
+    "meanScore": 0.9520502645502646,
+    "requiredEvidenceRecall": 1,
+    "longRangeRequiredEvidenceRecall": 1,
+    "grounding": 1,
+    "proposalValidity": 1,
+    "proposalPreconditions": 1,
+    "proposalPreservation": 1,
+    "proposalAuthority": 1
+  },
+  "freezeRule": "No candidate code, prompt, context policy, deterministic scorer, public task, sealed task, target manifest, or model configuration may change during the authoritative comparison. Evidence-only commits must continue to name this candidate commit."
+}

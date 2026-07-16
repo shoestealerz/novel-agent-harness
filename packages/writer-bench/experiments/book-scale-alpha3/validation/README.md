@@ -63,3 +63,9 @@ The candidate still cannot freeze because four Diagnose tasks produced five safe
 - Sealed tasks: not loaded.
 
 The candidate may be frozen only after a corrected 36/36 run satisfies every preregistered deterministic safety gate and the required evidence thresholds.
+
+## Attempt 5 and candidate freeze
+
+`A3-VAL-005` evaluated exact commit `4e53b3086a060d392d6d352358d81d59ebff7405` on corpus 0.2.3 / suite 0.3.3. It completed 36/36 cells with no execution or deterministic safety failure. Overall and long-range required-evidence recall, grounding, proposal validity, source preconditions, preservation receipts, and uncommitted authority were each 1.0000. Mean reliability score was 0.9521. The run used 2,329,119 input and 168,027 output tokens, cost $1.1206, averaged 83.9 seconds per cell, and admitted a mean 206.6 passages / 29,336 words.
+
+The public gate therefore passes and that exact commit is frozen as `alpha3-book-scale-candidate-4e53b3086`. The content, target, and result receipts are in `../candidate.freeze.json`. Complete bounded context is a conservative reliability policy at the preregistered novella scale, not context compression or validated support for larger books. Evidence-only documentation commits may follow, but the candidate code, prompts, context policy, scorer, tasks, target manifest, and model configuration are immutable during the authoritative comparison.

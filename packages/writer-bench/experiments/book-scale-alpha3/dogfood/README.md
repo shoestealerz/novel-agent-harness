@@ -168,7 +168,10 @@ are never reused. A failure may be split when its causes or remedies differ.
 Model-behavior failures point to frozen benchmark tasks; harness-behavior
 failures require deterministic tests before disposition.
 
-The Alpha 2 operational matrix and targeted candidate reruns are complete. The
-high-severity failures have candidate fixes and deterministic regressions. The
-dogfood phase remains open until the 36-task public validation run confirms the
-candidate, after which its exact commit must be frozen before sealed tasks.
+The Alpha 2 operational matrix and targeted candidate reruns are complete.
+Public validation attempt `A3-VAL-005` confirmed the retained fixes across all
+36 cells with zero deterministic safety failures and perfect overall and
+long-range evidence recall, grounding, and proposal safeguards. Exact commit
+`4e53b3086a060d392d6d352358d81d59ebff7405` is frozen before sealed execution;
+remaining accepted limitations stay open as product evidence rather than
+candidate blockers.
