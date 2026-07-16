@@ -1,0 +1,47 @@
+{
+  "formatVersion": 1,
+  "status": "frozen-before-authoritative-output-acceptance",
+  "frozenAt": "2026-07-16T14:21:01.6447118Z",
+  "reason": "The preregistered review manifest spans development, validation, and sealed tasks, while the primary automated comparison contains only sealed tasks. This receipt operationalizes the already-frozen sample and trial without changing task selection, pair identities, left/right placement, targets, model behavior, context policy, rating criteria, or thresholds.",
+  "candidateCommit": "4e53b3086a060d392d6d352358d81d59ebff7405",
+  "evaluationCommit": "4920567ac46d47ec6e5a9de1a50d973f951f086c",
+  "corpusVersion": "0.2.3",
+  "suiteVersion": "0.3.3",
+  "privateSuiteSha256": "08d00025b8505bf74226fe6305eecdf9fbf98a98cff377a86c021fa3ca6e9d29",
+  "humanReviewManifestSha256": "4981dee253c5017eee6f604603431f4372403d4598ecaf8827347a95abaec336",
+  "model": {
+    "comparisonKey": "deepseek-v4-pro|temperature=0.2|max=16384|book-scale-alpha3=v1",
+    "temperature": 0.2,
+    "maxOutputTokens": 16384
+  },
+  "targets": {
+    "ids": ["raw-model", "stock-opencode", "production-writer"],
+    "manifestSha256": "dc2acb88c3d54f3e514e8134e525527a7a8d12ed18224da3a77220a3d72282a7"
+  },
+  "track": {
+    "tasks": 48,
+    "trials": 1,
+    "targets": 3,
+    "cells": 144,
+    "contextMode": "full",
+    "concurrency": 3,
+    "jobs": { "plan": 24, "revise": 24 },
+    "splits": { "development": 16, "validation": 11, "sealed": 21 }
+  },
+  "resumeAfterPrimary": {
+    "rule": "Resume from the accepted primary full-context run. Reuse trial-zero outputs for the 21 sealed review tasks across all three targets; execute the 27 development and validation tasks across all three targets.",
+    "reusedCells": 63,
+    "newProviderCalls": 81
+  },
+  "review": {
+    "comparisons": 96,
+    "minimumReviewersPerPair": 3,
+    "minimumPairRatings": 288,
+    "dimensions": ["proseQuality", "voiceRetention", "pacingOrDramaticEffect", "constraintFidelity", "usefulness"],
+    "scale": { "minimum": 1, "maximum": 5 },
+    "forcedPreference": ["left", "tie", "right"],
+    "analysis": "quantitative first; deterministic 10000-draw task-clustered bootstrap by named baseline; rationales inspected only after the quantitative aggregate and its hash are frozen"
+  },
+  "executionRule": "Generate the review track only after the primary run is accepted. Preserve every failed cell. Do not replace outputs, select a different trial, alter the packet, or inspect rationales before the quantitative freeze. A failed automated safety gate blocks creative-quality improvement claims regardless of human preference."
+}
+

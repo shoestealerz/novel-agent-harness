@@ -20,6 +20,7 @@ The package is independent of OpenCode's runtime. A target is any command that a
 - A small native smoke suite that demonstrates evidence, intentional exceptions, scoped revision, and causal planning.
 - A validated synthetic pilot corpus, `Harbor Light`, with stable passages, gold story state, planted defects, deliberate exceptions, twelve protocol tasks, and seven context stress tasks.
 - A preregistered Alpha 3 book-scale program covering a 30,000–50,000-word synthetic novella, 132 native tasks, operational dogfooding, same-model controls, and blinded human review. See [`experiments/book-scale-alpha3/PREREGISTRATION.md`](experiments/book-scale-alpha3/PREREGISTRATION.md).
+- Offline blinded-review packet generation and quantitative analysis with eligibility, consent, five anchored dimensions, forced preference, task-clustered intervals, and inter-rater agreement. See [`experiments/book-scale-alpha3/HUMAN_REVIEW.md`](experiments/book-scale-alpha3/HUMAN_REVIEW.md).
 - The complete 36,122-word, 14-chapter `Saltglass Vigil` canonical manuscript, its SHA-256-frozen story architecture, and executable scale, voice, chronology, narrative-state, and dependency gates. See [`corpora/saltglass-vigil/README.md`](corpora/saltglass-vigil/README.md).
 
 The smoke suite verifies the runner. It is not the finished research corpus.
