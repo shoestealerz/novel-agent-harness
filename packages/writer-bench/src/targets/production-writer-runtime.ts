@@ -90,7 +90,6 @@ export function buildWriterArguments(task: ExecutionTask, root: string, model: s
   const contextSpec = task.contextSpec
   if (!contextSpec) return args
   appendMany(args, "--focus", contextSpec.focusRefs)
-  appendMany(args, "--dependency", contextSpec.dependencyRefs)
   appendMany(args, "--preserve", contextSpec.preservationRefs)
   appendMany(
     args,

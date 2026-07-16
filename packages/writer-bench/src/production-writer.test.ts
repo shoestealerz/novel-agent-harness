@@ -50,7 +50,7 @@ test("executes the shipped Writer command protocol against an isolated manuscrip
   assert.equal(response.metadata?.sessionID, "ses_production_fixture")
 })
 
-test("maps the complete public context contract to Writer CLI flags", () => {
+test("maps author constraints but not gold dependencies to Writer CLI flags", () => {
   const args = buildWriterArguments(
     {
       ...task,
@@ -82,6 +82,7 @@ test("maps the complete public context contract to Writer CLI flags", () => {
     "--focus",
   ])
   assert.ok(args.includes("ch02:p001=the bell"))
+  assert.equal(args.includes("--dependency"), false)
   assert.ok(args.includes("--exclude"))
   assert.ok(args.includes("--through"))
 })
