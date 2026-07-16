@@ -39,6 +39,8 @@ The next candidate must canonicalize the observed container shapes and add a bou
 
 The audit is therefore rejected for the production candidate. For the preregistered 30,000–50,000-word Alpha 3 scale, the next candidate uses complete context through the author-declared temporal boundary when the manuscript fits the model window. This is neither retrieval nor a claim of context compression: it is a conservative reliability policy whose token cost, latency, and lack of support for larger manuscripts must be reported. Lossy selection and hierarchical retrieval remain experimental until a separate preregistered study validates them.
 
+`A3-PROBE-002` then exercised a distant-constraint Revise task through the exact complete-bounded CLI path. It admitted 200 passages and 28,364 words, proposed an edit only to `ch12:p002`, and scored 1.0000 on recall, grounding, scope, proposal validity, source preconditions, preservation, and uncommitted authority. The $0.0293, 55-second smoke supports proceeding to full validation but does not replace it.
+
 ## Reproduction contract
 
 - Candidate source is launched directly from the recorded Git commit.
