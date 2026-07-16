@@ -3,7 +3,7 @@ import { readFile } from "node:fs/promises"
 import { fileURLToPath } from "node:url"
 import test from "node:test"
 import { parseTargetFile, type ExecutionTask } from "./contracts.ts"
-import { buildWriterArguments, executeProductionWriter } from "./targets/production-writer-runtime.ts"
+import { buildWriterArguments, executeProductionWriter, writerPhaseUsage } from "./targets/production-writer-runtime.ts"
 
 const task: ExecutionTask = {
   id: "production-explain",
@@ -56,6 +56,34 @@ test("executes the shipped Writer command protocol against an isolated manuscrip
   assert.equal(response.usage?.inputTokens, 12)
   assert.equal(response.metadata?.adapter, "production-opencode-writer")
   assert.equal(response.metadata?.sessionID, "ses_production_fixture")
+  const phases = response.metadata?.phaseUsage as {
+    contextSelection: { inputTokens: number; outputTokens: number; costUsd: number; latencyMs: number }
+    execution: { inputTokens: number; outputTokens: number; costUsd: number; latencyMs: number }
+  }
+  assert.equal(phases.contextSelection.inputTokens, 3)
+  assert.equal(phases.execution.inputTokens, 9)
+  assert.equal(phases.execution.outputTokens, 4)
+  assert.ok(phases.contextSelection.latencyMs >= 0)
+  assert.ok(phases.execution.latencyMs >= 0)
+})
+
+test("derives phase usage from progress events without double-counting selector work", () => {
+  const phases = writerPhaseUsage([
+    { atMs: 10, event: { phase: "context-selection", status: "started" } },
+    {
+      atMs: 30,
+      event: { phase: "context-selection", status: "completed", usage: { inputTokens: 7, outputTokens: 2, costUsd: 0.4 } },
+    },
+    { atMs: 35, event: { phase: "execution", status: "started" } },
+    {
+      atMs: 80,
+      event: { phase: "execution", status: "completed", usage: { inputTokens: 20, outputTokens: 8, costUsd: 1.1 } },
+    },
+  ])
+  assert.deepEqual(phases, {
+    contextSelection: { inputTokens: 7, outputTokens: 2, costUsd: 0.4, latencyMs: 20 },
+    execution: { inputTokens: 13, outputTokens: 6, costUsd: 0.7000000000000001, latencyMs: 45 },
+  })
 })
 
 test("maps author constraints but not gold dependencies to Writer CLI flags", () => {

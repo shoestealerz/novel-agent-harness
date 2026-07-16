@@ -34,11 +34,11 @@ export async function executeProductionWriter(
     const command = options.command ?? productionWriterCommand()
     const model = options.model ?? requiredEnvironment("WRITER_BENCH_OPENCODE_MODEL")
     const started = performance.now()
-    const output = await invoke(command, buildWriterArguments(task, root, model), options.timeoutMs, {
+    const invocation = await invoke(command, buildWriterArguments(task, root, model), options.timeoutMs, {
       ...process.env,
       OPENCODE_DB: join(root, ".opencode.db"),
     })
-    return productionExecutionResponse(task, output, performance.now() - started, model)
+    return productionExecutionResponse(task, invocation.output, performance.now() - started, model, invocation.phases)
   } finally {
     await rm(root, { recursive: true, force: true })
   }
@@ -118,6 +118,7 @@ export function productionExecutionResponse(
   value: unknown,
   latencyMs: number,
   model: string,
+  phases?: WriterPhaseUsage,
 ): ExecutionResponse {
   const output = requireObject(value, "production Writer output")
   if (output.protocolVersion !== 1) throw new Error("production Writer protocolVersion must be 1")
@@ -147,6 +148,7 @@ export function productionExecutionResponse(
       sessionID: requireString(output.sessionID, "production Writer sessionID"),
       authority,
       contextTrace: output.contextTrace,
+      ...(phases ? { phaseUsage: phases } : {}),
     },
   }
 }
@@ -171,8 +173,12 @@ async function invoke(command: string[], args: string[], timeoutMs = 540_000, en
   })
   const stdout: Buffer[] = []
   const stderr: Buffer[] = []
+  const progress = new WriterProgressCollector()
   child.stdout.on("data", (chunk: Buffer) => stdout.push(chunk))
-  child.stderr.on("data", (chunk: Buffer) => stderr.push(chunk))
+  child.stderr.on("data", (chunk: Buffer) => {
+    stderr.push(chunk)
+    progress.push(chunk.toString("utf8"), performance.now())
+  })
   let timedOut = false
   const timeout = setTimeout(() => {
     timedOut = true
@@ -191,10 +197,102 @@ async function invoke(command: string[], args: string[], timeoutMs = 540_000, en
   const text = Buffer.concat(stdout).toString("utf8").trim()
   if (!text) throw new Error("production Writer returned no output")
   try {
-    return JSON.parse(text) as unknown
+    return { output: JSON.parse(text) as unknown, phases: progress.finish(performance.now()) }
   } catch (error) {
     throw new Error(`production Writer returned invalid JSON: ${message(error)}`, { cause: error })
   }
+}
+
+export type WriterPhaseUsage = {
+  contextSelection?: PhaseUsage
+  execution: PhaseUsage
+}
+
+export type PhaseUsage = {
+  inputTokens: number
+  outputTokens: number
+  costUsd: number
+  latencyMs: number
+}
+
+type ProgressSample = {
+  atMs: number
+  event: {
+    phase?: unknown
+    status?: unknown
+    usage?: unknown
+  }
+}
+
+export function writerPhaseUsage(samples: ProgressSample[]): WriterPhaseUsage | undefined {
+  const starts = new Map<string, number>()
+  const completed = new Map<string, PhaseUsage>()
+  for (const sample of samples) {
+    const phase = sample.event.phase
+    const status = sample.event.status
+    if (phase !== "context-selection" && phase !== "execution") continue
+    if (status === "started") {
+      starts.set(phase, sample.atMs)
+      continue
+    }
+    if (status !== "completed") continue
+    const start = starts.get(phase)
+    if (start === undefined) continue
+    const usage = phaseUsage(sample.event.usage, sample.atMs - start)
+    if (usage) completed.set(phase, usage)
+  }
+  const totalExecution = completed.get("execution")
+  if (!totalExecution) return undefined
+  const contextSelection = completed.get("context-selection")
+  return {
+    ...(contextSelection ? { contextSelection } : {}),
+    execution: contextSelection
+      ? {
+          inputTokens: Math.max(0, totalExecution.inputTokens - contextSelection.inputTokens),
+          outputTokens: Math.max(0, totalExecution.outputTokens - contextSelection.outputTokens),
+          costUsd: Math.max(0, totalExecution.costUsd - contextSelection.costUsd),
+          latencyMs: totalExecution.latencyMs,
+        }
+      : totalExecution,
+  }
+}
+
+class WriterProgressCollector {
+  private buffer = ""
+  private readonly samples: ProgressSample[] = []
+
+  push(value: string, atMs: number) {
+    this.buffer += value
+    const lines = this.buffer.split(/\r?\n/)
+    this.buffer = lines.pop() ?? ""
+    for (const line of lines) this.line(line, atMs)
+  }
+
+  finish(atMs: number) {
+    if (this.buffer) this.line(this.buffer, atMs)
+    return writerPhaseUsage(this.samples)
+  }
+
+  private line(line: string, atMs: number) {
+    const prefix = "writer-progress "
+    if (!line.startsWith(prefix)) return
+    try {
+      const event = JSON.parse(line.slice(prefix.length)) as ProgressSample["event"]
+      this.samples.push({ atMs, event })
+    } catch {
+      // Preserve malformed stderr for process diagnostics; it is not valid phase telemetry.
+    }
+  }
+}
+
+function phaseUsage(value: unknown, latencyMs: number): PhaseUsage | undefined {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return undefined
+  const input = value as Record<string, unknown>
+  const inputTokens = input.inputTokens
+  const outputTokens = input.outputTokens
+  const costUsd = input.costUsd
+  if (typeof inputTokens !== "number" || typeof outputTokens !== "number" || typeof costUsd !== "number") return undefined
+  return { inputTokens, outputTokens, costUsd, latencyMs: Math.max(0, latencyMs) }
 }
 
 function validateTask(task: ExecutionTask) {

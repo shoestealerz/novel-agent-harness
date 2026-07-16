@@ -18,6 +18,7 @@ import {
   renderHumanReviewAnalysis,
   renderReviewHtml,
 } from "./human-review.ts"
+import { auditBookScaleRun, renderBookScaleAudit, type BookScaleTrack } from "./book-scale-audit.ts"
 
 const [command, subcommand] = process.argv.slice(2)
 const args = parseArgs(process.argv.slice(command === "import" || command === "corpus" || command === "human-review" ? 4 : 3))
@@ -27,6 +28,7 @@ else if (command === "compare") await compare()
 else if (command === "import" && subcommand === "writingbench") await importWriting()
 else if (command === "import" && subcommand === "constory") await importStory()
 else if (command === "attach-metrics") await attachMetrics()
+else if (command === "audit-book-scale") await auditBookScale()
 else if (command === "corpus" && subcommand === "validate") await corpusValidate()
 else if (command === "corpus" && subcommand === "architecture") await corpusArchitecture()
 else if (command === "corpus" && subcommand === "draft") await corpusDraft()
@@ -125,6 +127,21 @@ async function attachMetrics() {
   run.metrics = [...(run.metrics ?? []), ...metrics]
   await writeJson(resolve(required(args, "out")), run)
   console.log(`Attached ${metrics.length} metric records`)
+}
+
+async function auditBookScale() {
+  const run = (await readJson(resolve(required(args, "run")))) as RunFile
+  const freeze = await readJson(resolve(required(args, "freeze")))
+  const track = required(args, "track")
+  if (track !== "primary" && track !== "controlled") throw new Error("--track must be primary or controlled")
+  const audit = auditBookScaleRun(run, freeze, track as BookScaleTrack)
+  const out = resolve(required(args, "out"))
+  const { mkdir, writeFile } = await import("node:fs/promises")
+  await mkdir(out, { recursive: true })
+  await writeJson(join(out, "audit.json"), audit)
+  await writeFile(join(out, "audit.md"), renderBookScaleAudit(audit))
+  console.log(join(out, "audit.md"))
+  if (!audit.passed) process.exitCode = 2
 }
 
 async function corpusValidate() {
@@ -230,6 +247,7 @@ function usage(code: number): never {
   import writingbench --source benchmark_all.jsonl --out writing.jsonl [--domain "Literature & Art"] [--language en]
   import constory --source prompts.jsonl --out constory.jsonl [--language en]
   attach-metrics --run results/run.json --source official-metrics.jsonl --out results/run-with-metrics.json
+  audit-book-scale --run results/run.json --freeze experiments/book-scale-alpha3/authoritative-run.freeze.json --track primary|controlled --out audit
   corpus validate --corpus corpora/harbor-light
   corpus architecture --corpus corpora/saltglass-vigil
   corpus draft --corpus corpora/saltglass-vigil

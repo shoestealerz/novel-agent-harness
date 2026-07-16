@@ -17,6 +17,16 @@ const manuscript = (
 if (!refs.every((ref) => manuscript.includes(`novel-agent:passage ${ref}`))) {
   throw new Error("fixture did not receive the benchmark passages")
 }
+progress({ phase: "context-selection", status: "started" })
+await new Promise((resolve) => setTimeout(resolve, 5))
+progress({
+  phase: "context-selection",
+  status: "completed",
+  usage: { inputTokens: 3, outputTokens: 1, costUsd: 0.0002 },
+})
+progress({ phase: "execution", status: "started" })
+await new Promise((resolve) => setTimeout(resolve, 5))
+progress({ phase: "execution", status: "completed", usage: { inputTokens: 12, outputTokens: 5, costUsd: 0.001 } })
 console.log(
   JSON.stringify({
     protocolVersion: 1,
@@ -34,6 +44,10 @@ console.log(
     usage: { inputTokens: 12, outputTokens: 5, costUsd: 0.001 },
   }),
 )
+
+function progress(event: Record<string, unknown>) {
+  console.error(`writer-progress ${JSON.stringify({ protocolVersion: 1, sessionID: "ses_production_fixture", ...event })}`)
+}
 
 function flag(name: string) {
   const index = args.indexOf(name)
