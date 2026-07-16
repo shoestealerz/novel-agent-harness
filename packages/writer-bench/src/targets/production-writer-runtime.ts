@@ -88,9 +88,20 @@ export function buildWriterArguments(task: ExecutionTask, root: string, model: s
   validateTask(task)
   const args = ["writer", "run", task.prompt, "--dir", root, "--job", task.job, "--model", model, "--format", "json"]
   const contextSpec = task.contextSpec
+  if (task.contextSelection === "automatic") {
+    args.push("--maximum-context")
+    appendMany(args, "--focus", contextSpec?.focusRefs)
+    appendMany(args, "--preserve", contextSpec?.preservationRefs)
+    appendMany(
+      args,
+      "--preserve-literal",
+      contextSpec?.preservationLiterals?.map((item) => `${item.ref}=${item.text}`),
+    )
+    if (contextSpec?.throughRef) args.push("--through", contextSpec.throughRef)
+    return args
+  }
   if (!contextSpec) return args
   appendMany(args, "--focus", contextSpec.focusRefs)
-  appendMany(args, "--dependency", contextSpec.dependencyRefs)
   appendMany(args, "--preserve", contextSpec.preservationRefs)
   appendMany(
     args,
@@ -150,7 +161,7 @@ export function productionWriterCommand() {
   return parsed
 }
 
-async function invoke(command: string[], args: string[], timeoutMs = 240_000, env = process.env) {
+async function invoke(command: string[], args: string[], timeoutMs = 540_000, env = process.env) {
   const executable = command[0]
   if (!executable) throw new Error("production Writer command is empty")
   const child = spawn(executable, [...command.slice(1), ...args], {
@@ -173,7 +184,9 @@ async function invoke(command: string[], args: string[], timeoutMs = 240_000, en
   }).finally(() => clearTimeout(timeout))
   if (timedOut) throw new Error(`production Writer timed out after ${timeoutMs}ms`)
   if (code !== 0) {
-    throw new Error(`production Writer exited ${code}: ${Buffer.concat(stderr).toString("utf8").trim()}`)
+    const stderrText = Buffer.concat(stderr).toString("utf8").trim()
+    const stdoutText = Buffer.concat(stdout).toString("utf8").trim()
+    throw new Error(`production Writer exited ${code}: ${stderrText || stdoutText || "no diagnostic output"}`)
   }
   const text = Buffer.concat(stdout).toString("utf8").trim()
   if (!text) throw new Error("production Writer returned no output")

@@ -35,6 +35,16 @@ test("renders the production contract without benchmark data", () => {
   assert.match(contract, /selectedContext/)
   assert.match(contract, /ch01:p001/)
   assert.doesNotMatch(contract, /checks|criteria|gold/)
+
+  const diagnose = createWriterTask({ request: "Diagnose the bell", job: "diagnose", context })
+  const diagnoseContract = renderWriterContract(diagnose)
+  assert.match(diagnoseContract, /not a continuity error because it is explained or intentional/)
+  assert.match(diagnoseContract, /return findings empty when there is no defect/)
+  const diagnoseSchema = writerResponseSchemaFor(diagnose)
+  assert.match(diagnoseSchema.properties.findings.description ?? "", /Actual narrative defects only/)
+  const statement = diagnoseSchema.properties.findings.items.properties.statement
+  assert.ok("description" in statement)
+  if ("description" in statement) assert.match(statement.description, /voice inconsistency/)
 })
 
 test("constrains structured evidence and edit targets to admitted passage references", () => {
@@ -133,6 +143,32 @@ test("rejects unsupported evidence and out-of-scope revisions", () => {
     () => parseWriterResult(revise, response({ edits: [{ target: "ch01:p002", replacement: "Changed." }] })),
     /outside the allowed focus/,
   )
+})
+
+test("includes finding evidence in the result-level audit receipt", () => {
+  const result = parseWriterResult(
+    createWriterTask({
+      request: "Explain the bell and the locked door",
+      job: "explain",
+      context: [
+        { ref: "ch01:p001", text: "The bell rang once." },
+        { ref: "ch01:p002", text: "Mara waited at the locked door." },
+      ],
+      contextSpec: { focusRefs: ["ch01:p001"], dependencyRefs: ["ch01:p002"] },
+    }),
+    response({
+      evidence: ["ch01:p001"],
+      findings: [
+        {
+          id: "F1",
+          statement: "The locked door explains why the bell matters.",
+          evidence: ["ch01:p002"],
+        },
+      ],
+    }),
+  )
+
+  assert.deepEqual(result.evidence, ["ch01:p001", "ch01:p002"])
 })
 
 test("seals a valid revision into an uncommitted immutable proposal", () => {

@@ -155,6 +155,37 @@ test("scores the proposed replacement length instead of surrounding explanation"
   assert.equal(scoreResponse(task, response).score, 1)
 })
 
+test("accepts an explicit narrative-constraint violation as a voice inconsistency", () => {
+  const task: Task = {
+    id: "task",
+    suite: "suite",
+    suiteVersion: "1",
+    source: "native",
+    job: "diagnose",
+    prompt: "diagnose",
+    checks: [{
+      id: "expected-finding",
+      kind: "finding_content",
+      required: [{ all: ["Neris", "slang|song|lyric|voice", "inconsisten|constraint|violat|depart|break|shift"] }],
+      safety: true,
+    }],
+  }
+  const response: ExecutionResponse = {
+    protocolVersion,
+    taskId: "task",
+    text: "Confirmed problem.",
+    artifacts: {
+      findings: [{
+        id: "voice:neris-register",
+        statement: "Neris's dialogue violates her established character voice, which is consistently precise and formal rather than colloquial or songlike.",
+      }],
+    },
+  }
+  const result = scoreResponse(task, response)
+  assert.equal(result.score, 1)
+  assert.deepEqual(result.safetyFailures, [])
+})
+
 test("scores response-wide preservation language in structured artifacts", () => {
   const task: Task = {
     id: "task",
@@ -199,7 +230,7 @@ test("scores required motifs on proposed replacement prose instead of explanator
   assert.equal(scoreResponse(task, failing).score, 0)
 })
 
-test("labels context metrics and scores citation precision without a recall requirement", () => {
+test("labels context metrics and grounds citations against the admitted packet", () => {
   const task: Task = {
     id: "task",
     suite: "suite",
@@ -207,6 +238,7 @@ test("labels context metrics and scores citation precision without a recall requ
     source: "native",
     job: "explain",
     prompt: "explain",
+    context: [{ ref: "p1", text: "One" }],
     checks: [{ id: "grounding", kind: "evidence", required: [], allowed: ["p1"], metric: "grounding" }],
   }
   const response: ExecutionResponse = {
@@ -218,4 +250,29 @@ test("labels context metrics and scores citation precision without a recall requ
   const result = scoreResponse(task, response)
   assert.equal(result.score, 0.5)
   assert.equal(result.components[0]?.metric, "grounding")
+})
+
+test("scores context recall from the selector trace rather than answer verbosity", () => {
+  const task: Task = {
+    id: "task",
+    suite: "suite",
+    suiteVersion: "1",
+    source: "native",
+    job: "explain",
+    prompt: "explain",
+    context: [
+      { ref: "p1", text: "One" },
+      { ref: "p2", text: "Two" },
+      { ref: "p3", text: "Three" },
+    ],
+    checks: [{ id: "recall", kind: "evidence", required: ["p1", "p2"], allowed: ["p1", "p2"], metric: "context_recall" }],
+  }
+  const response: ExecutionResponse = {
+    protocolVersion,
+    taskId: "task",
+    text: "The answer cites a passage the selector did not admit.",
+    artifacts: { evidence: ["p2"] },
+    metadata: { contextTrace: { selectedRefs: ["p1", "p3"] } },
+  }
+  assert.equal(scoreResponse(task, response).score, 0.5)
 })

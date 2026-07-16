@@ -1,0 +1,95 @@
+{
+  "formatVersion": 1,
+  "revision": 3,
+  "status": "frozen-for-infrastructure-only-resume",
+  "frozenAt": "2026-07-16T13:43:39.5769683Z",
+  "supersedesRevision": 2,
+  "supersededReason": "A3-PRIMARY-001 loaded the sealed split but failed as an infrastructure attempt: the detached evaluation worktree had not been installed in its own directory, raw cache telemetry needed for exact cost was discarded, one successful stock cell was lost to a transient Windows cleanup lock, one raw call reset, provider credit was exhausted after 300 completed cells, and Writer never launched. Revision 3 changes only dependency setup, transport/cleanup reliability, and raw usage telemetry; the candidate, prompts, tasks, outputs, scoring, targets, model behavior, gates, and human-review selection remain frozen.",
+  "sealedTasksExecutedBeforeRevision": true,
+  "candidateCommit": "4e53b3086a060d392d6d352358d81d59ebff7405",
+  "candidateTag": "alpha3-book-scale-candidate-4e53b3086",
+  "evaluationCommit": "4920567ac46d47ec6e5a9de1a50d973f951f086c",
+  "corpusVersion": "0.2.3",
+  "suiteVersion": "0.3.3",
+  "model": {
+    "comparisonKey": "deepseek-v4-pro|temperature=0.2|max=16384|book-scale-alpha3=v1",
+    "temperature": 0.2,
+    "maxOutputTokens": 16384,
+    "seedPolicy": "No provider seed is supplied because DeepSeek V4 Pro does not expose a supported deterministic seed in this path. Trial index and all outputs remain recorded."
+  },
+  "targets": {
+    "ids": ["raw-model", "stock-opencode", "production-writer"],
+    "manifestSha256": "dc2acb88c3d54f3e514e8134e525527a7a8d12ed18224da3a77220a3d72282a7",
+    "adapterReceipts": {
+      "rawModelSha256": "da6fda382002b35c5b573327cb96dda836c2c666bd91d6ef60170e6618a26edd",
+      "rawClientSha256": "62e85171324e91188416106aa68f76be81e482fe3e750d05bed382bf7046f644",
+      "stockOpenCodeEntrypointSha256": "91099a7357b907d680f17008bb486a37be0d4b8e2cd3baaf2f514a337fae8660",
+      "stockOpenCodeRunnerSha256": "13d0cc95f7bb5f330d816c0f059d3412706da594df0a34e5b647dbaf6b358c1d",
+      "stockOpenCodeWorkspaceSha256": "04d041e3d33d244a6048b001185a4cc90a0cffec5fc7755249dc1dd690b984fa",
+      "runnerTransportSha256": "d5adb841897c072b1f886d50ad674f214ccbba390e3043d75f80247e662ee267",
+      "usageContractSha256": "2444fbaac1c3aba7026799243f2a7e0517a57cdc4c3d8865cd97141cc58d5651"
+    },
+    "stockOpenCodeProtocol": "Create a fresh Git repository containing only plain bounded chapter files with stable passage comments; send the public author request and authority but no manuscript body, benchmark material, Writer contract, gold, checks, or narrative tools in the prompt; capture passage, file, marker, and HEAD mutations as edit artifacts; delete the workspace after the cell."
+  },
+  "runtime": {
+    "stockOpenCodeVersion": "1.17.18",
+    "stockOpenCodeBinarySha256": "59b379b53354da72d2c5262119fe70c44b4e473826ebbaa94d47a2d58a359b1a",
+    "bunVersion": "1.3.14",
+    "bunBinarySha256": "0187f68d843f825a72ada4a7eca60db896ed753759a7f8252edcd31ac1bf1b9c"
+  },
+  "rawModelPricing": {
+    "currency": "USD",
+    "unitTokens": 1000000,
+    "inputCacheHit": 0.003625,
+    "inputCacheMiss": 0.435,
+    "output": 0.87,
+    "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+    "retrievedAt": "2026-07-16",
+    "telemetryRequirement": "Every accepted raw-model response must record provider prompt_cache_hit_tokens and prompt_cache_miss_tokens; absence fails the cell."
+  },
+  "primaryTrack": {
+    "suite": "sealed",
+    "suiteSha256": "844f6fd84fe9819d996a66a370cb0cdb828ba1e6f54fc2b749565a2d4ba54cc5",
+    "tasks": 60,
+    "trials": 3,
+    "targets": 3,
+    "cells": 540,
+    "contextMode": "full",
+    "concurrency": 3
+  },
+  "controlledTrack": {
+    "suiteSha256": "255451b3fb737447ad02b2ed082692251988de689cabf38be3a6f76b597f5f11",
+    "tasks": 24,
+    "trials": 3,
+    "targets": 3,
+    "cells": 216,
+    "contextMode": "controlled",
+    "concurrency": 3,
+    "strata": { "explain": 5, "diagnose": 8, "plan": 5, "revise": 6 }
+  },
+  "humanReviewManifestSha256": "4981dee253c5017eee6f604603431f4372403d4598ecaf8827347a95abaec336",
+  "resume": {
+    "sourceAttempt": "A3-PRIMARY-001",
+    "sourceRunId": "2026-07-16T11-20-26-482Z-56a443b8",
+    "reuse": { "stockOpenCodeSuccessfulCells": 121 },
+    "rerun": { "rawModelAllCellsForCostTelemetry": 180, "stockOpenCodeFailedCells": 59, "productionWriterFailedSetupCells": 180 },
+    "newProviderCalls": 419,
+    "rule": "The 179 successful raw outputs remain preserved in A3-PRIMARY-001 but are excluded from the authoritative result because exact cache-aware cost was not recorded. Only the 121 successful stock cells are reused. The resume runner replaces every raw cell, retries only failed stock cells, and executes all Writer cells."
+  },
+  "gates": {
+    "completionMinimum": 0.95,
+    "candidateDeterministicSafetyFailuresMaximum": 0,
+    "candidateSafetyFailureIncreaseMaximum": 0,
+    "proposalValidityMinimum": 1,
+    "proposalPreconditionsMinimum": 1,
+    "proposalPreservationMinimum": 1,
+    "proposalAuthorityMinimum": 1,
+    "groundingMinimum": 0.95,
+    "unsupportedClaimAvoidanceMinimum": 0.95,
+    "requiredEvidenceRecallMinimum": 0.85,
+    "longRangeRequiredEvidenceRecallMinimum": 0.75,
+    "meanReliabilityRegressionMaximum": 0,
+    "requireSameComparisonKey": true
+  },
+  "executionRule": "Run both tracks from the frozen candidate source and task receipts. Preserve every failed cell. Do not inspect sealed outputs to alter code, prompts, context policy, scorer, tasks, targets, gates, or human-review selection. Any infrastructure-only recovery is a separate immutable attempt."
+}

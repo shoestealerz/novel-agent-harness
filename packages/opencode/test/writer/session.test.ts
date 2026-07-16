@@ -16,6 +16,36 @@ const unusedSessionLayer = Layer.mock(Session.Service, {
 })
 
 describe("WriterSession", () => {
+  test("merges automatic selection without weakening author constraints", () => {
+    const merged = WriterSession.mergeSelectionConstraints(
+      {
+        focusRefs: ["ch01:p002", "ch01:p003"],
+        dependencyRefs: ["ch01:p004"],
+        preservationRefs: ["ch01:p005"],
+        preservationLiterals: [{ ref: "ch01:p005", text: "selector paraphrase" }],
+        excludeRefs: ["ch01:p006"],
+        throughRef: "ch01:p007",
+        rationale: "Selected cross-scene context.",
+      },
+      {
+        focusRefs: ["ch01:p001"],
+        preservationRefs: ["ch01:p005"],
+        preservationLiterals: [{ ref: "ch01:p005", text: "Mara waited at the locked door." }],
+        excludeRefs: ["ch01:p008"],
+        throughRef: "ch01:p009",
+      },
+    )
+
+    expect(merged.focusRefs).toEqual(["ch01:p001"])
+    expect(merged.dependencyRefs).toEqual(["ch01:p002", "ch01:p003", "ch01:p004"])
+    expect(merged.preservationRefs).toEqual(["ch01:p005"])
+    expect(merged.preservationLiterals).toEqual([
+      { ref: "ch01:p005", text: "Mara waited at the locked door." },
+    ])
+    expect(merged.excludeRefs).toEqual(["ch01:p008", "ch01:p006"])
+    expect(merged.throughRef).toBe("ch01:p009")
+  })
+
   test("prepares a least-authority task-aware OpenCode turn", async () => {
     await using tmp = await writerWorkspace()
     const turn = await WriterSession.prepare({
@@ -48,15 +78,56 @@ describe("WriterSession", () => {
     const selection = WriterSession.selectionPromptInput({
       sessionID: SessionID.make("ses_writer_selection"),
       request: "Explain the bell",
+      manuscript: [{ ref: "ch01:p001", text: "The bell rang once." }],
     })
     expect(selection.tools).toEqual({
       StructuredOutput: true,
-      novel_list: true,
-      novel_read: true,
-      novel_context: true,
-      novel_state: true,
+      novel_list: false,
+      novel_read: false,
+      novel_context: false,
+      novel_state: false,
       novel_proposal: false,
     })
+    expect(selection.parts[0]?.text).toContain("The bell rang once.")
+  })
+
+  test("executes complete manuscript context through an author boundary without a selector session", async () => {
+    await using tmp = await writerWorkspace()
+    const sessionID = SessionID.make("ses_writer_maximum")
+    const layer = Layer.mock(SessionPrompt.Service, {
+      prompt: () =>
+        Effect.succeed(
+          assistant(
+            sessionID,
+            tmp.path,
+            {
+              answer: "The bell and the locked-door reaction form one beat [ch01:p001] [ch01:p002].",
+              evidence: ["ch01:p001", "ch01:p002"],
+              findings: [],
+              edits: [],
+              data: { observations: [], inferences: [], unresolved: [], preservation: [] },
+            },
+            1,
+          ),
+        ),
+    })
+
+    const output = await Effect.runPromise(
+      WriterSession.run({
+        sessionID,
+        root: tmp.path,
+        request: "Explain the complete beat through ch01:p002",
+        job: "explain",
+        contextStrategy: "maximum",
+        contextSpec: { focusRefs: ["ch01:p001"], throughRef: "ch01:p002" },
+      }).pipe(Effect.provide(Layer.merge(layer, unusedSessionLayer))),
+    )
+
+    expect(output.selection).toBeUndefined()
+    expect(output.contextTrace.strategy).toBe("maximum")
+    expect(output.contextTrace.selectedRefs).toEqual(["ch01:p001", "ch01:p002"])
+    expect(output.task.contextSpec?.focusRefs).toEqual(["ch01:p001"])
+    expect(output.result.evidence).toEqual(["ch01:p001", "ch01:p002"])
   })
 
   test("seals and persists a structured revision response", async () => {
@@ -344,6 +415,8 @@ describe("WriterSession", () => {
         sessionID,
         root: tmp.path,
         request: "Explain what the bell means for Mara",
+        autoContext: true,
+        contextSpec: { focusRefs: ["ch01:p001"], preservationRefs: ["ch01:p002"] },
       }).pipe(Effect.provide(Layer.merge(layer, sessionLayer))),
     )
 

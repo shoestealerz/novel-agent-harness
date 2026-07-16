@@ -44,7 +44,7 @@ export function compileContext<T extends WriterContextTask>(
   const selectedRefs = new Set(selected.map((item) => item.ref))
   const suppliedRefs = task.context?.map((item) => item.ref) ?? []
   return {
-    task: { ...task, context: selected, contextSpec: strategy === "task-aware" ? task.contextSpec : undefined },
+    task: { ...task, context: selected, contextSpec: strategy === "supplied" ? undefined : task.contextSpec },
     trace: {
       strategy,
       suppliedRefs,
@@ -60,9 +60,13 @@ export function compileContext<T extends WriterContextTask>(
 }
 
 function maximumContext(task: WriterContextTask, catalog: WriterContextItem[]) {
+  const boundary = task.contextSpec?.throughRef
+  const boundaryIndex = boundary ? catalog.findIndex((item) => item.ref === boundary) : catalog.length - 1
+  if (boundary && boundaryIndex < 0) throw new Error(`context specification references missing passages: ${boundary}`)
+  const bounded = catalog.slice(0, boundaryIndex + 1)
   const catalogRefs = new Set(catalog.map((item) => item.ref))
   return [
-    ...catalog.map((item) => ({ ...item, metadata: { ...item.metadata, contextRoles: ["maximum-background"] } })),
+    ...bounded.map((item) => ({ ...item, metadata: { ...item.metadata, contextRoles: ["maximum-background"] } })),
     ...(task.context ?? []).filter((item) => !catalogRefs.has(item.ref)),
   ]
 }

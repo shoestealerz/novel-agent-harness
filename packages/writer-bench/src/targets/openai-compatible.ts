@@ -22,7 +22,15 @@ async function execute() {
     text: response.text,
     artifacts: plainArtifacts(task, response.text),
     usage: { ...response.usage, latencyMs: performance.now() - started },
-    metadata: { adapter: "openai-compatible", model: requiredEnvironment("WRITER_BENCH_MODEL") },
+    metadata: {
+      adapter: "openai-compatible",
+      model: requiredEnvironment("WRITER_BENCH_MODEL"),
+      contextTrace: {
+        strategy: "materialized-prompt",
+        contextItems: task.context?.length ?? 0,
+        contextWords: task.context?.reduce((total, item) => total + (item.text.trim() ? item.text.trim().split(/\s+/).length : 0), 0) ?? 0,
+      },
+    },
   }
 }
 

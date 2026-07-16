@@ -1,0 +1,31 @@
+{
+  "systems": [
+    {
+      "id": "raw-model",
+      "label": "Raw DeepSeek V4 Pro",
+      "command": ["{node}", "--experimental-strip-types", "src/targets/openai-compatible.ts"],
+      "timeoutMs": 600000,
+      "baseModel": "deepseek-v4-pro",
+      "comparisonKey": "deepseek-v4-pro|temperature=0.2|max=16384|book-scale-alpha3=v1",
+      "metadata": { "mechanism": "direct-model", "contextTrack": "materialized" }
+    },
+    {
+      "id": "stock-opencode",
+      "label": "Stock OpenCode with DeepSeek V4 Pro",
+      "command": ["{node}", "--experimental-strip-types", "src/targets/opencode-cli.ts"],
+      "timeoutMs": 600000,
+      "baseModel": "deepseek-v4-pro",
+      "comparisonKey": "deepseek-v4-pro|temperature=0.2|max=16384|book-scale-alpha3=v1",
+      "metadata": { "mechanism": "stock-opencode", "contextTrack": "materialized" }
+    },
+    {
+      "id": "production-writer",
+      "label": "Production Novel Agent Harness with DeepSeek V4 Pro",
+      "command": ["{node}", "--experimental-strip-types", "src/targets/production-writer.ts"],
+      "timeoutMs": 600000,
+      "baseModel": "deepseek-v4-pro",
+      "comparisonKey": "deepseek-v4-pro|temperature=0.2|max=16384|book-scale-alpha3=v1",
+      "metadata": { "mechanism": "production-opencode-writer", "contextTrack": "complete-bounded" }
+    }
+  ]
+}

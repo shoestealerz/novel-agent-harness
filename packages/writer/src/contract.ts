@@ -57,6 +57,9 @@ const requirements = {
   ],
   diagnose: [
     "Report only evidence-supported narrative problems; intentional ambiguity is not an error.",
+    "Lead with one explicit verdict: confirmed problem, not a continuity error because it is explained or intentional, or unresolved from the evidence.",
+    "Use findings only for actual defects, contradictions, or violated narrative constraints. Put supporting observations, confirmations, and resolved apparent problems in data.observations; return findings empty when there is no defect.",
+    "Every true finding statement must name its subject and the violated constraint explicitly, such as voice inconsistency, chronology contradiction, or knowledge-boundary violation.",
     "Separate observation, inference, and unresolved possibilities.",
     "Give every finding a stable local ID, statement, evidence, and calibrated confidence.",
   ],
@@ -237,10 +240,25 @@ export function writerResponseSchemaFor(task: WriterTask) {
       evidence: { type: "array", items: evidenceRef },
       findings: {
         ...writerResponseSchema.properties.findings,
+        ...(task.job === "diagnose"
+          ? {
+              description:
+                "Actual narrative defects only. Return an empty array when the apparent problem is explained, intentional, or merely a supporting observation.",
+            }
+          : {}),
         items: {
           ...writerResponseSchema.properties.findings.items,
           properties: {
             ...writerResponseSchema.properties.findings.items.properties,
+            ...(task.job === "diagnose"
+              ? {
+                  statement: {
+                    type: "string",
+                    description:
+                      "Name the subject and violated narrative constraint explicitly, such as voice inconsistency or chronology contradiction.",
+                  },
+                }
+              : {}),
             evidence: { type: "array", items: evidenceRef },
           },
         },
@@ -305,7 +323,7 @@ export function parseWriterResult(task: WriterTask, value: unknown): WriterResul
   const data = record(input.data, "writer response data")
   const parsed = {
     answer,
-    evidence: unique([...evidence, ...cited]),
+    evidence: unique([...evidence, ...cited, ...findings.flatMap((finding) => finding.evidence)]),
     findings,
     edits,
     data: {

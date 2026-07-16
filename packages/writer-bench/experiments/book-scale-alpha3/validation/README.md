@@ -1,0 +1,71 @@
+# Alpha 3 public validation
+
+This directory records validation-task dogfood before the Alpha 3 candidate is frozen. It never contains sealed task bodies, private reviewer identities, credentials, or unpublished manuscripts.
+
+The validation split is run one trial at a time against the production Writer target. Every attempt is immutable in `attempts.jsonl`. A failed or invalid attempt remains in the ledger and is not pooled with a corrected suite version.
+
+## Attempt 1 decision
+
+`A3-VAL-001` completed all 36 public validation tasks, but it cannot support a candidate freeze.
+
+- The native corpus adapter populated the isolated workspace correctly, then converted gold `contextSpec` fields into explicit Writer CLI flags. Any declared context causes the released Writer session to bypass automatic selection, so most tasks admitted only their focus passage. Required-evidence recall was 0.5937 overall and 0.5843 on long-range tasks.
+- Eleven scoped Revise tasks required a preservation passage but omitted that passage from the citation-grounding allowlist. The harness correctly selected and receipted the preservation passage, and the scorer incorrectly counted that required citation as a safety failure.
+
+The adapter now marks materialized native manuscripts for automatic selection and withholds gold context hints from the Writer CLI. The task generator includes every required preservation passage in its grounding allowlist. Because this corrects invalid validation tasks, the corpus manifest moves from 0.2.0 to 0.2.1, the suite moves from 0.3.0 to 0.3.1, and the sealed receipt is regenerated before any sealed task is executed.
+
+## Attempt 2 decision
+
+`A3-VAL-002` completed 30 of 36 public validation tasks but also cannot support a candidate freeze.
+
+- Four cells exceeded the production adapter's internal four-minute timeout. Two more failed because the non-strict selector returned malformed array or preservation fields. These are execution failures, not benchmark misses.
+- The scorer mixed required-evidence recall with a minimal-gold precision penalty. It also treated the small required-evidence set as an exhaustive grounding allowlist, so a detailed answer citing other passages from its admitted packet could be marked unsafe.
+- The selector prompt simultaneously encouraged accounting for inspected passages while forbidding explicit exclusions, causing avoidable over-selection.
+
+The runtime timeout is now nine minutes beneath a ten-minute cell limit. Selector output is normalized more defensively, author-declared focus and exact preservation constraints remain authoritative during automatic selection, and the prompt asks for a minimal relevant packet. Context recall is now pure required-reference recall over the selector trace; grounding checks citations against the actual admitted packet. These benchmark-semantic corrections move the corpus manifest from 0.2.1 to 0.2.2 and the suite from 0.3.1 to 0.3.2. Attempt 2's reported recall and grounding remain in the ledger but must not be compared with corrected runs.
+
+## Attempt 3 decision
+
+`A3-VAL-003` used the corrected 0.3.2 scorer and completed 31 of 36 cells. It is a valid failed validation attempt, not a freeze candidate.
+
+- Every completed response grounded all citations in its admitted packet. Proposal validity, source preconditions, preservation receipts, and uncommitted authority were each 1.0000, with no completed-cell safety failure.
+- Five cells exhausted structured-output repair because DeepSeek returned `focusRefs` in an additional non-strict container shape. Completion was 86.1%, below the 95% gate.
+- Required-evidence recall was 0.6720 overall and 0.6460 on long-range tasks, below the 0.85 and 0.75 gates. The common failure was local adequacy with omitted distant setup, transition, voice, or character-knowledge evidence.
+
+The next candidate must canonicalize the observed container shapes and add a bounded second-pass coverage audit over the already supplied manuscript. The audit may union missing evidence into the preliminary packet but may not receive gold dependencies, invoke broad retrieval, edit text, or weaken author-declared focus and preservation constraints. This changes candidate behavior, not benchmark semantics, so corpus 0.2.2 and suite 0.3.2 remain fixed.
+
+## Coverage-audit probe decision
+
+`A3-PROBE-001` tested the second-pass audit on eight deliberately difficult validation tasks before another full run. It completed 6/8, achieved 0.5889 required-evidence recall, and cost $0.4121. Grounding and proposal safeguards remained perfect, but the mechanism did not make the recall gate plausible and introduced two additional selection-contract failures. The immutable subset record is in `probes.jsonl`; it is not a validation attempt and is not pooled with one.
+
+The audit is therefore rejected for the production candidate. For the preregistered 30,000–50,000-word Alpha 3 scale, the next candidate uses complete context through the author-declared temporal boundary when the manuscript fits the model window. This is neither retrieval nor a claim of context compression: it is a conservative reliability policy whose token cost, latency, and lack of support for larger manuscripts must be reported. Lossy selection and hierarchical retrieval remain experimental until a separate preregistered study validates them.
+
+`A3-PROBE-002` then exercised a distant-constraint Revise task through the exact complete-bounded CLI path. It admitted 200 passages and 28,364 words, proposed an edit only to `ch12:p002`, and scored 1.0000 on recall, grounding, scope, proposal validity, source preconditions, preservation, and uncommitted authority. The $0.0293, 55-second smoke supports proceeding to full validation but does not replace it.
+
+## Attempt 4 decision
+
+`A3-VAL-004` completed 36/36 tasks with complete bounded context. Overall and long-range recall, grounding, proposal validity, source preconditions, preservation, and uncommitted authority were all 1.0000. Mean context was 206.6 passages and 29,336 words; the run cost $1.1153 and its mean cell latency was 85.9 seconds. These costs and the absence of compression are required limitations.
+
+The candidate still cannot freeze because four Diagnose tasks produced five safety failures. Three resolved intentional controls were expanded into multiple structured findings even when the answer correctly said there was no contradiction. The blank-folio control also omitted the explicit no-error/intentional verdict required by its control check. The Neris voice diagnosis identified the register shift in prose and findings, but its finding statement did not explicitly name the voice inconsistency category. The next candidate keeps complete bounded context and tightens the Diagnose contract: lead with a problem/no-problem/unresolved verdict, reserve structured findings for actual defects, put confirmations and resolved apparent problems in observations, and explicitly name the violated narrative constraint in every true finding.
+
+## Diagnose-discipline probe decision
+
+`A3-PROBE-003` reran exactly the four failed Diagnose cells after tightening that contract. All four completed, all three intentional controls returned an explicit no-error verdict with zero findings, and recall and grounding were 1.0000. The remaining nominal safety failure was a benchmark false negative: the true Neris finding said her dialogue “violates her established character voice,” while suite 0.3.2 accepted only “inconsistent” or “constraint.” Corpus 0.2.3 / suite 0.3.3 broadens that one semantic pattern to equivalent violation, departure, break, and shift language and adds the observed statement as a scorer regression. No response is silently rescored into an authoritative result; the complete public validation split must be rerun on the corrected version.
+
+## Reproduction contract
+
+- Candidate source is launched directly from the recorded Git commit.
+- Model: `deepseek/deepseek-v4-pro` / API comparison key `deepseek-v4-pro`.
+- Temperature: 0.2.
+- Maximum output: 16,384 tokens.
+- Concurrency: three.
+- Context: complete ordered manuscript through each task boundary; isolated defect patch when declared; automatic Writer selection without gold dependency hints.
+- Authority: Explain, Diagnose, and Plan are read-only; Revise is immutable proposal-only.
+- Sealed tasks: not loaded.
+
+The candidate may be frozen only after a corrected 36/36 run satisfies every preregistered deterministic safety gate and the required evidence thresholds.
+
+## Attempt 5 and candidate freeze
+
+`A3-VAL-005` evaluated exact commit `4e53b3086a060d392d6d352358d81d59ebff7405` on corpus 0.2.3 / suite 0.3.3. It completed 36/36 cells with no execution or deterministic safety failure. Overall and long-range required-evidence recall, grounding, proposal validity, source preconditions, preservation receipts, and uncommitted authority were each 1.0000. Mean reliability score was 0.9521. The run used 2,329,119 input and 168,027 output tokens, cost $1.1206, averaged 83.9 seconds per cell, and admitted a mean 206.6 passages / 29,336 words.
+
+The public gate therefore passes and that exact commit is frozen as `alpha3-book-scale-candidate-4e53b3086`. The content, target, and result receipts are in `../candidate.freeze.json`. Complete bounded context is a conservative reliability policy at the preregistered novella scale, not context compression or validated support for larger books. Evidence-only documentation commits may follow, but the candidate code, prompts, context policy, scorer, tasks, target manifest, and model configuration are immutable during the authoritative comparison.

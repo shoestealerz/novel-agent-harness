@@ -34,6 +34,14 @@ test("pins comparable raw, stock, and production DeepSeek targets", async () => 
   assert.match(launcher, /"--concurrency", 3/)
 })
 
+test("pins a longer timeout for complete bounded book-scale context", async () => {
+  const path = fileURLToPath(new URL("../experiments/book-scale-alpha3/targets.deepseek.json", import.meta.url))
+  const targets = parseTargetFile(JSON.parse(await readFile(path, "utf8")))
+  assert.equal(new Set(targets.systems.map((target) => target.comparisonKey)).size, 1)
+  assert.ok(targets.systems.every((target) => target.timeoutMs === 600_000))
+  assert.equal(targets.systems.find((target) => target.id === "production-writer")?.metadata?.contextTrack, "complete-bounded")
+})
+
 test("executes the shipped Writer command protocol against an isolated manuscript workspace", async () => {
   const fixture = fileURLToPath(new URL("./targets/production-writer-fixture.ts", import.meta.url))
   const response = await executeProductionWriter(task, {
@@ -50,7 +58,7 @@ test("executes the shipped Writer command protocol against an isolated manuscrip
   assert.equal(response.metadata?.sessionID, "ses_production_fixture")
 })
 
-test("maps the complete public context contract to Writer CLI flags", () => {
+test("maps author constraints but not gold dependencies to Writer CLI flags", () => {
   const args = buildWriterArguments(
     {
       ...task,
@@ -82,6 +90,7 @@ test("maps the complete public context contract to Writer CLI flags", () => {
     "--focus",
   ])
   assert.ok(args.includes("ch02:p001=the bell"))
+  assert.equal(args.includes("--dependency"), false)
   assert.ok(args.includes("--exclude"))
   assert.ok(args.includes("--through"))
 })
@@ -101,6 +110,20 @@ test("delegates unspecified context to the production Writer selector", () => {
     "--format",
     "json",
   ])
+})
+
+test("uses complete bounded native manuscripts with author constraints but no gold dependencies", () => {
+  const args = buildWriterArguments(
+    { ...task, contextSelection: "automatic" },
+    "/novel",
+    "provider/model",
+  )
+  assert.ok(args.includes("--maximum-context"))
+  assert.equal(args.includes("--auto-context"), false)
+  assert.ok(args.includes("--focus"))
+  assert.ok(args.includes("ch01:p001"))
+  assert.equal(args.includes("--dependency"), false)
+  assert.ok(args.includes("--through"))
 })
 
 test("rejects jobs and context that the production MVP does not support", async () => {
@@ -125,5 +148,13 @@ test("records a failed production provider process instead of fabricating a resp
       timeoutMs: 10_000,
     }),
     /exited 17: provider unavailable/,
+  )
+  await assert.rejects(
+    executeProductionWriter(task, {
+      command: [process.execPath, "-e", "process.stdout.write('usage error');process.exit(2)"],
+      model: "fixture/model",
+      timeoutMs: 10_000,
+    }),
+    /exited 2: usage error/,
   )
 })

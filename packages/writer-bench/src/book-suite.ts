@@ -196,6 +196,14 @@ function validateRevise(task: Task) {
   )
   if (!scope || [...scope.allowed].sort().join() !== [...spec.focusRefs].sort().join())
     throw new Error(`${task.id} edit scope does not match focus refs`)
+  const grounding = task.checks?.find(
+    (check): check is Extract<Check, { kind: "evidence" }> =>
+      check.kind === "evidence" && check.id === "citation-grounding",
+  )
+  const missingPreservation = spec.preservationRefs.filter((ref) => !grounding?.allowed?.includes(ref))
+  if (missingPreservation.length) {
+    throw new Error(`${task.id} grounding disallows required preservation refs: ${missingPreservation.join(", ")}`)
+  }
   if (!/do not (?:apply or )?commit/i.test(task.prompt))
     throw new Error(`${task.id} lacks an explicit no-commit instruction`)
 }

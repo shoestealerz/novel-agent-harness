@@ -120,6 +120,16 @@ export const WriterRunCommand = effectCmd({
       .option("model", { alias: "m", type: "string", describe: "model as provider/model" })
       .option("variant", { type: "string", describe: "provider-specific model variant" })
       .option("session", { type: "string", describe: "resume a prior headless Writer session" })
+      .option("auto-context", {
+        type: "boolean",
+        default: false,
+        describe: "automatically add dependencies while preserving explicit focus and preservation constraints",
+      })
+      .option("maximum-context", {
+        type: "boolean",
+        default: false,
+        describe: "use the complete manuscript through the declared temporal boundary",
+      })
       .option("focus", { type: "string", array: true, describe: "stable focus passage reference" })
       .option("dependency", { type: "string", array: true, describe: "stable dependency passage reference" })
       .option("preserve", { type: "string", array: true, describe: "stable passage reference to preserve" })
@@ -132,6 +142,8 @@ export const WriterRunCommand = effectCmd({
       .option("through", { type: "string", describe: "inclusive temporal boundary passage reference" })
       .option("format", { type: "string", choices: ["json", "text"] as const, default: "json" }),
   handler: Effect.fn("Cli.writer.run")(function* (args) {
+    if (args["auto-context"] && args["maximum-context"])
+      return yield* fail("--auto-context and --maximum-context cannot be used together")
     const root = path.resolve(process.cwd(), args.dir ?? ".")
     const request = args.request.join(" ").trim()
     if (!request) return yield* fail("Writer request must not be empty")
@@ -167,14 +179,18 @@ export const WriterRunCommand = effectCmd({
         return yield* fail("Only a prior headless Writer session can be resumed")
       }
     }
+    console.error(writerProgressLine(session.id, { phase: "session", status: "ready" }))
     const output = yield* WriterSession.run({
       sessionID: session.id,
       root,
       request,
       job: args.job as WriterJob | undefined,
       ...(contextSpec ? { contextSpec } : {}),
+      ...(args["auto-context"] ? { autoContext: true } : {}),
+      ...(args["maximum-context"] ? { contextStrategy: "maximum" as const } : {}),
       ...(parsed ? { model: parsed } : {}),
       ...(args.variant ? { variant: args.variant } : {}),
+      onProgress: (event) => console.error(writerProgressLine(session.id, event)),
     }).pipe(Effect.orDie)
     console.log(
       args.format === "text" ? formatWriterText(output) : JSON.stringify(headlessResult(session.id, output), null, 2),
@@ -381,4 +397,8 @@ function formatWriterText(output: WriterSession.Output) {
   if (output.result.evidence.length) lines.push("", `Evidence: ${output.result.evidence.join(", ")}`)
   if (output.result.proposal) lines.push("", `Proposal: ${output.result.proposal.id}`, `Saved: ${output.proposalPath}`)
   return lines.join("\n")
+}
+
+export function writerProgressLine(sessionID: string, event: WriterSession.ProgressEvent | { phase: "session"; status: "ready" }) {
+  return `writer-progress ${JSON.stringify({ protocolVersion: 1, sessionID, ...event })}`
 }

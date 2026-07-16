@@ -8,6 +8,7 @@ import { runBenchmark } from "./runner.ts"
 import { compareRun } from "./stats.ts"
 import { validateCorpus, validateCorpusArchitecture, validateCorpusDraft } from "./corpus.ts"
 import { validateBookTaskMatrix } from "./book-suite.ts"
+import { materializeNativeTasks, type NativeContextMode } from "./native-source.ts"
 
 const [command, subcommand] = process.argv.slice(2)
 const args = parseArgs(process.argv.slice(command === "import" || command === "corpus" ? 4 : 3))
@@ -30,10 +31,15 @@ async function run() {
   const targetPath = required(args, "targets")
   const out = resolve(required(args, "out"))
   const requestedTasks = values(args, "task")
-  const tasks = (await Promise.all(suites.map((path) => readJsonl(resolve(path)))))
+  const contextMode = (optional(args, "context-mode") ?? "full") as NativeContextMode
+  const tasks = (await Promise.all(suites.map(async (path) => {
+    const suitePath = resolve(path)
+    const parsed = (await readJsonl(suitePath))
+      .map(parseTask)
+      .filter((task) => !requestedTasks.length || requestedTasks.includes(task.id))
+    return materializeNativeTasks(parsed, suitePath, contextMode)
+  })))
     .flat()
-    .map(parseTask)
-    .filter((task) => !requestedTasks.length || requestedTasks.includes(task.id))
   const targets = parseTargetFile(await readJson(resolve(targetPath)))
   const requestedTargets = values(args, "target")
   targets.systems = targets.systems.filter((target) => !requestedTargets.length || requestedTargets.includes(target.id))
@@ -169,7 +175,7 @@ function optionalNumber(input: Map<string, string[]>, key: string) {
 function usage(code: number): never {
   console.error(`writer-bench
 
-  run --suite tasks.jsonl [--suite more.jsonl] --targets targets.json --out results [--trials 3] [--concurrency 3] [--task id] [--target id] [--resume previous/run.json] [--rerun-cell target:task]
+  run --suite tasks.jsonl [--suite more.jsonl] --targets targets.json --out results [--trials 3] [--concurrency 3] [--context-mode full|controlled] [--task id] [--target id] [--resume previous/run.json] [--rerun-cell target:task]
   compare --run results/run.json --baseline raw --candidate harness --gates gates.json --out comparison
   import writingbench --source benchmark_all.jsonl --out writing.jsonl [--domain "Literature & Art"] [--language en]
   import constory --source prompts.jsonl --out constory.jsonl [--language en]

@@ -23,6 +23,10 @@ async function invoke(target: Target, request: ExecutionRequest | JudgeRequest) 
   const stderr: Buffer[] = []
   child.stdout.on("data", (chunk: Buffer) => stdout.push(chunk))
   child.stderr.on("data", (chunk: Buffer) => stderr.push(chunk))
+  let stdinError: Error | undefined
+  child.stdin.on("error", (error) => {
+    stdinError = error
+  })
   child.stdin.end(JSON.stringify(request))
   const timeout = setTimeout(() => child.kill(), target.timeoutMs ?? 120_000)
   const code = await new Promise<number | null>((resolve, reject) => {
@@ -30,6 +34,7 @@ async function invoke(target: Target, request: ExecutionRequest | JudgeRequest) 
     child.on("close", resolve)
   }).finally(() => clearTimeout(timeout))
   if (code !== 0) throw new Error(`target ${target.id} exited ${code}: ${Buffer.concat(stderr).toString("utf8").trim()}`)
+  if (stdinError) throw new Error(`target ${target.id} stdin failed: ${stdinError.message}`)
   const output = Buffer.concat(stdout).toString("utf8").trim()
   if (!output) throw new Error(`target ${target.id} returned no output`)
   try {

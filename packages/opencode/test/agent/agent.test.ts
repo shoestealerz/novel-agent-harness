@@ -67,6 +67,7 @@ it.instance(
       expect(writer).toBeDefined()
       expect(writer?.mode).toBe("primary")
       expect(writer?.native).toBe(true)
+      expect(writer?.steps).toBe(8)
       expect(evalPerm(writer, "read")).toBe("deny")
       expect(evalPerm(writer, "edit")).toBe("deny")
       expect(evalPerm(writer, "bash")).toBe("deny")
@@ -80,6 +81,7 @@ it.instance(
     config: {
       agent: {
         writer: {
+          steps: 100,
           permission: { "*": "allow" },
         },
       },

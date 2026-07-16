@@ -60,6 +60,42 @@ test("retries incomplete JSON once and accounts for both calls", async () => {
   }
 })
 
+test("records DeepSeek cache telemetry and computes pinned raw-model cost", async () => {
+  const originalFetch = globalThis.fetch
+  const previous = {
+    hit: process.env.WRITER_BENCH_INPUT_CACHE_HIT_USD_PER_M,
+    miss: process.env.WRITER_BENCH_INPUT_CACHE_MISS_USD_PER_M,
+    output: process.env.WRITER_BENCH_OUTPUT_USD_PER_M,
+  }
+  process.env.WRITER_BENCH_INPUT_CACHE_HIT_USD_PER_M = "0.003625"
+  process.env.WRITER_BENCH_INPUT_CACHE_MISS_USD_PER_M = "0.435"
+  process.env.WRITER_BENCH_OUTPUT_USD_PER_M = "0.87"
+  globalThis.fetch = (async () => new Response(JSON.stringify({
+    choices: [{ finish_reason: "stop", message: { content: "ok" } }],
+    usage: {
+      prompt_tokens: 1_000_000,
+      prompt_cache_hit_tokens: 750_000,
+      prompt_cache_miss_tokens: 250_000,
+      completion_tokens: 100_000,
+    },
+  }), { status: 200 })) as typeof fetch
+  try {
+    const result = await completion([{ role: "user", content: "hello" }], "deepseek-v4-pro")
+    assert.deepEqual(result.usage, {
+      inputTokens: 1_000_000,
+      inputCacheHitTokens: 750_000,
+      inputCacheMissTokens: 250_000,
+      outputTokens: 100_000,
+      costUsd: 0.19846875,
+    })
+  } finally {
+    globalThis.fetch = originalFetch
+    restore("WRITER_BENCH_INPUT_CACHE_HIT_USD_PER_M", previous.hit)
+    restore("WRITER_BENCH_INPUT_CACHE_MISS_USD_PER_M", previous.miss)
+    restore("WRITER_BENCH_OUTPUT_USD_PER_M", previous.output)
+  }
+})
+
 test("retries syntactically invalid JSON when a validator rejects it", async () => {
   const originalFetch = globalThis.fetch
   const responses = [
@@ -79,3 +115,8 @@ test("retries syntactically invalid JSON when a validator rejects it", async () 
     globalThis.fetch = originalFetch
   }
 })
+
+function restore(name: string, value: string | undefined) {
+  if (value === undefined) delete process.env[name]
+  else process.env[name] = value
+}
