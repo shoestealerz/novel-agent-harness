@@ -6,7 +6,7 @@ import { readJson, readJsonl, writeJson } from "./io.ts"
 import { renderComparisonReport } from "./report.ts"
 import { runBenchmark } from "./runner.ts"
 import { compareRun } from "./stats.ts"
-import { validateCorpus } from "./corpus.ts"
+import { validateCorpus, validateCorpusArchitecture } from "./corpus.ts"
 
 const [command, subcommand] = process.argv.slice(2)
 const args = parseArgs(process.argv.slice(command === "import" || command === "corpus" ? 4 : 3))
@@ -17,6 +17,7 @@ else if (command === "import" && subcommand === "writingbench") await importWrit
 else if (command === "import" && subcommand === "constory") await importStory()
 else if (command === "attach-metrics") await attachMetrics()
 else if (command === "corpus" && subcommand === "validate") await corpusValidate()
+else if (command === "corpus" && subcommand === "architecture") await corpusArchitecture()
 else if (command === "doctor") doctor()
 else usage(1)
 
@@ -26,14 +27,16 @@ async function run() {
   const targetPath = required(args, "targets")
   const out = resolve(required(args, "out"))
   const requestedTasks = values(args, "task")
-  const tasks = (await Promise.all(suites.map((path) => readJsonl(resolve(path))))).flat().map(parseTask)
+  const tasks = (await Promise.all(suites.map((path) => readJsonl(resolve(path)))))
+    .flat()
+    .map(parseTask)
     .filter((task) => !requestedTasks.length || requestedTasks.includes(task.id))
   const targets = parseTargetFile(await readJson(resolve(targetPath)))
   const requestedTargets = values(args, "target")
   targets.systems = targets.systems.filter((target) => !requestedTargets.length || requestedTargets.includes(target.id))
   if (!tasks.length) throw new Error("no tasks matched --task")
   if (!targets.systems.length) throw new Error("no systems matched --target")
-  const resume = args.get("resume") ? (await readJson(resolve(required(args, "resume")))) as RunFile : undefined
+  const resume = args.get("resume") ? ((await readJson(resolve(required(args, "resume")))) as RunFile) : undefined
   const result = await runBenchmark({
     tasks,
     suiteFiles: suites,
@@ -87,8 +90,14 @@ async function attachMetrics() {
   const run = (await readJson(resolve(required(args, "run")))) as RunFile
   const metrics = (await readJsonl(resolve(required(args, "source")))) as MetricRecord[]
   metrics.forEach((metric) => {
-    if (!run.targets.some((target) => target.id === metric.targetId)) throw new Error(`unknown metric target: ${metric.targetId}`)
-    if (!metric.suite || !metric.metric || !Number.isFinite(metric.value) || !["higher", "lower"].includes(metric.direction)) {
+    if (!run.targets.some((target) => target.id === metric.targetId))
+      throw new Error(`unknown metric target: ${metric.targetId}`)
+    if (
+      !metric.suite ||
+      !metric.metric ||
+      !Number.isFinite(metric.value) ||
+      !["higher", "lower"].includes(metric.direction)
+    ) {
       throw new Error("metric records require targetId, suite, metric, finite value, and higher/lower direction")
     }
   })
@@ -99,6 +108,10 @@ async function attachMetrics() {
 
 async function corpusValidate() {
   console.log(JSON.stringify(await validateCorpus(required(args, "corpus")), null, 2))
+}
+
+async function corpusArchitecture() {
+  console.log(JSON.stringify(await validateCorpusArchitecture(required(args, "corpus")), null, 2))
 }
 
 function doctor() {
@@ -151,6 +164,7 @@ function usage(code: number): never {
   import constory --source prompts.jsonl --out constory.jsonl [--language en]
   attach-metrics --run results/run.json --source official-metrics.jsonl --out results/run-with-metrics.json
   corpus validate --corpus corpora/harbor-light
+  corpus architecture --corpus corpora/saltglass-vigil
   doctor`)
   process.exit(code)
 }
