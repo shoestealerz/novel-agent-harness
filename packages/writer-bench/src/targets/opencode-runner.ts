@@ -1,11 +1,12 @@
 import { spawn } from "node:child_process"
 import { parseOpenCodeEvents } from "./opencode-events.ts"
 
-export async function runOpenCode(prompt: string) {
+export async function runOpenCode(prompt: string, options: { directory?: string } = {}) {
   const args = ["run", "--format", "json"]
   if (process.env.WRITER_BENCH_OPENCODE_MODEL) args.push("--model", process.env.WRITER_BENCH_OPENCODE_MODEL)
   if (process.env.WRITER_BENCH_OPENCODE_AGENT) args.push("--agent", process.env.WRITER_BENCH_OPENCODE_AGENT)
-  if (process.env.WRITER_BENCH_OPENCODE_DIR) args.push("--dir", process.env.WRITER_BENCH_OPENCODE_DIR)
+  const directory = options.directory ?? process.env.WRITER_BENCH_OPENCODE_DIR
+  if (directory) args.push("--dir", directory)
   if (process.env.WRITER_BENCH_OPENCODE_ATTACH) args.push("--attach", process.env.WRITER_BENCH_OPENCODE_ATTACH)
   const child = spawn(process.env.WRITER_BENCH_OPENCODE_BIN ?? "opencode", args, {
     env: process.env,
