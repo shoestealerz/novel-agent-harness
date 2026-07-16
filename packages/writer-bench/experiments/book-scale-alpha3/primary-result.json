@@ -1,0 +1,33 @@
+{
+  "formatVersion": 1,
+  "status": "accepted-with-explicit-benchmark-recovery-limitations",
+  "attempt": "A3-PRIMARY-004",
+  "runId": "2026-07-16T21-41-49-936Z-84358b87",
+  "candidateCommit": "4e53b3086a060d392d6d352358d81d59ebff7405",
+  "evaluationCommit": "f198a710cbf990b5db5d0c6490a51afac4b935af",
+  "runFreezeRevision": 7,
+  "suiteVersion": "0.3.5",
+  "cells": 540,
+  "targets": {
+    "raw-model": { "completed": 180, "meanReliability": 0.5922839506172841, "safetyFailures": 444, "grounding": 0.8666666666666667, "unsupportedClaimAvoidance": 0.8333333333333334, "costUsd": 0.405880839 },
+    "stock-opencode": { "completed": 180, "meanReliability": 0.6501851851851845, "safetyFailures": 402, "grounding": 0.9777777777777777, "unsupportedClaimAvoidance": 0.9555555555555556, "costUsd": 2.786427822 },
+    "production-writer": { "completed": 179, "meanReliability": 0.9675356921166974, "safetyFailures": 0, "grounding": 1, "unsupportedClaimAvoidance": 1, "costUsd": 5.139527117000002, "proposalValidity": 1, "proposalPreconditions": 1, "proposalPreservation": 1, "proposalAuthority": 1 }
+  },
+  "comparisons": {
+    "raw-model": { "meanDelta": 0.37543209876543204, "confidence95": { "low": 0.3081415895061729, "high": 0.4421184413580246 }, "wins": 49, "ties": 11, "losses": 0 },
+    "stock-opencode": { "meanDelta": 0.31753086419753085, "confidence95": { "low": 0.25181983024691346, "high": 0.38237770061728393 }, "wins": 48, "ties": 12, "losses": 0 }
+  },
+  "receipts": {
+    "suiteSha256": "c4683228db52feefa65a07312f8af7b11ca8f5b1321c82a8c07659208664df88",
+    "runSha256": "b83b0d4391488747145d3d577fbec0071a2be734c3326456292a989860569e2f",
+    "auditSha256": "82e6b799ee357b9c62bce8d298ee331fefbfa2973893dc13d289bcd17ed5bb57",
+    "zeroCallVerificationSha256": "ba87e40442f283ef3044e328900c022f9870cd4585d921f506104c2a01352c0c",
+    "acceptanceSha256": "d5557931d105f7efd44fef59f4b01470d67331f94f9841ad05c555d3b4adf054"
+  },
+  "limitations": [
+    "Unsupported-claim avoidance is a citation-level proxy, not a prose-wide factuality measure.",
+    "Two transparent post-failure scoring corrections weaken confirmatory strength.",
+    "One Writer record remains an execution failure under the frozen completion gate.",
+    "Creative-quality claims remain blocked on blinded human review."
+  ]
+}

@@ -1,6 +1,6 @@
 # Novel Agent Harness Roadmap
 
-Last updated: 2026-07-15
+Last updated: 2026-07-16
 
 ## Current position
 
@@ -166,8 +166,11 @@ Current Alpha 3 checkpoint (July 16, 2026):
 - Complete: released-CLI dogfood across initialization, context selection, all four supported jobs, proposal review and approval, verified Git commits, stale rejection, and resumed sessions. Material failures are recorded in `packages/writer-bench/experiments/book-scale-alpha3/dogfood/failures.jsonl` with benchmark and regression-test dispositions.
 - Complete: public validation of the frozen candidate. Commit `4e53b3086a060d392d6d352358d81d59ebff7405`, tagged `alpha3-book-scale-candidate-4e53b3086`, completed 36/36 validation tasks with mean reliability 0.9521, zero deterministic safety failures, perfect required-evidence recall and grounding, and all proposal invariants at 1.0000. Complete bounded context is validated only at the preregistered novella scale; it is not evidence for broad retrieval or larger manuscripts.
 - Complete: the sealed-task, controlled-context, and blinded-human-review manifests are hash-frozen. The 48-task review selection contains 96 randomized pairs and requires at least 288 independent ratings before unblinding.
-- Invalid and preserved: authoritative attempt `A3-PRIMARY-001` produced 300 successful cells but cannot support comparisons. It exposed detached-worktree installation, raw cache-telemetry, transient Windows cleanup, transport, and provider-credit failures. Revision 5 of `authoritative-run.freeze.json` pins infrastructure and observability-only corrections, source-timestamped phase telemetry, exact Git-blob receipts, a fail-closed gate audit, and reuse of only 121 successful stock-OpenCode cells.
-- Pending: restore DeepSeek API credit and resume 419 provider calls: all 180 raw-model cells for exact cache-aware cost, 59 failed stock-OpenCode cells, and all 180 production-Writer cells. After the primary run is accepted, run the 216-cell controlled track and 81 additional full-context human-review output cells (reusing 63 sealed trial-zero cells from primary), conduct the frozen blinded review, publish results and limitations, and make the evidence-based Alpha 3 capability decision.
+- Invalid and preserved: authoritative attempt `A3-PRIMARY-001` produced 300 successful cells but cannot support comparisons. It exposed detached-worktree installation, raw cache-telemetry, transient Windows cleanup, transport, and provider-credit failures.
+- Failed and preserved: `A3-PRIMARY-002` completed 537/540 cells. Writer's provisional mean reliability was 0.9572 versus 0.5417 for raw DeepSeek and 0.5965 for stock OpenCode, with 51/9/0 Writer wins/ties/losses versus raw and 49/10/1 versus stock. It is not accepted: five candidate safety checks failed, the unsupported-claim metric was absent from suite 0.3.3, the phase auditor rejected valid execution-only maximum-context telemetry, and three execution cells failed. Its run and audit hashes were sealed before any response content was inspected.
+- Failed and preserved: `A3-PRIMARY-003` made exactly the three revision-6 calls, completed 539/540 records, and correctly cleared the earlier semantic-pattern and phase-audit defects. It still cannot be accepted: the new metric name fell through to a gold-allowlist formula instead of the preregistered admitted-context formula, creating 107 false candidate safety failures. The remaining Writer proposal-preservation execution failure is retained under the frozen 95% completion gate rather than repeatedly retried.
+- Accepted with explicit limitations: `A3-PRIMARY-004` byte-preserved 539 responses and the single failed record, made zero provider calls, and passed every revision-7 gate. Writer scored 0.9675 with zero safety failures versus 0.5923/444 failures for raw DeepSeek and 0.6502/402 for stock OpenCode. Writer had 49/11/0 wins/ties/losses versus raw and 48/12/0 versus stock; all Writer grounding, citation-level unsupported-claim, evidence-recall, and proposal metrics were 1.0000. See `packages/writer-bench/experiments/book-scale-alpha3/PRIMARY_RESULTS.md`.
+- Pending: run the 216-cell controlled track and 81 additional full-context human-review output cells (reusing the frozen sealed trial-zero records from primary), conduct the frozen blinded review, publish results and limitations, and make the evidence-based Alpha 3 capability decision.
 
 PR #53 merged the frozen candidate, public validation receipts, dogfood record, comparable stock-OpenCode workspace adapter, and infrastructure-only resume corrections. No broad retrieval system or private UI work has started.
 
@@ -226,3 +229,6 @@ Build the private UI only after the harness protocol stabilizes: agent chat, man
 - PR #51: typed book-scale gold records; merged.
 - PR #52: 132-task book-scale matrix and public/controlled/sealed split tooling; merged.
 - PR #53: bounded book-scale Writer candidate, dogfood and public validation evidence, evaluation adapters, run freeze, and infrastructure-only resume corrections; merged.
+- PR #54: Alpha 3 execution checkpoint and private-run handoff; merged.
+- PR #55: blinded human-review assembly, packet, and quantitative-analysis tooling; merged.
+- PR #56: authoritative cache, phase, and fail-closed audit telemetry; merged.

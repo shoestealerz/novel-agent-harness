@@ -270,7 +270,17 @@ function completeUsage(value: unknown): value is { inputTokens: number; outputTo
 function validWriterPhaseTotals(record: RunRecord) {
   const total = record.response?.usage
   const phaseList = phases("production-writer", record)
-  if (!completeUsage(total) || phaseList.length !== 2) return false
+  if (!completeUsage(total)) return false
+  const trace = record.response?.metadata?.contextTrace
+  const strategy = trace && typeof trace === "object" && !Array.isArray(trace)
+    ? (trace as Record<string, unknown>).strategy
+    : undefined
+  const names = phaseList.map((phase) => phase.phase).sort()
+  if (strategy === "maximum") {
+    if (names.length !== 1 || names[0] !== "execution") return false
+  } else if (names.length !== 2 || names[0] !== "contextSelection" || names[1] !== "execution") {
+    return false
+  }
   return near(phaseList.reduce((sum, phase) => sum + phase.inputTokens, 0), total.inputTokens)
     && near(phaseList.reduce((sum, phase) => sum + phase.outputTokens, 0), total.outputTokens)
     && near(phaseList.reduce((sum, phase) => sum + phase.costUsd, 0), total.costUsd)

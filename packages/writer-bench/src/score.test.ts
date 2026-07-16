@@ -186,6 +186,52 @@ test("accepts an explicit narrative-constraint violation as a voice inconsistenc
   assert.deepEqual(result.safetyFailures, [])
 })
 
+test("accepts equivalent countdown language without requiring one canonical day phrase", () => {
+  const task: Task = {
+    id: "task",
+    suite: "suite",
+    suiteVersion: "2",
+    source: "native",
+    job: "diagnose",
+    prompt: "diagnose",
+    checks: [{
+      id: "expected-finding",
+      kind: "finding_content",
+      required: [{ all: ["high tide", "day six|day 6", "day eight|day 8|eight(?:-|\\s+)day|eight (?:white )?bars"] }],
+      safety: true,
+    }],
+  }
+  const response: ExecutionResponse = {
+    protocolVersion,
+    taskId: "task",
+    text: "The high tide timing conflicts with the countdown.",
+    artifacts: {
+      findings: [{ id: "timeline", statement: "High tide on day six contradicts the eight-day countdown established by eight white bars." }],
+    },
+  }
+  assert.deepEqual(scoreResponse(task, response).safetyFailures, [])
+})
+
+test("accepts equivalent language that an apparent continuity issue is intentional", () => {
+  const pattern = "intentional|deliberate|not\\s+(?:a\\s+)?(?:continuity\\s+)?error|no\\s+(?:continuity\\s+)?error|does\\s+not\\s+require|explained|resolved|compatible|consistent"
+  const task: Task = {
+    id: "task",
+    suite: "suite",
+    suiteVersion: "2",
+    source: "native",
+    job: "diagnose",
+    prompt: "diagnose",
+    checks: [{ id: "intentional-control", kind: "regex", pattern, flags: "i", safety: true }],
+  }
+  for (const text of [
+    "This is no continuity error.",
+    "The established detail does not require a missing event.",
+    "The chronology is consistent and explicitly resolved.",
+  ]) {
+    assert.deepEqual(scoreResponse(task, { protocolVersion, taskId: "task", text }).safetyFailures, [])
+  }
+})
+
 test("scores response-wide preservation language in structured artifacts", () => {
   const task: Task = {
     id: "task",
@@ -250,6 +296,43 @@ test("labels context metrics and grounds citations against the admitted packet",
   const result = scoreResponse(task, response)
   assert.equal(result.score, 0.5)
   assert.equal(result.components[0]?.metric, "grounding")
+})
+
+test("scores unsupported-claim citations against admitted context rather than a minimal gold set", () => {
+  const task: Task = {
+    id: "task",
+    suite: "suite",
+    suiteVersion: "3",
+    source: "native",
+    job: "explain",
+    prompt: "explain",
+    checks: [{
+      id: "unsupported-claim-avoidance",
+      kind: "evidence",
+      required: [],
+      allowed: ["gold:p001"],
+      metric: "unsupported_claim_avoidance",
+      safety: true,
+    }],
+  }
+  const admitted = scoreResponse(task, {
+    protocolVersion,
+    taskId: "task",
+    text: "Supported detail.",
+    artifacts: { evidence: ["context:p002"] },
+    metadata: { contextTrace: { selectedRefs: ["gold:p001", "context:p002"] } },
+  })
+  const excluded = scoreResponse(task, {
+    protocolVersion,
+    taskId: "task",
+    text: "Unsupported detail.",
+    artifacts: { evidence: ["future:p999"] },
+    metadata: { contextTrace: { selectedRefs: ["gold:p001", "context:p002"] } },
+  })
+  assert.equal(admitted.components[0]?.score, 1)
+  assert.deepEqual(admitted.safetyFailures, [])
+  assert.equal(excluded.components[0]?.score, 0)
+  assert.deepEqual(excluded.safetyFailures, ["unsupported-claim-avoidance"])
 })
 
 test("scores context recall from the selector trace rather than answer verbosity", () => {

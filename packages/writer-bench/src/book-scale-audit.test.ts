@@ -73,6 +73,24 @@ test("audits every frozen reliability, safety, telemetry, and comparison gate", 
   assert.match(renderBookScaleAudit(audit), /Phase telemetry/)
 })
 
+test("reconciles one execution phase when maximum context bypasses selection", () => {
+  const maximum = structuredClone(run)
+  maximum.records[2]!.response!.metadata!.contextTrace = { strategy: "maximum" }
+  maximum.records[2]!.response!.metadata!.phaseUsage = {
+    execution: { inputTokens: 100, outputTokens: 20, costUsd: 0.02, latencyMs: 25 },
+  }
+  const audit = auditBookScaleRun(maximum, freeze, "primary")
+  assert.equal(audit.gates.find((gate) => gate.name === "writer-phase-totals")?.passed, true)
+  assert.equal(audit.targets["production-writer"]?.phases.contextSelection, undefined)
+  assert.equal(audit.targets["production-writer"]?.phases.execution?.records, 1)
+
+  delete maximum.records[2]!.response!.metadata!.contextTrace
+  assert.equal(
+    auditBookScaleRun(maximum, freeze, "primary").gates.find((gate) => gate.name === "writer-phase-totals")?.passed,
+    false,
+  )
+})
+
 test("fails closed on missing phase, raw cache, metric, or reliability evidence", () => {
   const missingPhase = structuredClone(run)
   delete missingPhase.records[2]!.response!.metadata!.phaseUsage

@@ -1,16 +1,17 @@
 {
   "formatVersion": 1,
-  "revision": 5,
-  "status": "frozen-for-observability-only-resume",
-  "frozenAt": "2026-07-16T14:55:06.4206204Z",
-  "supersedesRevision": 4,
-  "supersededReason": "A final observability audit found that receiver-side timestamps could assign zero latency when multiple writer-progress lines arrived in one stderr chunk. Revision 5 changes only benchmark observability: the existing progress protocol now emits a monotonic source timestamp, the collector prefers that timestamp while retaining a compatibility fallback, and all revision 4 cache, receipt, and fail-closed audit corrections remain in force. No accepted model output exists; sealed response content was not inspected. The candidate, prompts, tasks, context policy, scoring, targets, model behavior, gates, resume cells, and human-review selection remain frozen.",
+  "revision": 7,
+  "status": "frozen-for-zero-call-scoring-only-rescore",
+  "frozenAt": "2026-07-16T21:35:30.7454318Z",
+  "supersedesRevision": 6,
+  "supersededReason": "A3-PRIMARY-003 was declared failed and hash-sealed before any response content from its three new calls was inspected. Suite 0.3.4 correctly added an unsupported-claim component, but the generic evidence scorer interpreted that metric against the small gold allowlist instead of the complete admitted context packet. That contradicted revision 6's metric definition and created 107 false candidate safety failures even though the existing grounding metric remained 1.0000. One Writer retry also preserved its proposal-validation execution failure; the preregistered 95% completion gate allows that failure and no further outcome-selected retry is needed. Suite 0.3.5 changes only suiteVersion. Evaluation commit f198a710cbf990b5db5d0c6490a51afac4b935af makes unsupported-claim citation scoring use the admitted context just like grounding and preserves failed records during a scoring-only resume unless an exact rerun is explicitly named. Revision 7 names no rerun cells and permits zero provider calls. Model-visible tasks, deterministic task checks, criteria, candidate behavior, targets, model settings, gates, and human-review selection are unchanged.",
   "sealedTasksExecutedBeforeRevision": true,
+  "sealedResponseContentInspectedAfterFailureDeclaration": "Only the five records implicated by failed candidate safety checks; no other sealed response content was inspected.",
   "candidateCommit": "4e53b3086a060d392d6d352358d81d59ebff7405",
   "candidateTag": "alpha3-book-scale-candidate-4e53b3086",
-  "evaluationCommit": "7084517c455a923c01e8d8a9be6dac3e2046f445",
+  "evaluationCommit": "f198a710cbf990b5db5d0c6490a51afac4b935af",
   "corpusVersion": "0.2.3",
-  "suiteVersion": "0.3.3",
+  "suiteVersion": "0.3.5",
   "model": {
     "comparisonKey": "deepseek-v4-pro|temperature=0.2|max=16384|book-scale-alpha3=v1",
     "temperature": 0.2,
@@ -30,9 +31,11 @@
       "writerProgressEmitterSha256": "cb3f873d7e11f4f354cf1b727efb5c26b3b1b0552591f44c40adb0d32ae61f24",
       "productionWriterRuntimeSha256": "73a92e06492ff5c3533dcf4051711b291df95ba142313a7909ab890ac6f1f725",
       "runnerTransportSha256": "1cc72b4b2233fb0a097a0eb714dec8adeb7a2b4473317850a6f47241a60c9c9f",
-      "usageContractSha256": "94ea7324b9708915739328d91ca53ad7eadf0ec9d6a788b477cd5e01a1ec0b9f",
-      "authoritativeAuditSha256": "c461f2348ebe58faa0872af1d3bf801c170b9ede54a9ce7d3522105d1474f778",
-      "benchmarkCliSha256": "32525d3e50152824a0f62286a931c9f16be82da5e276a4c9d24c777de6d7a6f2"
+      "usageContractSha256": "25ec54b973bd69254dde87700d0f01bf01a7e85f7ae69c1a75bd81b0d919153f",
+      "authoritativeAuditSha256": "ac387716130515eb6ba067d6ef65967878600ca0e68fdbd401e44ac0264ca7a9",
+      "benchmarkCliSha256": "6e690c52a287e21ab13b1862b4a399134d907b6ce402c3183415df329565aaa3",
+      "benchmarkRunnerSha256": "505b92aa5c9cf0da24cd5b56b6966e2abb02e5bc1494cd6e2578e1639ae04cb1",
+      "benchmarkScorerSha256": "d28cb49a5da59254cceb6c5be58d1d65bda2ecec233d58a7cf06e3bca0798193"
     },
     "stockOpenCodeProtocol": "Create a fresh Git repository containing only plain bounded chapter files with stable passage comments; send the public author request and authority but no manuscript body, benchmark material, Writer contract, gold, checks, or narrative tools in the prompt; capture passage, file, marker, and HEAD mutations as edit artifacts; delete the workspace after the cell."
   },
@@ -54,7 +57,7 @@
   },
   "primaryTrack": {
     "suite": "sealed",
-    "suiteSha256": "844f6fd84fe9819d996a66a370cb0cdb828ba1e6f54fc2b749565a2d4ba54cc5",
+    "suiteSha256": "c4683228db52feefa65a07312f8af7b11ca8f5b1321c82a8c07659208664df88",
     "tasks": 60,
     "trials": 3,
     "targets": 3,
@@ -63,7 +66,7 @@
     "concurrency": 3
   },
   "controlledTrack": {
-    "suiteSha256": "255451b3fb737447ad02b2ed082692251988de689cabf38be3a6f76b597f5f11",
+    "suiteSha256": "a47bb0afbbe83b86fc4beb3a547a9ef2c19e687cfacb80a81d367a608d078be2",
     "tasks": 24,
     "trials": 3,
     "targets": 3,
@@ -74,12 +77,21 @@
   },
   "humanReviewManifestSha256": "4981dee253c5017eee6f604603431f4372403d4598ecaf8827347a95abaec336",
   "resume": {
-    "sourceAttempt": "A3-PRIMARY-001",
-    "sourceRunId": "2026-07-16T11-20-26-482Z-56a443b8",
-    "reuse": { "stockOpenCodeSuccessfulCells": 121 },
-    "rerun": { "rawModelAllCellsForCostTelemetry": 180, "stockOpenCodeFailedCells": 59, "productionWriterFailedSetupCells": 180 },
-    "newProviderCalls": 419,
-    "rule": "The 179 successful raw outputs remain preserved in A3-PRIMARY-001 but are excluded from the authoritative result because exact cache-aware cost was not recorded. Only the 121 successful stock cells are reused. The resume runner replaces every raw cell, retries only failed stock cells, and executes all Writer cells."
+    "mode": "scoring-only",
+    "sourceAttempt": "A3-PRIMARY-003",
+    "sourceRunId": "2026-07-16T21-31-48-617Z-0edcc350",
+    "sourceRunSha256": "75ce89f74997db4c835ce33fdae1decdd9ed59dce3b659d08baf1f12e95e185a",
+    "sourceAuditSha256": "a2b2654a5d83e04213361efa849f543aae17b7e1d45bdd9be55070d66391e2e7",
+    "reuse": { "rawModelSuccessfulCells": 180, "stockOpenCodeSuccessfulCells": 180, "productionWriterSuccessfulCells": 179, "preservedProductionWriterFailures": 1, "totalRecords": 540 },
+    "rerun": [],
+    "newProviderCalls": 0,
+    "rule": "The runner must prove that every model-visible task field and every judge criterion is identical after normalizing suiteVersion. It deterministically rescores all 539 successful responses under suite 0.3.5, preserves the one failed record exactly, and makes no target process or provider call."
+  },
+  "unsupportedClaimMetric": {
+    "componentsPerTask": 1,
+    "intentionalControls": "The intentional-control check measures whether the response avoids inventing a contradiction where the manuscript defines a compatible, resolved, or deliberately non-erroneous state.",
+    "otherTasks": "A citation-level unsupported-claim check rejects cited evidence outside the admitted context packet. The scorer explicitly uses the complete contextTrace.selectedRefs packet, not the minimal gold allowlist; it duplicates the grounding predicate under a separately preregistered metric so the previously missing gate is computable on every task.",
+    "limitation": "This deterministic proxy does not establish that every uncited prose statement is supported; that remains a reported limitation and a future benchmark-design requirement."
   },
   "gates": {
     "completionMinimum": 0.95,
@@ -102,5 +114,5 @@
     "requireWriterPhases": true,
     "requirePhaseTotalReconciliation": true
   },
-  "executionRule": "Run both tracks from the frozen candidate source and task receipts. Preserve every failed cell. Do not inspect sealed outputs to alter code, prompts, context policy, scorer, tasks, targets, gates, or human-review selection. Any infrastructure-only recovery is a separate immutable attempt."
+  "executionRule": "Run both tracks from the frozen candidate source and revision-7 task receipts. Preserve A3-PRIMARY-002 and A3-PRIMARY-003 as failed evidence. The revision-7 primary rescore is a separate immutable attempt and may make no provider calls. Do not alter candidate code, prompts, context policy, task checks, criteria, targets, model settings, gates, or human-review selection. Any further failure requires another declared attempt and a new preregistered disposition."
 }

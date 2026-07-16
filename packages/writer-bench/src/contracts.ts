@@ -214,6 +214,8 @@ export type RunRecord = {
   error?: string
 }
 
+export type ResumeMode = "exact" | "scoring-only"
+
 export type RunFile = {
   formatVersion: 1
   runId: string
@@ -225,6 +227,7 @@ export type RunFile = {
   concurrency?: number
   records: RunRecord[]
   resumedFromRunId?: string
+  resumeMode?: ResumeMode
   metrics?: MetricRecord[]
 }
 
