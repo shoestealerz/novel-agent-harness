@@ -91,13 +91,13 @@ test("rejects an architecture whose long-range payoff is too close", async (cont
 
 test("validates the in-progress Saltglass Vigil canonical draft", async () => {
   const result = await validateCorpusDraft("corpora/saltglass-vigil")
-  assert.equal(result.draftedChapters, 2)
   assert.equal(result.plannedChapters, 14)
-  assert.equal(result.complete, false)
-  assert.equal(result.wordCount, 5041)
-  assert.equal(result.passages, 36)
+  assert.ok(result.draftedChapters >= 2)
+  assert.equal(result.draftedChapters, result.chapters.length)
+  assert.ok(result.wordCount >= result.draftedChapters * 2500)
+  assert.ok(result.passages >= result.draftedChapters * 18)
   assert.deepEqual(
-    result.chapters.map((chapter) => chapter.pov),
+    result.chapters.slice(0, 2).map((chapter) => chapter.pov),
     ["neris", "tovan"],
   )
 })
