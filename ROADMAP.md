@@ -1,10 +1,10 @@
 # Novel Agent Harness Roadmap
 
-Last updated: 2026-07-14
+Last updated: 2026-07-15
 
 ## Current position
 
-The project has completed **Phase 7: writer-specific experiments** and started **Phase 8: public writing harness MVP**.
+The project has completed **Phase 8: public writing harness MVP** and started **Phase 9: book-scale evidence and production benchmark expansion**.
 
 ```text
 Research and architecture                   complete
@@ -14,8 +14,10 @@ Pilot fiction corpus and gold annotations   complete
 Raw-model and stock-OpenCode adapters        complete
 Real raw-model vs stock-OpenCode baseline    complete
 Writer-specific experiments                 complete
-Public writing harness MVP                  active
-Production benchmark expansion              not started
+Public writing harness MVP                  complete
+Production Writer pilot                     complete
+Interactive `novel` CLI alpha               complete
+Book-scale evidence milestone               active
 Private web application                     deferred
 ```
 
@@ -141,11 +143,24 @@ Safe workspace bootstrap now requires a clean Git root and already tracked chapt
 
 The production benchmark adapter now executes the shipped `opencode writer` command in a fresh isolated novel workspace per cell and maps its structured artifacts, token usage, cost, latency, session identity, and failures into Writer Harness Bench. Headless Writer sessions can resume across process restarts only within the same canonical novel workspace. The dedicated CI gate now covers session recovery, stale proposals, model-configuration failure, and the complete Writer/benchmark suite on Windows and Linux.
 
-Next, run the preregistered production adapter against the same pinned model through raw-model, stock-OpenCode, and production-Writer targets, then expand the production corpus before making broader quality claims.
+The preregistered production adapter completed 81/81 same-model DeepSeek V4 Pro executions across raw-model, stock-OpenCode, and production-Writer targets. Production Writer scored 0.9815 with zero deterministic safety failures, compared with 0.6667 and 18 failures for raw DeepSeek and 0.5139 and 25 failures for stock OpenCode. Both preregistered comparisons passed. See `packages/writer-bench/production/RESULTS.md`.
+
+Version `v0.1.0-alpha.2` adds the globally linked `novel` command, ongoing interactive Writer sessions, exact-session and newest-session resume, conservative tracked-chapter discovery, provider setup routing, proposal review, and typed `APPLY` confirmation before the existing verified Git transaction. The release passed the full Writer and benchmark matrix on Linux and Windows and was verified from a fresh public-tag clone.
 
 ### Phase 9: Production benchmark expansion
 
 Expand the permissioned/synthetic corpus to 30,000–50,000 words and approximately 120–200 tasks. Add larger external benchmark subsets and blinded human evaluation.
+
+The active Alpha 3 milestone is preregistered at `packages/writer-bench/experiments/book-scale-alpha3/PREREGISTRATION.md`. It will:
+
+1. create a fully synthetic, CC0, 30,000–50,000-word multi-chapter novella with stable passages, typed gold state, author intent, voice annotations, temporal boundaries, asymmetric character knowledge, intentional exceptions, and isolated planted-error variants;
+2. create 132 versioned Explain, Diagnose, Plan, and scoped Revise tasks, plus scripted operational trials for initialization, context selection, proposal review, explicit approval, Git commits, stale rejection, and session resume;
+3. dogfood the released `novel` CLI and convert every material failure into a minimized benchmark task and durable regression test;
+4. compare raw-model, stock-OpenCode, and production-Writer targets with the same pinned model and inference settings;
+5. complete a blinded human review before making prose, voice, pacing, dramatic-effect, or usefulness claims; and
+6. select Alpha 3's first new authoring capability from the evidence rather than presuming that Generate, retrieval, or another mechanism should graduate.
+
+The private UI remains deferred. Broad semantic retrieval remains experimental because both held-out retrieval candidates failed their preregistered graduation gates.
 
 ### Phase 10: Private web application
 
@@ -187,3 +202,9 @@ Build the private UI only after the harness protocol stabilizes: agent chat, man
 - PR #32: production Writer adapter, resumable-session gates, and benchmark CI; merged.
 - PR #33: production DeepSeek benchmark launcher and pinned provider configuration; merged.
 - PR #34: public-runner CI portability and race-safe Windows dependency setup; merged.
+- PR #35: standalone repository and alpha-release preparation; merged.
+- PR #36: GitHub Actions migration to the Node 24 runtime; merged.
+- PR #37: non-strict DeepSeek V4 structured-output compatibility; merged.
+- PR #38: cross-platform commit-test stabilization; merged.
+- PR #39: prerelease tag validation correction; merged.
+- PR #40: globally linked interactive `novel` CLI and Alpha 2 release; merged.
