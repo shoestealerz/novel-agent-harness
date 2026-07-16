@@ -1,0 +1,20 @@
+{
+  "formatVersion": 1,
+  "study": "alpha3-book-scale-blinded-human-review",
+  "manifestSha256": "4981dee253c5017eee6f604603431f4372403d4598ecaf8827347a95abaec336",
+  "publicationStatus": "withheld-until-authoritative-output-and-rating-freeze",
+  "createdBeforeAuthoritativeModelExecution": true,
+  "candidateCommit": "4e53b3086a060d392d6d352358d81d59ebff7405",
+  "corpusVersion": "0.2.3",
+  "suiteVersion": "0.3.3",
+  "outputTrial": 0,
+  "tasks": 48,
+  "comparisons": 96,
+  "minimumReviewersPerComparison": 3,
+  "minimumPairRatings": 288,
+  "strata": {
+    "jobs": { "plan": 24, "revise": 24 },
+    "splits": { "development": 16, "validation": 11, "sealed": 21 }
+  },
+  "randomization": "Private HMAC-SHA256 seed fixes left/right placement independently for every task and baseline before outputs exist. The manifest and seed will be published after quantitative aggregation is frozen."
+}

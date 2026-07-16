@@ -1,0 +1,56 @@
+{
+  "formatVersion": 1,
+  "status": "frozen-before-sealed-execution",
+  "frozenAt": "2026-07-16T11:12:09.2805847Z",
+  "candidateCommit": "4e53b3086a060d392d6d352358d81d59ebff7405",
+  "candidateTag": "alpha3-book-scale-candidate-4e53b3086",
+  "corpusVersion": "0.2.3",
+  "suiteVersion": "0.3.3",
+  "model": {
+    "comparisonKey": "deepseek-v4-pro|temperature=0.2|max=16384|book-scale-alpha3=v1",
+    "temperature": 0.2,
+    "maxOutputTokens": 16384,
+    "seedPolicy": "No provider seed is supplied because DeepSeek V4 Pro does not expose a supported deterministic seed in this path. Trial index and all outputs remain recorded."
+  },
+  "targets": {
+    "ids": ["raw-model", "stock-opencode", "production-writer"],
+    "manifestSha256": "dc2acb88c3d54f3e514e8134e525527a7a8d12ed18224da3a77220a3d72282a7"
+  },
+  "primaryTrack": {
+    "suite": "sealed",
+    "suiteSha256": "844f6fd84fe9819d996a66a370cb0cdb828ba1e6f54fc2b749565a2d4ba54cc5",
+    "tasks": 60,
+    "trials": 3,
+    "targets": 3,
+    "cells": 540,
+    "contextMode": "full",
+    "concurrency": 3
+  },
+  "controlledTrack": {
+    "suiteSha256": "255451b3fb737447ad02b2ed082692251988de689cabf38be3a6f76b597f5f11",
+    "tasks": 24,
+    "trials": 3,
+    "targets": 3,
+    "cells": 216,
+    "contextMode": "controlled",
+    "concurrency": 3,
+    "strata": { "explain": 5, "diagnose": 8, "plan": 5, "revise": 6 }
+  },
+  "humanReviewManifestSha256": "4981dee253c5017eee6f604603431f4372403d4598ecaf8827347a95abaec336",
+  "gates": {
+    "completionMinimum": 0.95,
+    "candidateDeterministicSafetyFailuresMaximum": 0,
+    "candidateSafetyFailureIncreaseMaximum": 0,
+    "proposalValidityMinimum": 1,
+    "proposalPreconditionsMinimum": 1,
+    "proposalPreservationMinimum": 1,
+    "proposalAuthorityMinimum": 1,
+    "groundingMinimum": 0.95,
+    "unsupportedClaimAvoidanceMinimum": 0.95,
+    "requiredEvidenceRecallMinimum": 0.85,
+    "longRangeRequiredEvidenceRecallMinimum": 0.75,
+    "meanReliabilityRegressionMaximum": 0,
+    "requireSameComparisonKey": true
+  },
+  "executionRule": "Run both tracks from the frozen candidate source and task receipts. Preserve every failed cell. Do not inspect sealed outputs to alter code, prompts, context policy, scorer, tasks, targets, gates, or human-review selection. Any infrastructure-only recovery is a separate immutable attempt."
+}
