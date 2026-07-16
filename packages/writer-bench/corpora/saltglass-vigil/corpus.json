@@ -30,7 +30,7 @@
     "gold/knowledge.jsonl",
     "gold/intentions.jsonl"
   ],
-  "tasks": [],
+  "tasks": ["tasks/development.jsonl", "tasks/validation.jsonl"],
   "variants": ["variants/defects.jsonl"],
   "minimumWords": 36000,
   "maximumWords": 44000,

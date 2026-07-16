@@ -60,3 +60,14 @@ bun run corpus:validate:book
 ## Hidden gold foundation
 
 The `gold` directory contains 113 evidence-linked records: 21 entities, eight world rules, 25 facts, 20 ordered events, 19 asymmetric-knowledge states, and 20 author-intent constraints. Together they cover the recurring cast and setting, causal and temporal spine, viewpoint knowledge boundaries, all twelve intentional ambiguities, both POV voices, the distributed resolution, and disclosure limits. These records support task construction and scoring only; evaluated targets may receive cited manuscript passages but never the gold files themselves.
+
+## Task split and sealed receipt
+
+The deterministic public builder produces 36 development and 36 validation tasks. The 60 sealed release tasks are stored outside the public repository until the authoritative run; `task-matrix.json` freezes their LF-normalized SHA-256 receipt and the complete 132-task allocation. The matrix validator audits job and split counts, long-range evidence, temporal boundaries, declared distractors, ambiguous-intent links, Diagnose controls and variants, Revise proposal gates, the 24-task controlled-context subset, and the 48-task human-review sample.
+
+```sh
+bun run corpus:tasks:build
+bun run corpus:tasks:validate
+# Custodian-only pre-run audit:
+bun src/cli.ts corpus task-matrix --corpus corpora/saltglass-vigil --sealed /private/path/saltglass-vigil-sealed.jsonl
+```

@@ -6,6 +6,7 @@ import { join } from "node:path"
 import test from "node:test"
 import { parseTask, protocolVersion } from "./contracts.ts"
 import { validateCorpus, validateCorpusArchitecture, validateCorpusDraft } from "./corpus.ts"
+import { validateBookTaskMatrix } from "./book-suite.ts"
 import { readJsonl } from "./io.ts"
 import { scoreResponse } from "./score.ts"
 
@@ -128,7 +129,23 @@ test("validates the complete Saltglass Vigil canonical manuscript", async () => 
     knowledge: 2,
     voice: 2,
   })
-  assert.equal(result.tasks, 0)
+  assert.equal(result.tasks, 72)
+  assert.deepEqual(result.jobs, { explain: 14, diagnose: 20, plan: 14, revise: 24 })
+})
+
+test("validates the frozen public Saltglass Vigil task matrix and sealed receipt", async (context) => {
+  const result = await validateBookTaskMatrix("corpora/saltglass-vigil")
+  assert.equal(result.total, 72)
+  assert.equal(result.sealedCount, 60)
+  assert.equal(result.sealedValidated, false)
+  assert.equal(result.variantDiagnoses, 14)
+  assert.equal(result.cleanControls, 6)
+
+  const root = await mkdtemp(join(tmpdir(), "saltglass-sealed-receipt-"))
+  context.after(() => rm(root, { recursive: true, force: true }))
+  const path = join(root, "sealed.jsonl")
+  await writeFile(path, "{}\n")
+  await assert.rejects(validateBookTaskMatrix("corpora/saltglass-vigil", path), /does not match frozen receipt/)
 })
 
 test("rejects a Saltglass Vigil defect patch after its source passage changes", async (context) => {

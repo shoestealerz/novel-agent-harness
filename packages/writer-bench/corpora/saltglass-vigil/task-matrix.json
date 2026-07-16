@@ -1,0 +1,26 @@
+{
+  "id": "saltglass-vigil-alpha3",
+  "version": "0.3.0",
+  "suite": "writer-harness-book-scale-alpha3",
+  "publicFiles": ["tasks/development.jsonl", "tasks/validation.jsonl"],
+  "sealed": {
+    "count": 60,
+    "sha256": "ec3465d0c4dc3b68cdd2d9d31df89f8cee21ae7ed112cbeaac6a9e94a08d047f",
+    "publicationStatus": "withheld-until-authoritative-run"
+  },
+  "expected": {
+    "total": 132,
+    "splits": { "development": 36, "validation": 36, "sealed": 60 },
+    "jobs": { "explain": 24, "diagnose": 36, "plan": 24, "revise": 48 },
+    "minimumCoverage": {
+      "long-range": 44,
+      "temporal": 24,
+      "distractor": 24,
+      "ambiguous": 18,
+      "human-review": 48
+    },
+    "controlledContext": 24,
+    "variantDiagnoses": 24,
+    "cleanControls": 12
+  }
+}
