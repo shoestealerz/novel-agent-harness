@@ -3,7 +3,9 @@ import test from "node:test"
 import {
   normalizeWriterContextSelection,
   parseWriterContextSelection,
+  renderWriterSelectionAuditRequest,
   renderWriterSelectionRequest,
+  writerSelectionAuditPrompt,
   writerSelectionSystemPrompt,
 } from "./selection.ts"
 
@@ -55,6 +57,36 @@ test("canonicalizes singleton and comma-delimited reference lists from non-stric
   assert.deepEqual(selection.excludeRefs, ["ch04:p001"])
 })
 
+test("canonicalizes provider list containers without inventing references", () => {
+  const selection = parseWriterContextSelection({
+    focusRefs: { items: [{ ref: "ch02:p004" }] },
+    dependencyRefs: { 1: "ch03:p002", 0: "ch01:p003" },
+    preservationRefs: { value: "ch02:p005" },
+    preservationLiterals: { values: [{ ref: "ch02:p005", text: "She kept the key." }] },
+    excludeRefs: { refs: [] },
+    throughRef: "ch03:p002",
+    rationale: "Container-shaped provider output.",
+  })
+  assert.deepEqual(selection.focusRefs, ["ch02:p004"])
+  assert.deepEqual(selection.dependencyRefs, ["ch01:p003", "ch03:p002"])
+  assert.deepEqual(selection.preservationRefs, ["ch02:p005"])
+  assert.deepEqual(selection.preservationLiterals, [{ ref: "ch02:p005", text: "She kept the key." }])
+  assert.deepEqual(selection.excludeRefs, [])
+  assert.throws(
+    () =>
+      parseWriterContextSelection({
+        focusRefs: { arbitrary: "ch02:p004" },
+        dependencyRefs: [],
+        preservationRefs: [],
+        preservationLiterals: [],
+        excludeRefs: [],
+        throughRef: null,
+        rationale: "Unknown containers remain invalid.",
+      }),
+    /focusRefs must be an array/,
+  )
+})
+
 test("rejects empty focus, exclusion overlap, and unbound literals", () => {
   const base = {
     focusRefs: ["ch01:p001"],
@@ -91,4 +123,25 @@ test("renders a full bounded manuscript selection request without benchmark mate
   assert.match(writerSelectionSystemPrompt, /never turn motifs, voice, ideas/)
   assert.match(writerSelectionSystemPrompt, /Do not select passages merely because you inspected them/)
   assert.doesNotMatch(writerSelectionSystemPrompt, /novel_state|novel_proposal/)
+})
+
+test("renders a bounded coverage audit without evaluation material", () => {
+  const request = renderWriterSelectionAuditRequest({
+    request: "Trace the character arc and preserve the final choice",
+    job: "explain",
+    preliminary: {
+      focusRefs: ["ch08:p004"],
+      dependencyRefs: ["ch01:p003"],
+      preservationRefs: [],
+      preservationLiterals: [],
+      excludeRefs: [],
+      rationale: "Preliminary local evidence.",
+    },
+  })
+  assert.match(request, /coverage-audit/)
+  assert.match(request, /ch01:p003/)
+  assert.doesNotMatch(request, /checks|criteria|gold/)
+  assert.match(writerSelectionAuditPrompt, /earliest establishment/)
+  assert.match(writerSelectionAuditPrompt, /distant setup/)
+  assert.match(writerSelectionAuditPrompt, /substantive uncertainty/)
 })

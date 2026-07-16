@@ -1,7 +1,7 @@
 import type { WriterContextItem, WriterContextSpec } from "./context.ts"
 import type { WriterJob } from "./contract.ts"
 
-export const writerSelectionVersion = 1 as const
+export const writerSelectionVersion = 2 as const
 
 export type WriterContextSelection = Omit<
   WriterContextSpec,
@@ -27,6 +27,16 @@ export const writerSelectionSystemPrompt = [
   "Do not infer throughRef from chapter order or boundary wording alone when the boundary event is absent; keep it unset and retain every passage that directly answers a requested facet.",
   "Do not select passages merely because you inspected them. Keep unrelated or redundant passages out of every returned reference array.",
   "Return every reference field as a JSON array of exact stable references, even when it contains zero or one item.",
+].join(" ")
+
+export const writerSelectionAuditPrompt = [
+  "Audit a preliminary manuscript context selection for coverage before the writing task executes.",
+  "Reinspect the complete bounded manuscript from the preceding selection request; do not call tools and do not answer or edit the writing task.",
+  "Decompose the author's request into every factual, causal, temporal, character-arc, character-knowledge, voice, pacing, scope, and preservation facet that materially affects a correct response.",
+  "For each relevant facet, include the earliest establishment, every material transition or limiting counterexample, and the latest state or payoff when the request spans change over time.",
+  "Pay special attention to distant setup that constrains a local revision and to voice or knowledge evidence outside the target scene.",
+  "Add a passage when substantive uncertainty remains about whether it changes the answer. Do not add passages merely because they were inspected.",
+  "Return one complete corrected selection object using exact stable references and JSON arrays for every reference field.",
 ].join(" ")
 
 export const writerSelectionSchema = {
@@ -72,6 +82,22 @@ export function renderWriterSelectionRequest(input: {
     authority: input.job === "revise" ? "propose" : "read",
     output: "Return passage references and a short rationale only. Do not answer the writing task.",
     manuscript: input.manuscript,
+  })
+}
+
+export function renderWriterSelectionAuditRequest(input: {
+  request: string
+  job: WriterJob
+  preliminary: WriterContextSelection
+}) {
+  return JSON.stringify({
+    selectionVersion: writerSelectionVersion,
+    phase: "coverage-audit",
+    job: input.job,
+    request: input.request,
+    authority: input.job === "revise" ? "propose" : "read",
+    preliminarySelection: input.preliminary,
+    output: "Return a complete corrected selection only. Do not answer the writing task.",
   })
 }
 
@@ -135,10 +161,11 @@ export function normalizeWriterContextSelection(value: unknown): unknown {
     dependencyRefs: normalizeRefs(input.dependencyRefs),
     preservationRefs: normalizeRefs(input.preservationRefs),
     excludeRefs: normalizeRefs(input.excludeRefs),
-    preservationLiterals:
-      input.preservationLiterals && typeof input.preservationLiterals === "object" && !Array.isArray(input.preservationLiterals)
-        ? [input.preservationLiterals]
-        : input.preservationLiterals,
+    preservationLiterals: normalizeList(input.preservationLiterals, (item) => {
+      if (!item || typeof item !== "object" || Array.isArray(item)) return item
+      const literal = item as Record<string, unknown>
+      return "ref" in literal && "text" in literal ? literal : item
+    }),
   }
 }
 
@@ -156,9 +183,31 @@ function completeSelection(value: unknown): boolean {
 }
 
 function normalizeRefs(value: unknown) {
-  if (typeof value !== "string") return value
-  const items = value.split(",").map((item) => item.trim())
-  return items.every((item) => /^[a-z][a-z0-9_-]*:[a-z][a-z0-9_-]*$/i.test(item)) ? items : value
+  return normalizeList(value, (item) => {
+    if (typeof item === "string") return item
+    if (!item || typeof item !== "object" || Array.isArray(item)) return item
+    const record = item as Record<string, unknown>
+    return typeof record.ref === "string" ? record.ref : item
+  })
+}
+
+function normalizeList(value: unknown, item: (value: unknown) => unknown): unknown {
+  if (typeof value === "string") {
+    const items = value.split(",").map((entry) => entry.trim())
+    return items.every((entry) => /^[a-z][a-z0-9_-]*:[a-z][a-z0-9_-]*$/i.test(entry)) ? items : value
+  }
+  if (Array.isArray(value)) return value.map(item)
+  if (!value || typeof value !== "object") return value
+  const record = value as Record<string, unknown>
+  for (const key of ["items", "values", "refs", "value", "data"]) {
+    if (key in record) return normalizeList(record[key], item)
+  }
+  if ("ref" in record) return [item(record)]
+  const keys = Object.keys(record)
+  if (keys.length && keys.every((key) => /^\d+$/.test(key))) {
+    return keys.sort((left, right) => Number(left) - Number(right)).map((key) => item(record[key]))
+  }
+  return value
 }
 
 function refs(value: unknown, label: string) {

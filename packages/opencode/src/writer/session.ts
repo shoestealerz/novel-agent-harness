@@ -5,11 +5,13 @@ import {
   parseWriterResult,
   parseWriterContextSelection,
   renderWriterContract,
+  renderWriterSelectionAuditRequest,
   renderWriterSelectionRequest,
   routeWriterJob,
   saveEditProposal,
   writerResponseSchemaFor,
   writerSelectionSchema,
+  writerSelectionAuditPrompt,
   writerSelectionSystemPrompt,
   writerSystemPrompt,
   WriterContractError,
@@ -165,6 +167,67 @@ export function selectionPromptInput(
   }
 }
 
+export function selectionAuditPromptInput(
+  input: Pick<Input, "sessionID" | "model" | "variant" | "request" | "job"> & {
+    preliminary: WriterContextSelection
+  },
+) {
+  const job = routeWriterJob(input.request, input.job)
+  return {
+    sessionID: input.sessionID,
+    agent: "writer",
+    ...(input.model ? { model: input.model } : {}),
+    ...(input.variant ? { variant: input.variant } : {}),
+    system: writerSelectionAuditPrompt,
+    tools: {
+      StructuredOutput: true,
+      novel_list: false,
+      novel_read: false,
+      novel_context: false,
+      novel_state: false,
+      novel_proposal: false,
+    },
+    format: new SessionV1.OutputFormatJsonSchema({
+      type: "json_schema",
+      schema: writerSelectionSchema,
+      retryCount: 2,
+    }),
+    parts: [
+      {
+        type: "text" as const,
+        text: renderWriterSelectionAuditRequest({ request: input.request, job, preliminary: input.preliminary }),
+      },
+    ],
+  }
+}
+
+export function mergeSelectionCoverage(
+  preliminary: WriterContextSelection,
+  audit: WriterContextSelection,
+): WriterContextSelection {
+  const focusRefs = unique([...preliminary.focusRefs, ...audit.focusRefs])
+  const preservationRefs = unique([...preliminary.preservationRefs, ...audit.preservationRefs]).filter(
+    (ref) => !focusRefs.includes(ref),
+  )
+  const occupied = new Set([...focusRefs, ...preservationRefs])
+  const dependencyRefs = unique([...preliminary.dependencyRefs, ...audit.dependencyRefs]).filter(
+    (ref) => !occupied.has(ref),
+  )
+  const selected = new Set([...occupied, ...dependencyRefs])
+  return {
+    focusRefs,
+    dependencyRefs,
+    preservationRefs,
+    preservationLiterals: uniqueBy(
+      [...preliminary.preservationLiterals, ...audit.preservationLiterals],
+      (literal) => `${literal.ref}\u0000${literal.text}`,
+    ),
+    excludeRefs: unique([...preliminary.excludeRefs, ...audit.excludeRefs]).filter((ref) => !selected.has(ref)),
+    ...(audit.throughRef ? { throughRef: audit.throughRef } : {}),
+    rationale: audit.rationale,
+  }
+}
+
 export function mergeSelectionConstraints(
   selection: WriterContextSelection,
   constraints?: WriterContextSpec,
@@ -205,7 +268,10 @@ export function mergeSelectionConstraints(
 }
 
 export function structuredRetryInput<
-  T extends ReturnType<typeof promptInput> | ReturnType<typeof selectionPromptInput>,
+  T extends
+    | ReturnType<typeof promptInput>
+    | ReturnType<typeof selectionPromptInput>
+    | ReturnType<typeof selectionAuditPromptInput>,
 >(input: T): T {
   return {
     ...input,
@@ -219,8 +285,11 @@ export function structuredRetryInput<
 }
 
 export function contractRetryInput<
-  T extends ReturnType<typeof promptInput> | ReturnType<typeof selectionPromptInput>,
->(input: T, subject: "writer response" | "context selection", error: Error): T {
+  T extends
+    | ReturnType<typeof promptInput>
+    | ReturnType<typeof selectionPromptInput>
+    | ReturnType<typeof selectionAuditPromptInput>,
+>(input: T, subject: "writer response" | "context selection" | "context selection audit", error: Error): T {
   return {
     ...input,
     parts: [
@@ -230,7 +299,7 @@ export function contractRetryInput<
           `Your previous structured ${subject} failed contract validation: ${error.message}`,
           "Return one corrected complete object matching the requested schema and original task.",
           "Preserve valid content, use only exact stable references admitted by the task, and do not add prose outside StructuredOutput.",
-          subject === "context selection"
+          subject !== "writer response"
             ? "The temporal boundary must include every declared focus, dependency, and preservation reference; otherwise remove the reference or move the boundary later."
             : "Every evidence value and finding evidence value must be an exact selected passage reference with no quote or commentary appended.",
         ].join(" "),
@@ -289,9 +358,11 @@ export const run = Effect.fn("WriterSession.run")(function* (input: Input) {
           if (info.structured === undefined)
             throw new Error("writer context selection did not return structured output")
           const selectionValue = info.structured
-          const admit = (value: unknown) =>
+          const admit = (value: unknown, preliminary?: WriterContextSelection) =>
             attempt(async () => {
-              const selection = mergeSelectionConstraints(parseWriterContextSelection(value), input.contextSpec)
+              const parsed = parseWriterContextSelection(value)
+              const covered = preliminary ? mergeSelectionCoverage(preliminary, parsed) : parsed
+              const selection = mergeSelectionConstraints(covered, input.contextSpec)
               const contextSpec: WriterContextSpec = {
                 focusRefs: selection.focusRefs,
                 dependencyRefs: selection.dependencyRefs,
@@ -317,6 +388,40 @@ export const run = Effect.fn("WriterSession.run")(function* (input: Input) {
             contractRetries++
           }
           if (!admitted.ok) throw admitted.error
+          const preliminary = admitted.value.contextSpec
+          const auditRequest = selectionAuditPromptInput({
+            ...input,
+            sessionID: selector.id,
+            preliminary,
+          })
+          response = yield* session.prompt(auditRequest)
+          info = response.info
+          if (info.role !== "assistant")
+            throw new Error("writer context selection audit did not return an assistant response")
+          if (info.structured === undefined) {
+            response = yield* session.prompt(structuredRetryInput(auditRequest))
+            info = response.info
+            if (info.role !== "assistant")
+              throw new Error("writer context selection audit retry did not return an assistant response")
+          }
+          if (info.structured === undefined)
+            throw new Error("writer context selection audit did not return structured output")
+          const auditValue = info.structured
+          let audited = yield* Effect.promise(() => admit(auditValue, preliminary))
+          let auditRetries = 0
+          while (!audited.ok && repairableSelectionError(audited.error) && auditRetries < 2) {
+            response = yield* session.prompt(contractRetryInput(auditRequest, "context selection audit", audited.error))
+            info = response.info
+            if (info.role !== "assistant")
+              throw new Error("writer context selection audit contract retry did not return an assistant response")
+            if (info.structured === undefined)
+              throw new Error("writer context selection audit contract retry did not return structured output")
+            const correctedAuditValue = info.structured
+            audited = yield* Effect.promise(() => admit(correctedAuditValue, preliminary))
+            auditRetries++
+          }
+          if (!audited.ok) throw audited.error
+          admitted = audited
           const selectorInfo = yield* sessions.get(selector.id)
           const selectorTokens = selectorInfo.tokens ?? {
             input: 0,
@@ -412,6 +517,16 @@ function addUsage(
 
 function unique(values: string[]) {
   return [...new Set(values)]
+}
+
+function uniqueBy<T>(values: T[], key: (value: T) => string) {
+  const seen = new Set<string>()
+  return values.filter((value) => {
+    const id = key(value)
+    if (seen.has(id)) return false
+    seen.add(id)
+    return true
+  })
 }
 
 function repairableSelectionError(error: Error) {

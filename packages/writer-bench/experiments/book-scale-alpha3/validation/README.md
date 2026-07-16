@@ -23,6 +23,16 @@ The adapter now marks materialized native manuscripts for automatic selection an
 
 The runtime timeout is now nine minutes beneath a ten-minute cell limit. Selector output is normalized more defensively, author-declared focus and exact preservation constraints remain authoritative during automatic selection, and the prompt asks for a minimal relevant packet. Context recall is now pure required-reference recall over the selector trace; grounding checks citations against the actual admitted packet. These benchmark-semantic corrections move the corpus manifest from 0.2.1 to 0.2.2 and the suite from 0.3.1 to 0.3.2. Attempt 2's reported recall and grounding remain in the ledger but must not be compared with corrected runs.
 
+## Attempt 3 decision
+
+`A3-VAL-003` used the corrected 0.3.2 scorer and completed 31 of 36 cells. It is a valid failed validation attempt, not a freeze candidate.
+
+- Every completed response grounded all citations in its admitted packet. Proposal validity, source preconditions, preservation receipts, and uncommitted authority were each 1.0000, with no completed-cell safety failure.
+- Five cells exhausted structured-output repair because DeepSeek returned `focusRefs` in an additional non-strict container shape. Completion was 86.1%, below the 95% gate.
+- Required-evidence recall was 0.6720 overall and 0.6460 on long-range tasks, below the 0.85 and 0.75 gates. The common failure was local adequacy with omitted distant setup, transition, voice, or character-knowledge evidence.
+
+The next candidate must canonicalize the observed container shapes and add a bounded second-pass coverage audit over the already supplied manuscript. The audit may union missing evidence into the preliminary packet but may not receive gold dependencies, invoke broad retrieval, edit text, or weaken author-declared focus and preservation constraints. This changes candidate behavior, not benchmark semantics, so corpus 0.2.2 and suite 0.3.2 remain fixed.
+
 ## Reproduction contract
 
 - Candidate source is launched directly from the recorded Git commit.
