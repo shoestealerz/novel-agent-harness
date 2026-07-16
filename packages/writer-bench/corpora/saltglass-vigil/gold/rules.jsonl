@@ -1,0 +1,8 @@
+{"id":"rule:pressure-memory","kind":"world_rule","statement":"Fresh saltglass preserves the greatest pressure since its last kiln reset; reheating erases the earlier record.","evidence":["ch01:p002","ch01:p015"]}
+{"id":"rule:lens-orientation","kind":"world_rule","statement":"A survey lens must face its maker's notch seaward; reversing it laterally mirrors the stress image.","evidence":["ch05:p003","ch05:p008"]}
+{"id":"rule:lock-window","kind":"world_rule","statement":"The seaward bearings can be unloaded only below the blue tide mark and for at most seventy minutes.","evidence":["ch05:p001","ch11:p008"]}
+{"id":"rule:service-descent","kind":"world_rule","statement":"After the inner float rises, the Archive service descent is one-way toward the lower wards.","evidence":["ch05:p001","ch05:p014"]}
+{"id":"rule:iron-crazing","kind":"world_rule","statement":"Repeated vibration from iron-shod loads crazes charged saltglass; ordinary hand-tool contact does not produce that branch.","evidence":["ch05:p004","ch11:p002"]}
+{"id":"rule:bell-codes","kind":"world_rule","statement":"Emergency bell meaning depends jointly on strike count, measured pause, and arcade; an echo may add a heard strike without changing the sent code.","evidence":["ch02:p006","ch03:p011"]}
+{"id":"rule:civic-calendar","kind":"world_rule","statement":"Veyru's civic year begins at the first neap tide after winter, eleven days later than the mainland year in the relevant cycle.","evidence":["ch04:p006","ch08:p004"]}
+{"id":"rule:public-gates","kind":"world_rule","statement":"Upper gates must stay closed until market shutters lock and lower flow is established; opening early creates counterflow on the blue walks.","evidence":["ch03:p011","ch09:p006","ch13:p013"]}

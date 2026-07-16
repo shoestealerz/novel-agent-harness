@@ -22,7 +22,14 @@
     "manuscript/ch13.md",
     "manuscript/ch14.md"
   ],
-  "gold": [],
+  "gold": [
+    "gold/entities.jsonl",
+    "gold/rules.jsonl",
+    "gold/facts.jsonl",
+    "gold/events.jsonl",
+    "gold/knowledge.jsonl",
+    "gold/intentions.jsonl"
+  ],
   "tasks": [],
   "variants": ["variants/defects.jsonl"],
   "minimumWords": 36000,

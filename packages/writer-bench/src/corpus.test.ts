@@ -109,7 +109,15 @@ test("validates the complete Saltglass Vigil canonical manuscript", async () => 
   assert.equal(result.chapters, 14)
   assert.equal(result.wordCount, 36122)
   assert.equal(result.passages, 252)
-  assert.equal(result.goldRecords, 0)
+  assert.equal(result.goldRecords, 113)
+  assert.deepEqual(result.goldFiles, {
+    "gold/entities.jsonl": 21,
+    "gold/rules.jsonl": 8,
+    "gold/facts.jsonl": 25,
+    "gold/events.jsonl": 20,
+    "gold/knowledge.jsonl": 19,
+    "gold/intentions.jsonl": 20,
+  })
   assert.equal(result.variants, 14)
   assert.deepEqual(result.variantCategories, {
     factual: 2,
