@@ -207,6 +207,10 @@ describe("writer CLI subprocess", () => {
         ])
 
         opencode.expectExit(result, 0)
+        expect(result.stderr).toContain('writer-progress {"protocolVersion":1')
+        expect(result.stderr).toContain('"phase":"session","status":"ready"')
+        expect(result.stderr).toContain('"phase":"context-selection","status":"started"')
+        expect(result.stderr).toContain('"phase":"execution","status":"completed"')
         const output = JSON.parse(result.stdout)
         expect(output.protocolVersion).toBe(1)
         expect(output.job).toBe("explain")

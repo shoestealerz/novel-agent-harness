@@ -271,6 +271,17 @@ export const WriterChatCommand = effectCmd({
             ...(forcedJob ? { job: forcedJob } : {}),
             ...(model ? { model } : {}),
             ...(variant ? { variant } : {}),
+            onProgress: (event) => {
+              if (event.phase === "context-selection" && event.status === "started") {
+                writeLine("writer> selecting manuscript context…")
+              }
+              if (event.phase === "context-selection" && event.status === "completed") {
+                writeLine(`writer> selected ${event.contextItems} passages (${event.contextWords} words)`)
+              }
+              if (event.phase === "execution" && event.status === "started") {
+                writeLine("writer> drafting grounded response…")
+              }
+            },
           }),
         )
         if (Exit.isFailure(result)) {

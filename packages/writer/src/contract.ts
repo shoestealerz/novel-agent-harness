@@ -305,7 +305,7 @@ export function parseWriterResult(task: WriterTask, value: unknown): WriterResul
   const data = record(input.data, "writer response data")
   const parsed = {
     answer,
-    evidence: unique([...evidence, ...cited]),
+    evidence: unique([...evidence, ...cited, ...findings.flatMap((finding) => finding.evidence)]),
     findings,
     edits,
     data: {

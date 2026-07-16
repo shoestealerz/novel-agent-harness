@@ -270,6 +270,7 @@ const layer = Layer.effect(
             mode: "primary",
             native: true,
             prompt: PROMPT_WRITER,
+            steps: 8,
             options: {},
             permission: Permission.merge(defaults, user, Permission.fromConfig({ "*": "deny" })),
           },
@@ -309,6 +310,7 @@ const layer = Layer.effect(
           writer.mode = "primary"
           writer.native = true
           writer.prompt = PROMPT_WRITER
+          writer.steps = 8
           writer.permission = Permission.merge(writer.permission, Permission.fromConfig({ "*": "deny" }))
           writer.permission = Permission.merge(
             writer.permission,

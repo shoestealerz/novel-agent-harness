@@ -48,15 +48,17 @@ describe("WriterSession", () => {
     const selection = WriterSession.selectionPromptInput({
       sessionID: SessionID.make("ses_writer_selection"),
       request: "Explain the bell",
+      manuscript: [{ ref: "ch01:p001", text: "The bell rang once." }],
     })
     expect(selection.tools).toEqual({
       StructuredOutput: true,
-      novel_list: true,
-      novel_read: true,
-      novel_context: true,
-      novel_state: true,
+      novel_list: false,
+      novel_read: false,
+      novel_context: false,
+      novel_state: false,
       novel_proposal: false,
     })
+    expect(selection.parts[0]?.text).toContain("The bell rang once.")
   })
 
   test("seals and persists a structured revision response", async () => {

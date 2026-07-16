@@ -167,6 +167,7 @@ export const WriterRunCommand = effectCmd({
         return yield* fail("Only a prior headless Writer session can be resumed")
       }
     }
+    console.error(writerProgressLine(session.id, { phase: "session", status: "ready" }))
     const output = yield* WriterSession.run({
       sessionID: session.id,
       root,
@@ -175,6 +176,7 @@ export const WriterRunCommand = effectCmd({
       ...(contextSpec ? { contextSpec } : {}),
       ...(parsed ? { model: parsed } : {}),
       ...(args.variant ? { variant: args.variant } : {}),
+      onProgress: (event) => console.error(writerProgressLine(session.id, event)),
     }).pipe(Effect.orDie)
     console.log(
       args.format === "text" ? formatWriterText(output) : JSON.stringify(headlessResult(session.id, output), null, 2),
@@ -381,4 +383,8 @@ function formatWriterText(output: WriterSession.Output) {
   if (output.result.evidence.length) lines.push("", `Evidence: ${output.result.evidence.join(", ")}`)
   if (output.result.proposal) lines.push("", `Proposal: ${output.result.proposal.id}`, `Saved: ${output.proposalPath}`)
   return lines.join("\n")
+}
+
+export function writerProgressLine(sessionID: string, event: WriterSession.ProgressEvent | { phase: "session"; status: "ready" }) {
+  return `writer-progress ${JSON.stringify({ protocolVersion: 1, sessionID, ...event })}`
 }

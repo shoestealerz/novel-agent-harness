@@ -1,4 +1,4 @@
-import type { WriterContextSpec } from "./context.ts"
+import type { WriterContextItem, WriterContextSpec } from "./context.ts"
 import type { WriterJob } from "./contract.ts"
 
 export const writerSelectionVersion = 1 as const
@@ -9,7 +9,9 @@ export type WriterContextSelection = WriterContextSpec & {
 
 export const writerSelectionSystemPrompt = [
   "Select manuscript context for a fiction-writing task before execution.",
-  "Use only novel_list, novel_read, novel_context, and the read-only novel_state tool to inspect the Git-backed novel.",
+  "The request contains the complete bounded manuscript as ordered stable passage objects; inspect it directly and do not call tools.",
+  "Set excludeRefs to an empty array; omission from the positive focus, dependency, and preservation sets is sufficient.",
+  "For change-over-time questions, include the transition or transfer passages as well as the setup and final disposition; do not substitute nearby operational mentions for the actual change.",
   "Return stable passage references, not prose answers or edits.",
   "Choose the smallest packet that covers the focus, causal dependencies, and explicit preservation constraints.",
   "Use preservationLiterals only for wording the author explicitly requires verbatim; never turn motifs, voice, ideas, facts, or paraphrasable constraints into exact literals.",
@@ -36,7 +38,7 @@ export const writerSelectionSchema = {
         required: ["ref", "text"],
       },
     },
-    excludeRefs: { type: "array", items: { type: "string" } },
+    excludeRefs: { type: "array", maxItems: 0, items: { type: "string" } },
     throughRef: { type: ["string", "null"] },
     rationale: { type: "string" },
   },
@@ -51,13 +53,18 @@ export const writerSelectionSchema = {
   ],
 } as const
 
-export function renderWriterSelectionRequest(input: { request: string; job: WriterJob }) {
+export function renderWriterSelectionRequest(input: {
+  request: string
+  job: WriterJob
+  manuscript: Pick<WriterContextItem, "ref" | "text" | "metadata">[]
+}) {
   return JSON.stringify({
     selectionVersion: writerSelectionVersion,
     job: input.job,
     request: input.request,
     authority: input.job === "revise" ? "propose" : "read",
     output: "Return passage references and a short rationale only. Do not answer the writing task.",
+    manuscript: input.manuscript,
   })
 }
 
@@ -101,7 +108,7 @@ export function normalizeWriterContextSelection(value: unknown): unknown {
   const outer = value && typeof value === "object" && !Array.isArray(value) ? (value as Record<string, unknown>) : null
   const candidate = (() => {
     if (!outer || Object.keys(outer).length !== 1) return value
-    const key = "input" in outer ? "input" : "answer" in outer ? "answer" : undefined
+    const key = "input" in outer ? "input" : "answer" in outer ? "answer" : "output" in outer ? "output" : undefined
     if (!key) return value
     const nested = outer[key]
     if (nested && typeof nested === "object" && !Array.isArray(nested)) return nested

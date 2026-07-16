@@ -33,6 +33,7 @@ test("unwraps complete selector responses from non-strict tool providers", () =>
   }
   assert.deepEqual(normalizeWriterContextSelection({ input: expected }), expected)
   assert.deepEqual(normalizeWriterContextSelection({ answer: JSON.stringify(expected) }), expected)
+  assert.deepEqual(normalizeWriterContextSelection({ output: expected }), expected)
   assert.deepEqual(parseWriterContextSelection({ input: expected }).focusRefs, ["ch02:p004"])
   assert.equal(parseWriterContextSelection({ ...expected, throughRef: "null" }).throughRef, undefined)
   assert.deepEqual(normalizeWriterContextSelection({ input: { focusRefs: [] } }), { input: { focusRefs: [] } })
@@ -75,9 +76,15 @@ test("rejects empty focus, exclusion overlap, and unbound literals", () => {
   )
 })
 
-test("renders a selection request without manuscript prose or benchmark material", () => {
-  const request = renderWriterSelectionRequest({ request: "Explain the bell", job: "explain" })
+test("renders a full bounded manuscript selection request without benchmark material", () => {
+  const request = renderWriterSelectionRequest({
+    request: "Explain the bell",
+    job: "explain",
+    manuscript: [{ ref: "ch01:p001", text: "The bell rang once." }],
+  })
   assert.match(request, /passage references/)
+  assert.match(request, /The bell rang once/)
+  assert.match(request, /ch01:p001/)
   assert.doesNotMatch(request, /checks|criteria|gold/)
   assert.match(writerSelectionSystemPrompt, /Do not infer throughRef from chapter order/)
   assert.match(writerSelectionSystemPrompt, /never turn motifs, voice, ideas/)

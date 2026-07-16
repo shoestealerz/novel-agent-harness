@@ -40,7 +40,25 @@ export type Input = {
   contextStrategy?: ContextStrategy
   model?: { providerID: ProviderV2.ID; modelID: ModelV2.ID }
   variant?: string
+  onProgress?: (event: ProgressEvent) => void
 }
+
+export type ProgressEvent =
+  | { phase: "context-selection"; status: "started" }
+  | {
+      phase: "context-selection"
+      status: "completed"
+      selectionSessionID: SessionID
+      contextItems: number
+      contextWords: number
+      usage: { inputTokens: number; outputTokens: number; costUsd: number }
+    }
+  | { phase: "execution"; status: "started"; contextItems: number; contextWords: number }
+  | {
+      phase: "execution"
+      status: "completed"
+      usage: { inputTokens: number; outputTokens: number; costUsd: number }
+    }
 
 export type PreparedTurn = {
   task: WriterTask
@@ -112,7 +130,11 @@ export function promptInput(input: Pick<Input, "sessionID" | "model" | "variant"
   }
 }
 
-export function selectionPromptInput(input: Pick<Input, "sessionID" | "model" | "variant" | "request" | "job">) {
+export function selectionPromptInput(
+  input: Pick<Input, "sessionID" | "model" | "variant" | "request" | "job"> & {
+    manuscript: Pick<WriterContextItem, "ref" | "text" | "metadata">[]
+  },
+) {
   const job = routeWriterJob(input.request, input.job)
   return {
     sessionID: input.sessionID,
@@ -122,10 +144,10 @@ export function selectionPromptInput(input: Pick<Input, "sessionID" | "model" | 
     system: writerSelectionSystemPrompt,
     tools: {
       StructuredOutput: true,
-      novel_list: true,
-      novel_read: true,
-      novel_context: true,
-      novel_state: true,
+      novel_list: false,
+      novel_read: false,
+      novel_context: false,
+      novel_state: false,
       novel_proposal: false,
     },
     format: new SessionV1.OutputFormatJsonSchema({
@@ -133,7 +155,12 @@ export function selectionPromptInput(input: Pick<Input, "sessionID" | "model" | 
       schema: writerSelectionSchema,
       retryCount: 2,
     }),
-    parts: [{ type: "text" as const, text: renderWriterSelectionRequest({ request: input.request, job }) }],
+    parts: [
+      {
+        type: "text" as const,
+        text: renderWriterSelectionRequest({ request: input.request, job, manuscript: input.manuscript }),
+      },
+    ],
   }
 }
 
@@ -188,7 +215,16 @@ export const run = Effect.fn("WriterSession.run")(function* (input: Input) {
           turn: yield* Effect.promise(() => prepare(input)),
         }
       : yield* Effect.gen(function* () {
+          notifyProgress(input, { phase: "context-selection", status: "started" })
           const sessions = yield* Session.Service
+          const workspace = yield* Effect.promise(() => loadWriterWorkspace(input.root))
+          const manuscript = workspace.chapters.flatMap((chapter) =>
+            chapter.passages.map((passage) => ({
+              ref: passage.ref,
+              text: passage.text,
+              metadata: { chapterId: passage.chapterId, path: passage.path, sha256: passage.sha256 },
+            })),
+          )
           const parent = input.model ? undefined : yield* sessions.get(input.sessionID)
           const selector = yield* sessions.create({
             parentID: input.sessionID,
@@ -199,7 +235,7 @@ export const run = Effect.fn("WriterSession.run")(function* (input: Input) {
               : parent?.model,
             metadata: { "novel.writer.phase": "context-selection" },
           })
-          const request = selectionPromptInput({ ...input, sessionID: selector.id })
+          const request = selectionPromptInput({ ...input, sessionID: selector.id, manuscript })
           let response = yield* session.prompt(request)
           let info = response.info
           if (info.role !== "assistant")
@@ -253,6 +289,14 @@ export const run = Effect.fn("WriterSession.run")(function* (input: Input) {
             outputTokens: selectorTokens.output + selectorTokens.reasoning,
             costUsd: selectorInfo.cost ?? 0,
           }
+          notifyProgress(input, {
+            phase: "context-selection",
+            status: "completed",
+            selectionSessionID: selector.id,
+            contextItems: admitted.value.turn.contextTrace.contextItems,
+            contextWords: admitted.value.turn.contextTrace.contextWords,
+            usage,
+          })
           return {
             input: admitted.value.input,
             turn: admitted.value.turn,
@@ -260,6 +304,12 @@ export const run = Effect.fn("WriterSession.run")(function* (input: Input) {
           }
         })
   const turn = admission.turn
+  notifyProgress(input, {
+    phase: "execution",
+    status: "started",
+    contextItems: turn.contextTrace.contextItems,
+    contextWords: turn.contextTrace.contextWords,
+  })
   const request = promptInput(input, turn)
   let response = yield* session.prompt(request)
   let info = response.info
@@ -288,13 +338,15 @@ export const run = Effect.fn("WriterSession.run")(function* (input: Input) {
   if (!finalized.ok) throw finalized.error
   const output = finalized.value
   const selectionUsage = admission.selection?.usage ?? { inputTokens: 0, outputTokens: 0, costUsd: 0 }
+  const usage = {
+    inputTokens: executionUsage.inputTokens + selectionUsage.inputTokens,
+    outputTokens: executionUsage.outputTokens + selectionUsage.outputTokens,
+    costUsd: executionUsage.costUsd + selectionUsage.costUsd,
+  }
+  notifyProgress(input, { phase: "execution", status: "completed", usage })
   return {
     ...output,
-    usage: {
-      inputTokens: executionUsage.inputTokens + selectionUsage.inputTokens,
-      outputTokens: executionUsage.outputTokens + selectionUsage.outputTokens,
-      costUsd: executionUsage.costUsd + selectionUsage.costUsd,
-    },
+    usage,
     ...(admission.selection ? { selection: admission.selection } : {}),
   }
 })
@@ -329,6 +381,14 @@ function attempt<T>(evaluate: () => T | Promise<T>) {
       (value) => ({ ok: true as const, value }),
       (cause) => ({ ok: false as const, error: cause instanceof Error ? cause : new Error(String(cause)) }),
     )
+}
+
+function notifyProgress(input: Input, event: ProgressEvent) {
+  try {
+    input.onProgress?.(event)
+  } catch {
+    // Progress reporting must never change the Writer result or authority boundary.
+  }
 }
 
 export * as WriterSession from "./session"

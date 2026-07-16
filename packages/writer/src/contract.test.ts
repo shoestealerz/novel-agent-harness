@@ -135,6 +135,32 @@ test("rejects unsupported evidence and out-of-scope revisions", () => {
   )
 })
 
+test("includes finding evidence in the result-level audit receipt", () => {
+  const result = parseWriterResult(
+    createWriterTask({
+      request: "Explain the bell and the locked door",
+      job: "explain",
+      context: [
+        { ref: "ch01:p001", text: "The bell rang once." },
+        { ref: "ch01:p002", text: "Mara waited at the locked door." },
+      ],
+      contextSpec: { focusRefs: ["ch01:p001"], dependencyRefs: ["ch01:p002"] },
+    }),
+    response({
+      evidence: ["ch01:p001"],
+      findings: [
+        {
+          id: "F1",
+          statement: "The locked door explains why the bell matters.",
+          evidence: ["ch01:p002"],
+        },
+      ],
+    }),
+  )
+
+  assert.deepEqual(result.evidence, ["ch01:p001", "ch01:p002"])
+})
+
 test("seals a valid revision into an uncommitted immutable proposal", () => {
   const task = createWriterTask({
     request: "Tighten ch01:p001 and preserve the door sentence",
