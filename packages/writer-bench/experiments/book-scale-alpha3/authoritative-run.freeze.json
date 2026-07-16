@@ -16,6 +16,12 @@
     "ids": ["raw-model", "stock-opencode", "production-writer"],
     "manifestSha256": "dc2acb88c3d54f3e514e8134e525527a7a8d12ed18224da3a77220a3d72282a7"
   },
+  "runtime": {
+    "stockOpenCodeVersion": "1.17.18",
+    "stockOpenCodeBinarySha256": "59b379b53354da72d2c5262119fe70c44b4e473826ebbaa94d47a2d58a359b1a",
+    "bunVersion": "1.3.14",
+    "bunBinarySha256": "0187f68d843f825a72ada4a7eca60db896ed753759a7f8252edcd31ac1bf1b9c"
+  },
   "primaryTrack": {
     "suite": "sealed",
     "suiteSha256": "844f6fd84fe9819d996a66a370cb0cdb828ba1e6f54fc2b749565a2d4ba54cc5",
