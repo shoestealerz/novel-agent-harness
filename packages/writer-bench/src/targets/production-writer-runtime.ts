@@ -218,6 +218,7 @@ export type PhaseUsage = {
 type ProgressSample = {
   atMs: number
   event: {
+    emittedAtMs?: unknown
     phase?: unknown
     status?: unknown
     usage?: unknown
@@ -278,7 +279,8 @@ class WriterProgressCollector {
     if (!line.startsWith(prefix)) return
     try {
       const event = JSON.parse(line.slice(prefix.length)) as ProgressSample["event"]
-      this.samples.push({ atMs, event })
+      const emittedAtMs = event.emittedAtMs
+      this.samples.push({ atMs: typeof emittedAtMs === "number" && Number.isFinite(emittedAtMs) ? emittedAtMs : atMs, event })
     } catch {
       // Preserve malformed stderr for process diagnostics; it is not valid phase telemetry.
     }

@@ -399,6 +399,10 @@ function formatWriterText(output: WriterSession.Output) {
   return lines.join("\n")
 }
 
-export function writerProgressLine(sessionID: string, event: WriterSession.ProgressEvent | { phase: "session"; status: "ready" }) {
-  return `writer-progress ${JSON.stringify({ protocolVersion: 1, sessionID, ...event })}`
+export function writerProgressLine(
+  sessionID: string,
+  event: WriterSession.ProgressEvent | { phase: "session"; status: "ready" },
+  emittedAtMs = performance.now(),
+) {
+  return `writer-progress ${JSON.stringify({ protocolVersion: 1, sessionID, emittedAtMs, ...event })}`
 }

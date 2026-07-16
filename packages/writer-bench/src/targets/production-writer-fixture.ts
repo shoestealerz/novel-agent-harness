@@ -46,7 +46,14 @@ console.log(
 )
 
 function progress(event: Record<string, unknown>) {
-  console.error(`writer-progress ${JSON.stringify({ protocolVersion: 1, sessionID: "ses_production_fixture", ...event })}`)
+  console.error(
+    `writer-progress ${JSON.stringify({
+      protocolVersion: 1,
+      sessionID: "ses_production_fixture",
+      emittedAtMs: performance.now(),
+      ...event,
+    })}`,
+  )
 }
 
 function flag(name: string) {

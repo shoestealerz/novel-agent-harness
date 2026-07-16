@@ -8,18 +8,23 @@ describe("writer CLI", () => {
   })
 
   test("renders machine-readable progress without contaminating headless JSON stdout", () => {
-    const line = writerProgressLine("ses_writer", {
-      phase: "context-selection",
-      status: "completed",
-      selectionSessionID: "ses_selector" as never,
-      contextItems: 5,
-      contextWords: 624,
-      usage: { inputTokens: 100, outputTokens: 20, costUsd: 0.01 },
-    })
+    const line = writerProgressLine(
+      "ses_writer",
+      {
+        phase: "context-selection",
+        status: "completed",
+        selectionSessionID: "ses_selector" as never,
+        contextItems: 5,
+        contextWords: 624,
+        usage: { inputTokens: 100, outputTokens: 20, costUsd: 0.01 },
+      },
+      123.5,
+    )
     expect(line.startsWith("writer-progress ")).toBe(true)
     expect(JSON.parse(line.slice("writer-progress ".length))).toMatchObject({
       protocolVersion: 1,
       sessionID: "ses_writer",
+      emittedAtMs: 123.5,
       selectionSessionID: "ses_selector",
       phase: "context-selection",
       status: "completed",
