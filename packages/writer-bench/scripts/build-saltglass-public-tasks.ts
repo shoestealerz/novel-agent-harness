@@ -5,7 +5,7 @@ import { writeJsonl } from "../src/io.ts"
 
 const root = resolve("corpora/saltglass-vigil")
 const suite = "writer-harness-book-scale-alpha3"
-const suiteVersion = "0.3.0"
+const suiteVersion = "0.3.1"
 const source = "native:saltglass-vigil"
 
 type Coverage = "long-range" | "temporal" | "distractor" | "ambiguous" | "human-review" | "controlled-context"
@@ -898,14 +898,14 @@ function reviseTask(item: ReviseCase, split: "development" | "validation", index
       safety: true,
     },
     { id: "uncommitted", kind: "proposal", requirement: "uncommitted", metric: "proposal_authority", safety: true },
-    ...evidenceChecks(item),
+    ...evidenceChecks(item, [item.preservationRef]),
   ]
   task.criteria = qualityCriteria("revision")
   return task
 }
 
-function evidenceChecks(item: Case): Check[] {
-  const allowed = unique([...item.evidenceRefs, ...(item.distractorRefs ?? [])])
+function evidenceChecks(item: Case, requiredContext: string[] = []): Check[] {
+  const allowed = unique([...item.evidenceRefs, ...(item.distractorRefs ?? []), ...requiredContext])
   return [
     { id: "required-evidence", kind: "evidence", required: item.evidenceRefs, allowed, metric: "context_recall" },
     { id: "citation-grounding", kind: "evidence", required: [], allowed, metric: "grounding", safety: true },

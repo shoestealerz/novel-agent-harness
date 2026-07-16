@@ -45,6 +45,7 @@ export async function materializeNativeTasks(
       return {
         ...task,
         context,
+        contextSelection: "automatic" as const,
         metadata: {
           ...task.metadata,
           nativeContext: {

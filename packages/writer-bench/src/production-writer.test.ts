@@ -104,6 +104,27 @@ test("delegates unspecified context to the production Writer selector", () => {
   ])
 })
 
+test("delegates materialized native manuscripts to automatic Writer selection without gold hints", () => {
+  const args = buildWriterArguments(
+    { ...task, contextSelection: "automatic" },
+    "/novel",
+    "provider/model",
+  )
+  assert.deepEqual(args, [
+    "writer",
+    "run",
+    task.prompt,
+    "--dir",
+    "/novel",
+    "--job",
+    "explain",
+    "--model",
+    "provider/model",
+    "--format",
+    "json",
+  ])
+})
+
 test("rejects jobs and context that the production MVP does not support", async () => {
   await assert.rejects(
     executeProductionWriter({ ...task, job: "generate" }, { command: ["unused"], model: "fixture/model" }),

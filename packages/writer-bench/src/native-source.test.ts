@@ -19,10 +19,11 @@ test("materializes a complete, temporally bounded native manuscript and isolated
   assert.equal(materialized.context?.[0]?.ref, "ch01:p001")
   assert.equal(materialized.context?.at(-1)?.ref, "ch13:p013")
   assert.equal(materialized.context?.some((item) => item.ref === "ch14:p001"), false)
+  assert.equal(materialized.contextSelection, "automatic")
   assert.match(materialized.context?.find((item) => item.ref === "ch13:p013")?.text ?? "", /Opening the upper gates early/)
   assert.deepEqual(materialized.metadata?.nativeContext, {
     corpus: "saltglass-vigil",
-    corpusVersion: "0.2.0",
+    corpusVersion: "0.2.1",
     mode: "full",
     contextItems: materialized.context?.length,
     throughRef: "ch13:p013",
@@ -38,6 +39,7 @@ test("materializes only the preregistered gold-bounded packet for controlled con
 
   const [materialized] = await materializeNativeTasks([task], validation, "controlled")
   assert.deepEqual(materialized.context?.map((item) => item.ref), ["ch10:p007", "ch10:p008", "ch10:p009"])
+  assert.equal(materialized.contextSelection, "automatic")
   assert.match(materialized.context?.at(-1)?.text ?? "", /help you seize the carriage/)
   assert.equal((materialized.metadata?.nativeContext as Record<string, unknown>).mode, "controlled")
 })

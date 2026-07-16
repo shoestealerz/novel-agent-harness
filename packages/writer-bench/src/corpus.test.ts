@@ -107,6 +107,7 @@ test("validates the complete Saltglass Vigil canonical manuscript", async () => 
   const result = await validateCorpus("corpora/saltglass-vigil")
   assert.equal(result.corpus, "saltglass-vigil")
   assert.equal(result.status, "canonical-prose")
+  assert.equal(result.version, "0.2.1")
   assert.equal(result.chapters, 14)
   assert.equal(result.wordCount, 36122)
   assert.equal(result.passages, 252)
@@ -157,4 +158,19 @@ test("rejects a Saltglass Vigil defect patch after its source passage changes", 
   records[0].sourceSha256 = "0".repeat(64)
   await writeFile(path, `${records.map((record) => JSON.stringify(record)).join("\n")}\n`)
   await assert.rejects(validateCorpus(root), /stale source hash/)
+})
+
+test("rejects a book-scale revision scorer that disallows required preservation evidence", async (context) => {
+  const root = await mkdtemp(join(tmpdir(), "saltglass-grounding-"))
+  context.after(() => rm(root, { recursive: true, force: true }))
+  await cp("corpora/saltglass-vigil", root, { recursive: true })
+  const path = join(root, "tasks", "validation.jsonl")
+  const tasks = (await readJsonl(path)) as Record<string, unknown>[]
+  const task = tasks.find((item) => item.id === "saltglass-val-revise-002-key-transfer")!
+  const spec = task.contextSpec as { preservationRefs: string[] }
+  const checks = task.checks as { id: string; allowed?: string[] }[]
+  const grounding = checks.find((check) => check.id === "citation-grounding")!
+  grounding.allowed = grounding.allowed?.filter((ref) => !spec.preservationRefs.includes(ref))
+  await writeFile(path, `${tasks.map((item) => JSON.stringify(item)).join("\n")}\n`)
+  await assert.rejects(validateBookTaskMatrix(root), /grounding disallows required preservation refs/)
 })

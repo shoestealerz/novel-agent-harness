@@ -78,6 +78,7 @@ export type Task = {
   language?: string
   prompt: string
   context?: ContextItem[]
+  contextSelection?: "automatic" | "declared"
   contextSpec?: ContextSpec
   retrievalSpec?: RetrievalSpec
   authority?: "read" | "propose"
@@ -261,6 +262,10 @@ export function parseTask(value: unknown): Task {
   const job = requireString(input.job, "task.job")
   const jobs: Job[] = ["explain", "diagnose", "brainstorm", "plan", "revise", "synchronize", "generate", "translate"]
   if (!jobs.includes(job as Job)) throw new Error(`task.job is unsupported: ${job}`)
+  const contextSelection = input.contextSelection
+  if (contextSelection !== undefined && contextSelection !== "automatic" && contextSelection !== "declared") {
+    throw new Error(`task.contextSelection is unsupported: ${String(contextSelection)}`)
+  }
   return {
     ...(input as Task),
     id: requireString(input.id, "task.id"),
@@ -269,6 +274,7 @@ export function parseTask(value: unknown): Task {
     source: requireString(input.source, "task.source"),
     job: job as Job,
     prompt: requireString(input.prompt, "task.prompt"),
+    contextSelection: contextSelection as Task["contextSelection"],
   }
 }
 

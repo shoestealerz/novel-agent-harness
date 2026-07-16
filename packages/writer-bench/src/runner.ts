@@ -145,6 +145,7 @@ function publicTask(task: Task): ExecutionTask {
     language: task.language,
     prompt: task.prompt,
     context: task.context,
+    contextSelection: task.contextSelection,
     contextSpec: task.contextSpec,
     retrievalSpec: task.retrievalSpec,
     authority: task.authority,
