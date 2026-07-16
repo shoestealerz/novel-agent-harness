@@ -124,3 +124,35 @@ interval is entirely above 0.50 and every automated safety gate passes. An
 interval that includes 0.50 with a lower bound of at least 0.40 is reported as no
 detected material preference penalty. All other outcomes are reported without
 creative-quality improvement claims.
+
+## Frozen output checkpoint
+
+On July 16, 2026, `A3-HR-SUPPLEMENT-001` completed 80/81 supplemental
+cells. One stock-OpenCode Plan cell returned no completed text event. The run
+was declared failed and hash-sealed before any response content was inspected:
+
+- source run: `2026-07-16T23-03-38-220Z-43912962`;
+- source run SHA-256:
+  `2c53f7a7f99b94c962d9dca778141cad0b48432145f0a0a2114de8708b1a1f7d`;
+- private failure-declaration SHA-256:
+  `9bf9784b12485e41d23e0dc533a5dda9a11e1c56511cf35f6cab49ccb0a846d8`.
+
+Public freeze revision 6 then authorized one exact-resume call for that
+response-less cell. `A3-HR-SUPPLEMENT-002` byte-preserved the 80 successful
+responses, recovered exactly the declared cell, and completed 81/81 without
+displaying or selecting response content:
+
+- accepted supplemental run: `2026-07-16T23-50-21-933Z-1e4d2f5a`;
+- accepted run SHA-256:
+  `b0bb959d844f8a67ffb8d326fdf12573a60d86b57c28e05dba25f3cde36e0b7f`;
+- private recovery-acceptance SHA-256:
+  `7480b51069d94c994a98c078d278015ff363f3b2210159df7669e9141096a8fb`.
+
+The frozen assembler combined that run with the 63 named primary cells into
+144 outputs and 96 blinded comparisons. Three pseudonymous offline reviewer
+packets were generated. The private review-freeze receipt has SHA-256
+`bbbfaac4188a283e48ef39fa19fcc24e912a5077d2941c9163ee1825c704676c`;
+its composite run SHA-256 is
+`e8a3cb9243dcc242b54c3dbf382976b29817bb6521e70458985b8f0627e01b98`.
+Packet contents, target identities, source passages, outputs, and reviewer
+identities remain private. No ratings have been collected or unblinded yet.
