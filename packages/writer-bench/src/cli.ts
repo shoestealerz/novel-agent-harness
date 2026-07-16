@@ -34,11 +34,12 @@ async function run() {
   const contextMode = (optional(args, "context-mode") ?? "full") as NativeContextMode
   const tasks = (await Promise.all(suites.map(async (path) => {
     const suitePath = resolve(path)
-    const parsed = (await readJsonl(suitePath)).map(parseTask)
+    const parsed = (await readJsonl(suitePath))
+      .map(parseTask)
+      .filter((task) => !requestedTasks.length || requestedTasks.includes(task.id))
     return materializeNativeTasks(parsed, suitePath, contextMode)
   })))
     .flat()
-    .filter((task) => !requestedTasks.length || requestedTasks.includes(task.id))
   const targets = parseTargetFile(await readJson(resolve(targetPath)))
   const requestedTargets = values(args, "target")
   targets.systems = targets.systems.filter((target) => !requestedTargets.length || requestedTargets.includes(target.id))
