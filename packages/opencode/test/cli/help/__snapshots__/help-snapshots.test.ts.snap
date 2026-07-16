@@ -691,6 +691,8 @@ Options:
       --session           resume a prior headless Writer session                            [string]
       --auto-context      automatically add dependencies while preserving explicit focus and
                           preservation constraints                        [boolean] [default: false]
+      --maximum-context   use the complete manuscript through the declared temporal boundary
+                                                                          [boolean] [default: false]
       --focus             stable focus passage reference                                     [array]
       --dependency        stable dependency passage reference                                [array]
       --preserve          stable passage reference to preserve                               [array]

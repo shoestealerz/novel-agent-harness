@@ -33,6 +33,12 @@ The runtime timeout is now nine minutes beneath a ten-minute cell limit. Selecto
 
 The next candidate must canonicalize the observed container shapes and add a bounded second-pass coverage audit over the already supplied manuscript. The audit may union missing evidence into the preliminary packet but may not receive gold dependencies, invoke broad retrieval, edit text, or weaken author-declared focus and preservation constraints. This changes candidate behavior, not benchmark semantics, so corpus 0.2.2 and suite 0.3.2 remain fixed.
 
+## Coverage-audit probe decision
+
+`A3-PROBE-001` tested the second-pass audit on eight deliberately difficult validation tasks before another full run. It completed 6/8, achieved 0.5889 required-evidence recall, and cost $0.4121. Grounding and proposal safeguards remained perfect, but the mechanism did not make the recall gate plausible and introduced two additional selection-contract failures. The immutable subset record is in `probes.jsonl`; it is not a validation attempt and is not pooled with one.
+
+The audit is therefore rejected for the production candidate. For the preregistered 30,000–50,000-word Alpha 3 scale, the next candidate uses complete context through the author-declared temporal boundary when the manuscript fits the model window. This is neither retrieval nor a claim of context compression: it is a conservative reliability policy whose token cost, latency, and lack of support for larger manuscripts must be reported. Lossy selection and hierarchical retrieval remain experimental until a separate preregistered study validates them.
+
 ## Reproduction contract
 
 - Candidate source is launched directly from the recorded Git commit.

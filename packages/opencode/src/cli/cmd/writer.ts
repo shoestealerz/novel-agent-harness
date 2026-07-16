@@ -125,6 +125,12 @@ export const WriterRunCommand = effectCmd({
         default: false,
         describe: "automatically add dependencies while preserving explicit focus and preservation constraints",
       })
+      .option("maximum-context", {
+        type: "boolean",
+        default: false,
+        describe: "use the complete manuscript through the declared temporal boundary",
+      })
+      .conflicts("auto-context", "maximum-context")
       .option("focus", { type: "string", array: true, describe: "stable focus passage reference" })
       .option("dependency", { type: "string", array: true, describe: "stable dependency passage reference" })
       .option("preserve", { type: "string", array: true, describe: "stable passage reference to preserve" })
@@ -180,6 +186,7 @@ export const WriterRunCommand = effectCmd({
       job: args.job as WriterJob | undefined,
       ...(contextSpec ? { contextSpec } : {}),
       ...(args["auto-context"] ? { autoContext: true } : {}),
+      ...(args["maximum-context"] ? { contextStrategy: "maximum" as const } : {}),
       ...(parsed ? { model: parsed } : {}),
       ...(args.variant ? { variant: args.variant } : {}),
       onProgress: (event) => console.error(writerProgressLine(session.id, event)),

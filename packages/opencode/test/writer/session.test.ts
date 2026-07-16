@@ -16,34 +16,6 @@ const unusedSessionLayer = Layer.mock(Session.Service, {
 })
 
 describe("WriterSession", () => {
-  test("unions a coverage audit without retaining a stale boundary", () => {
-    const merged = WriterSession.mergeSelectionCoverage(
-      {
-        focusRefs: ["ch01:p003"],
-        dependencyRefs: ["ch01:p001"],
-        preservationRefs: [],
-        preservationLiterals: [],
-        excludeRefs: [],
-        throughRef: "ch01:p003",
-        rationale: "Local preliminary packet.",
-      },
-      {
-        focusRefs: ["ch01:p003"],
-        dependencyRefs: ["ch01:p002", "ch01:p004"],
-        preservationRefs: [],
-        preservationLiterals: [],
-        excludeRefs: ["ch01:p001"],
-        rationale: "The audit found setup and payoff and cleared the premature boundary.",
-      },
-    )
-
-    expect(merged.focusRefs).toEqual(["ch01:p003"])
-    expect(merged.dependencyRefs).toEqual(["ch01:p001", "ch01:p002", "ch01:p004"])
-    expect(merged.excludeRefs).toEqual([])
-    expect(merged).not.toHaveProperty("throughRef")
-    expect(merged.rationale).toContain("audit found")
-  })
-
   test("merges automatic selection without weakening author constraints", () => {
     const merged = WriterSession.mergeSelectionConstraints(
       {
@@ -117,21 +89,45 @@ describe("WriterSession", () => {
       novel_proposal: false,
     })
     expect(selection.parts[0]?.text).toContain("The bell rang once.")
-    const audit = WriterSession.selectionAuditPromptInput({
-      sessionID: SessionID.make("ses_writer_selection"),
-      request: "Explain the bell",
-      preliminary: {
-        focusRefs: ["ch01:p001"],
-        dependencyRefs: [],
-        preservationRefs: [],
-        preservationLiterals: [],
-        excludeRefs: [],
-        rationale: "Preliminary focus.",
-      },
+  })
+
+  test("executes complete manuscript context through an author boundary without a selector session", async () => {
+    await using tmp = await writerWorkspace()
+    const sessionID = SessionID.make("ses_writer_maximum")
+    const layer = Layer.mock(SessionPrompt.Service, {
+      prompt: () =>
+        Effect.succeed(
+          assistant(
+            sessionID,
+            tmp.path,
+            {
+              answer: "The bell and the locked-door reaction form one beat [ch01:p001] [ch01:p002].",
+              evidence: ["ch01:p001", "ch01:p002"],
+              findings: [],
+              edits: [],
+              data: { observations: [], inferences: [], unresolved: [], preservation: [] },
+            },
+            1,
+          ),
+        ),
     })
-    expect(audit.tools).toEqual(selection.tools)
-    expect(audit.parts[0]?.text).toContain("coverage-audit")
-    expect(audit.system).toContain("earliest establishment")
+
+    const output = await Effect.runPromise(
+      WriterSession.run({
+        sessionID,
+        root: tmp.path,
+        request: "Explain the complete beat through ch01:p002",
+        job: "explain",
+        contextStrategy: "maximum",
+        contextSpec: { focusRefs: ["ch01:p001"], throughRef: "ch01:p002" },
+      }).pipe(Effect.provide(Layer.merge(layer, unusedSessionLayer))),
+    )
+
+    expect(output.selection).toBeUndefined()
+    expect(output.contextTrace.strategy).toBe("maximum")
+    expect(output.contextTrace.selectedRefs).toEqual(["ch01:p001", "ch01:p002"])
+    expect(output.task.contextSpec?.focusRefs).toEqual(["ch01:p001"])
+    expect(output.result.evidence).toEqual(["ch01:p001", "ch01:p002"])
   })
 
   test("seals and persists a structured revision response", async () => {
@@ -337,15 +333,6 @@ describe("WriterSession", () => {
         rationale: "The signal and immediate reaction answer the question.",
       },
       {
-        focusRefs: ["ch01:p001"],
-        dependencyRefs: [],
-        preservationRefs: ["ch01:p002"],
-        preservationLiterals: [],
-        excludeRefs: [],
-        throughRef: "ch01:p002",
-        rationale: "Coverage audit confirms the setup and immediate reaction.",
-      },
-      {
         answer: "The bell signals the locked-door wait [ch01:p001] [ch01:p002].",
         evidence: ["ch01:p001", "ch01:p002"],
         findings: [],
@@ -357,17 +344,13 @@ describe("WriterSession", () => {
     const layer = Layer.mock(SessionPrompt.Service, {
       prompt: (input) => {
         expect(input.agent).toBe("writer")
-        expect(input.sessionID).toBe(state.calls < 4 ? selectorID : sessionID)
+        expect(input.sessionID).toBe(state.calls < 3 ? selectorID : sessionID)
         if (state.calls === 1 || state.calls === 2) {
           expect(input.parts[0]?.type).toBe("text")
           if (input.parts[0]?.type === "text") {
             expect(input.parts[0].text).toContain("failed contract validation")
             expect(input.parts[0].text).toContain("selected context is missing declared passages")
           }
-        }
-        if (state.calls === 3) {
-          expect(input.parts[0]?.type).toBe("text")
-          if (input.parts[0]?.type === "text") expect(input.parts[0].text).toContain("coverage-audit")
         }
         const structured = responses[state.calls++]
         if (!structured) throw new Error("unexpected writer session prompt")
@@ -437,9 +420,9 @@ describe("WriterSession", () => {
       }).pipe(Effect.provide(Layer.merge(layer, sessionLayer))),
     )
 
-    expect(state.calls).toBe(5)
+    expect(state.calls).toBe(4)
     expect(output.selection?.sessionID).toBe(selectorID)
-    expect(output.selection?.contextSpec.rationale).toContain("Coverage audit")
+    expect(output.selection?.contextSpec.rationale).toContain("signal")
     expect(output.selection?.usage).toEqual({ inputTokens: 16, outputTokens: 9, costUsd: 2 })
     expect(output.usage).toEqual({ inputTokens: 17, outputTokens: 10, costUsd: 2 })
     expect(output.task.contextSpec).not.toHaveProperty("rationale")

@@ -3,9 +3,7 @@ import test from "node:test"
 import {
   normalizeWriterContextSelection,
   parseWriterContextSelection,
-  renderWriterSelectionAuditRequest,
   renderWriterSelectionRequest,
-  writerSelectionAuditPrompt,
   writerSelectionSystemPrompt,
 } from "./selection.ts"
 
@@ -123,25 +121,4 @@ test("renders a full bounded manuscript selection request without benchmark mate
   assert.match(writerSelectionSystemPrompt, /never turn motifs, voice, ideas/)
   assert.match(writerSelectionSystemPrompt, /Do not select passages merely because you inspected them/)
   assert.doesNotMatch(writerSelectionSystemPrompt, /novel_state|novel_proposal/)
-})
-
-test("renders a bounded coverage audit without evaluation material", () => {
-  const request = renderWriterSelectionAuditRequest({
-    request: "Trace the character arc and preserve the final choice",
-    job: "explain",
-    preliminary: {
-      focusRefs: ["ch08:p004"],
-      dependencyRefs: ["ch01:p003"],
-      preservationRefs: [],
-      preservationLiterals: [],
-      excludeRefs: [],
-      rationale: "Preliminary local evidence.",
-    },
-  })
-  assert.match(request, /coverage-audit/)
-  assert.match(request, /ch01:p003/)
-  assert.doesNotMatch(request, /checks|criteria|gold/)
-  assert.match(writerSelectionAuditPrompt, /earliest establishment/)
-  assert.match(writerSelectionAuditPrompt, /distant setup/)
-  assert.match(writerSelectionAuditPrompt, /substantive uncertainty/)
 })

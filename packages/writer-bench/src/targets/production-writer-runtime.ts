@@ -89,7 +89,7 @@ export function buildWriterArguments(task: ExecutionTask, root: string, model: s
   const args = ["writer", "run", task.prompt, "--dir", root, "--job", task.job, "--model", model, "--format", "json"]
   const contextSpec = task.contextSpec
   if (task.contextSelection === "automatic") {
-    args.push("--auto-context")
+    args.push("--maximum-context")
     appendMany(args, "--focus", contextSpec?.focusRefs)
     appendMany(args, "--preserve", contextSpec?.preservationRefs)
     appendMany(
@@ -97,6 +97,7 @@ export function buildWriterArguments(task: ExecutionTask, root: string, model: s
       "--preserve-literal",
       contextSpec?.preservationLiterals?.map((item) => `${item.ref}=${item.text}`),
     )
+    if (contextSpec?.throughRef) args.push("--through", contextSpec.throughRef)
     return args
   }
   if (!contextSpec) return args

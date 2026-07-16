@@ -29,16 +29,6 @@ export const writerSelectionSystemPrompt = [
   "Return every reference field as a JSON array of exact stable references, even when it contains zero or one item.",
 ].join(" ")
 
-export const writerSelectionAuditPrompt = [
-  "Audit a preliminary manuscript context selection for coverage before the writing task executes.",
-  "Reinspect the complete bounded manuscript from the preceding selection request; do not call tools and do not answer or edit the writing task.",
-  "Decompose the author's request into every factual, causal, temporal, character-arc, character-knowledge, voice, pacing, scope, and preservation facet that materially affects a correct response.",
-  "For each relevant facet, include the earliest establishment, every material transition or limiting counterexample, and the latest state or payoff when the request spans change over time.",
-  "Pay special attention to distant setup that constrains a local revision and to voice or knowledge evidence outside the target scene.",
-  "Add a passage when substantive uncertainty remains about whether it changes the answer. Do not add passages merely because they were inspected.",
-  "Return one complete corrected selection object using exact stable references and JSON arrays for every reference field.",
-].join(" ")
-
 export const writerSelectionSchema = {
   type: "object",
   additionalProperties: false,
@@ -82,22 +72,6 @@ export function renderWriterSelectionRequest(input: {
     authority: input.job === "revise" ? "propose" : "read",
     output: "Return passage references and a short rationale only. Do not answer the writing task.",
     manuscript: input.manuscript,
-  })
-}
-
-export function renderWriterSelectionAuditRequest(input: {
-  request: string
-  job: WriterJob
-  preliminary: WriterContextSelection
-}) {
-  return JSON.stringify({
-    selectionVersion: writerSelectionVersion,
-    phase: "coverage-audit",
-    job: input.job,
-    request: input.request,
-    authority: input.job === "revise" ? "propose" : "read",
-    preliminarySelection: input.preliminary,
-    output: "Return a complete corrected selection only. Do not answer the writing task.",
   })
 }
 

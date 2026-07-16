@@ -26,6 +26,29 @@ test("task-aware context follows catalog chronology without numeric ref conventi
   assert.ok(compiled.trace.excludedRefs.includes("ending:reveal"))
 })
 
+test("maximum context remains complete through the declared boundary and retains author constraints", () => {
+  const compiled = compileContext(
+    {
+      context: [
+        { ref: "ending:reveal", text: "The pear named its maker.", kind: "manuscript" },
+        { ref: "author:voice", text: "Keep the restraint.", kind: "instruction" },
+      ],
+      contextSpec: {
+        focusRefs: ["opening:discovery"],
+        preservationRefs: ["opening:arrival"],
+        throughRef: "opening:discovery",
+      },
+    },
+    catalog,
+    "maximum",
+  )
+
+  assert.deepEqual(compiled.trace.selectedRefs, ["opening:arrival", "opening:discovery", "author:voice"])
+  assert.deepEqual(compiled.task.contextSpec?.focusRefs, ["opening:discovery"])
+  assert.equal(compiled.task.contextSpec?.throughRef, "opening:discovery")
+  assert.ok(compiled.trace.excludedRefs.includes("ending:reveal"))
+})
+
 test("seals a deterministic source-bound uncommitted proposal", () => {
   const task = {
     job: "revise",
