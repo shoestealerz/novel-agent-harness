@@ -15,6 +15,9 @@ type CorpusManifest = {
   gold: string[]
   tasks: string[]
   minimumWords: number
+  maximumWords?: number
+  minimumPassages?: number
+  expectedChapters?: number
 }
 
 type ArchitectureRecord = {
@@ -52,6 +55,15 @@ export async function validateCorpus(path: string) {
   }
   if (wordCount < manifest.minimumWords)
     throw new Error(`corpus has ${wordCount} words; expected at least ${manifest.minimumWords}`)
+  if (manifest.maximumWords && wordCount > manifest.maximumWords) {
+    throw new Error(`corpus has ${wordCount} words; expected at most ${manifest.maximumWords}`)
+  }
+  if (manifest.minimumPassages && passages.size < manifest.minimumPassages) {
+    throw new Error(`corpus has ${passages.size} passages; expected at least ${manifest.minimumPassages}`)
+  }
+  if (manifest.expectedChapters && manifest.manuscript.length !== manifest.expectedChapters) {
+    throw new Error(`corpus has ${manifest.manuscript.length} chapters; expected ${manifest.expectedChapters}`)
+  }
 
   const goldIds = new Set<string>()
   let goldRecords = 0
@@ -136,6 +148,7 @@ export async function validateCorpus(path: string) {
     status: manifest.status,
     license: manifest.license,
     wordCount,
+    chapters: manifest.manuscript.length,
     passages: passages.size,
     goldRecords,
     tasks: tasks.length,
@@ -316,6 +329,9 @@ function parseManifest(value: unknown): CorpusManifest {
   const input = requireObject(value, "corpus manifest")
   if (typeof input.minimumWords !== "number" || input.minimumWords < 1)
     throw new Error("corpus.minimumWords must be positive")
+  if (typeof input.maximumWords === "number" && input.maximumWords < input.minimumWords) {
+    throw new Error("corpus.maximumWords must not be less than corpus.minimumWords")
+  }
   return {
     id: requireString(input.id, "corpus.id"),
     version: requireString(input.version, "corpus.version"),
@@ -327,6 +343,9 @@ function parseManifest(value: unknown): CorpusManifest {
     gold: requireStringArray(input.gold, "corpus.gold"),
     tasks: requireStringArray(input.tasks, "corpus.tasks"),
     minimumWords: input.minimumWords,
+    maximumWords: optionalPositiveInteger(input.maximumWords, "corpus.maximumWords"),
+    minimumPassages: optionalPositiveInteger(input.minimumPassages, "corpus.minimumPassages"),
+    expectedChapters: optionalPositiveInteger(input.expectedChapters, "corpus.expectedChapters"),
   }
 }
 
@@ -365,6 +384,11 @@ function requireNumberPair(value: unknown, label: string): [number, number] {
 function requirePositiveInteger(value: unknown, label: string) {
   if (!Number.isInteger(value) || (value as number) < 1) throw new Error(`${label} must be a positive integer`)
   return value as number
+}
+
+function optionalPositiveInteger(value: unknown, label: string) {
+  if (value === undefined) return undefined
+  return requirePositiveInteger(value, label)
 }
 
 function requireUniqueIds(records: ArchitectureRecord[], label: string) {

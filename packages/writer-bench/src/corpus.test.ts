@@ -101,3 +101,14 @@ test("validates the in-progress Saltglass Vigil canonical draft", async () => {
     ["neris", "tovan"],
   )
 })
+
+test("validates the complete Saltglass Vigil canonical manuscript", async () => {
+  const result = await validateCorpus("corpora/saltglass-vigil")
+  assert.equal(result.corpus, "saltglass-vigil")
+  assert.equal(result.status, "canonical-prose")
+  assert.equal(result.chapters, 14)
+  assert.equal(result.wordCount, 36122)
+  assert.equal(result.passages, 252)
+  assert.equal(result.goldRecords, 0)
+  assert.equal(result.tasks, 0)
+})

@@ -1,0 +1,31 @@
+{
+  "id": "saltglass-vigil",
+  "version": "0.2.0",
+  "title": "Saltglass Vigil",
+  "status": "canonical-prose",
+  "language": "en",
+  "license": "CC0-1.0",
+  "provenance": "Wholly synthetic fiction written for Novel Agent Harness book-scale evaluation from the preregistered and SHA-256-frozen story architecture. No user manuscript or copied novel text was used.",
+  "manuscript": [
+    "manuscript/ch01.md",
+    "manuscript/ch02.md",
+    "manuscript/ch03.md",
+    "manuscript/ch04.md",
+    "manuscript/ch05.md",
+    "manuscript/ch06.md",
+    "manuscript/ch07.md",
+    "manuscript/ch08.md",
+    "manuscript/ch09.md",
+    "manuscript/ch10.md",
+    "manuscript/ch11.md",
+    "manuscript/ch12.md",
+    "manuscript/ch13.md",
+    "manuscript/ch14.md"
+  ],
+  "gold": [],
+  "tasks": [],
+  "minimumWords": 36000,
+  "maximumWords": 44000,
+  "minimumPassages": 252,
+  "expectedChapters": 14
+}

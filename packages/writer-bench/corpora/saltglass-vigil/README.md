@@ -1,6 +1,6 @@
 # Saltglass Vigil book-scale corpus
 
-`Saltglass Vigil` is the wholly synthetic, CC0 novella planned for the Alpha 3 book-scale evaluation. Its pre-prose architecture is frozen, and canonical drafting is in progress. Gold records, isolated variants, task splits, and human-review packets will be added in separately auditable stages.
+`Saltglass Vigil` is the wholly synthetic, CC0 novella for the Alpha 3 book-scale evaluation. Its pre-prose architecture is frozen and its canonical manuscript is complete. Gold records, isolated variants, task splits, and human-review packets will be added in separately auditable stages.
 
 The architecture fixes the story's causal spine before prose generation:
 
@@ -21,7 +21,7 @@ Validate the frozen architecture from `packages/writer-bench`:
 bun run corpus:architecture
 ```
 
-Audit every currently drafted chapter against its planned filename, sequential passage IDs, 2,500–3,300-word range, and 18–22-passage range:
+Audit every canonical chapter against its planned filename, sequential passage IDs, 2,500–3,300-word range, and 18–22-passage range:
 
 ```sh
 bun run corpus:draft
@@ -43,5 +43,12 @@ Word counts exclude headings and passage-reference comments.
 | 4     | 7–8      | 5,003 |       36 | drafted; automated structure audit passed |
 | 5     | 9–10     | 5,314 |       36 | drafted; automated structure audit passed |
 | 6     | 11–12    | 5,311 |       36 | drafted; automated structure audit passed |
+| 7     | 13–14    | 5,432 |       36 | drafted; automated structure audit passed |
 
-The canonical draft currently contains 30,690 words in 216 stable passages. Batch 1 establishes the two voice exemplars and their asymmetric day-one knowledge. Batch 2 resolves the blank-folio accusation without resolving the pressure discrepancy, fixes the evacuation-code sequence, converts the apparently future ferry token, and begins the protagonists' mutual leverage. Batch 3 corrects the mirrored lens, establishes the missing pressure minute and iron evidence, separates Pel's human error from malice, and exposes Janek's intermittent grip. Batch 4 proves the lens crack predates the break-in, breaks Neris's trust in Orra's complete disclosure, pays off the ferry token and copied-ledger limitations, exposes Merrin, and recovers Hal's still-sealed map tube. Batch 5 turns evidence into a public, dependency-ordered warning plan and pays off Tovan's old courier network as a consent-based readiness chain while preserving his boundary with Cael. Batch 6 demonstrates the iron-cart mechanism, exposes the incomplete procurement summary and Orra's secret partial-evacuation motive, recovers the missing clock interval, formalizes Janek-to-Pel succession, and transfers the master key under explicit stop authority. The final crisis dependencies remain open for chapters 13–14.
+The canonical manuscript is complete at 36,122 words in 252 stable passages. Batch 1 establishes the two voice exemplars and their asymmetric day-one knowledge. Batch 2 resolves the blank-folio accusation without resolving the pressure discrepancy, fixes the evacuation-code sequence, converts the apparently future ferry token, and begins the protagonists' mutual leverage. Batch 3 corrects the mirrored lens, establishes the missing pressure minute and iron evidence, separates Pel's human error from malice, and exposes Janek's intermittent grip. Batch 4 proves the lens crack predates the break-in, breaks Neris's trust in Orra's complete disclosure, pays off the ferry token and copied-ledger limitations, exposes Merrin, and recovers Hal's still-sealed map tube. Batch 5 turns evidence into a public, dependency-ordered warning plan and pays off Tovan's old courier network as a consent-based readiness chain while preserving his boundary with Cael. Batch 6 demonstrates the iron-cart mechanism, exposes the incomplete procurement summary and Orra's secret partial-evacuation motive, recovers the missing clock interval, formalizes Janek-to-Pel succession, and transfers the master key under explicit stop authority. Batch 7 completes the public warning, repair, authority, character, and relationship arcs without collapsing the registered unresolved questions.
+
+Validate the complete canonical manuscript from `packages/writer-bench`:
+
+```sh
+bun run corpus:validate:book
+```
