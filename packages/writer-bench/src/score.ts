@@ -85,7 +85,7 @@ function checkValue(task: Task, check: Check, response: ExecutionResponse) {
       ...(response.artifacts?.findings?.flatMap((finding) => finding.evidence ?? []) ?? []),
     ])
     const selected = selectedRefs(task, response)
-    if (check.metric === "grounding") {
+    if (check.metric === "grounding" || check.metric === "unsupported_claim_avoidance") {
       return cited.size ? [...cited].filter((ref) => selected.has(ref)).length / cited.size : 0
     }
     const actual = check.metric === "context_recall" ? selected : cited

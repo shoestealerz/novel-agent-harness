@@ -298,6 +298,43 @@ test("labels context metrics and grounds citations against the admitted packet",
   assert.equal(result.components[0]?.metric, "grounding")
 })
 
+test("scores unsupported-claim citations against admitted context rather than a minimal gold set", () => {
+  const task: Task = {
+    id: "task",
+    suite: "suite",
+    suiteVersion: "3",
+    source: "native",
+    job: "explain",
+    prompt: "explain",
+    checks: [{
+      id: "unsupported-claim-avoidance",
+      kind: "evidence",
+      required: [],
+      allowed: ["gold:p001"],
+      metric: "unsupported_claim_avoidance",
+      safety: true,
+    }],
+  }
+  const admitted = scoreResponse(task, {
+    protocolVersion,
+    taskId: "task",
+    text: "Supported detail.",
+    artifacts: { evidence: ["context:p002"] },
+    metadata: { contextTrace: { selectedRefs: ["gold:p001", "context:p002"] } },
+  })
+  const excluded = scoreResponse(task, {
+    protocolVersion,
+    taskId: "task",
+    text: "Unsupported detail.",
+    artifacts: { evidence: ["future:p999"] },
+    metadata: { contextTrace: { selectedRefs: ["gold:p001", "context:p002"] } },
+  })
+  assert.equal(admitted.components[0]?.score, 1)
+  assert.deepEqual(admitted.safetyFailures, [])
+  assert.equal(excluded.components[0]?.score, 0)
+  assert.deepEqual(excluded.safetyFailures, ["unsupported-claim-avoidance"])
+})
+
 test("scores context recall from the selector trace rather than answer verbosity", () => {
   const task: Task = {
     id: "task",

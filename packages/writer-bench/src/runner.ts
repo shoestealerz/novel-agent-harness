@@ -46,13 +46,14 @@ export async function runBenchmark(input: {
 }
 
 async function executeCell(
-  input: { targets: TargetFile; resume?: RunFile; rerunCells?: string[] },
+  input: { targets: TargetFile; resume?: RunFile; rerunCells?: string[]; resumeMode?: ResumeMode },
   runId: string,
   cell: { target: Target; task: Task; trial: number },
 ) {
   const previous = input.resume?.records.find((record) =>
     record.targetId === cell.target.id && record.task.id === cell.task.id && record.trial === cell.trial)
   const rerun = input.rerunCells?.some((requested) => rerunCellMatches(requested, cell))
+  if (preserveScoringOnlyFailure(previous, input.resumeMode, !!rerun)) return { ...previous!, task: cell.task }
   if (previous?.response && !previous.error && !rerun) {
     if (input.targets.judge) return { ...previous, task: cell.task, targetId: cell.target.id, trial: cell.trial }
     return { task: cell.task, targetId: cell.target.id, trial: cell.trial, response: previous.response, ...evaluateResponse(cell.target, cell.task, previous.response) }
@@ -151,6 +152,10 @@ export function validateResume(input: {
       throw new Error(`scoring-only resume changed model-visible task material: ${task.id}`)
     }
   }
+}
+
+export function preserveScoringOnlyFailure(previous: RunRecord | undefined, resumeMode: ResumeMode | undefined, rerun: boolean) {
+  return !!previous?.error && resumeMode === "scoring-only" && !rerun
 }
 
 export function rerunCellMatches(requested: string, cell: { target: Target; task: Task; trial: number }) {

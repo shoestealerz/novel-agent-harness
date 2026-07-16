@@ -1,7 +1,7 @@
 import assert from "node:assert/strict"
 import test from "node:test"
 import type { RunFile, TargetFile, Task } from "./contracts.ts"
-import { rerunCellMatches, validateResume } from "./runner.ts"
+import { preserveScoringOnlyFailure, rerunCellMatches, validateResume } from "./runner.ts"
 
 const previousTask: Task = {
   id: "task-1",
@@ -71,4 +71,11 @@ test("rerun-cell can select one trial without replacing successful siblings", ()
     resume: threeTrialResume,
     rerunCells: ["target:task-1:3"],
   }), /optional trial/)
+})
+
+test("scoring-only resume preserves a failed cell unless it is explicitly rerun", () => {
+  const failed = { ...resume.records[0]!, error: "preserved provider failure" }
+  assert.equal(preserveScoringOnlyFailure(failed, "scoring-only", false), true)
+  assert.equal(preserveScoringOnlyFailure(failed, "scoring-only", true), false)
+  assert.equal(preserveScoringOnlyFailure(failed, "exact", false), false)
 })
