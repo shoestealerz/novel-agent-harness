@@ -91,6 +91,9 @@ test("prepares a deterministic packet without target identities, metadata, or di
   assert.match(html, /Eligibility and consent/)
   assert.match(html, /Export ratings/)
   assert.doesNotMatch(html, /production-writer|raw-model|proposal-id/i)
+  const executable = [...html.matchAll(/<script(?: [^>]*)?>([\s\S]*?)<\/script>/g)].at(-1)?.[1]
+  assert.ok(executable)
+  assert.doesNotThrow(() => new Function(executable), "generated offline review script must parse")
 })
 
 test("rejects failed, missing, or mismatched outputs before unblinding", () => {

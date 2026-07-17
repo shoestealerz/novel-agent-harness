@@ -150,9 +150,19 @@ displaying or selecting response content:
 
 The frozen assembler combined that run with the 63 named primary cells into
 144 outputs and 96 blinded comparisons. Three pseudonymous offline reviewer
-packets were generated. The private review-freeze receipt has SHA-256
-`bbbfaac4188a283e48ef39fa19fcc24e912a5077d2941c9163ee1825c704676c`;
-its composite run SHA-256 is
+packets were generated. The first HTML renderer encoded two newline escapes as
+literal newlines inside JavaScript string literals, so every offline page was
+blank. No response content was displayed. Renderer commit
+`865a98b34521249dc140f35b0aeb0278a4bb3009` corrects both escapes and adds a
+regression that compiles the complete generated script. The packets were
+rerendered without changing any of the three blinded packet-data hashes,
+comparison assignments, ordering, source passages, or outputs.
+
+The corrected private review-freeze receipt has SHA-256
+`8976209f802fc60c6bfa4cff1a3f8f40cf44ebaddba4c138dc853fe082b007e4` and
+supersedes broken-render receipt
+`bbbfaac4188a283e48ef39fa19fcc24e912a5077d2941c9163ee1825c704676c`.
+Its composite run SHA-256 remains
 `e8a3cb9243dcc242b54c3dbf382976b29817bb6521e70458985b8f0627e01b98`.
 Packet contents, target identities, source passages, outputs, and reviewer
 identities remain private. No ratings have been collected or unblinded yet.
