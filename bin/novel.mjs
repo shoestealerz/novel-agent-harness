@@ -4,6 +4,7 @@ import { spawn } from "node:child_process"
 import { fileURLToPath } from "node:url"
 import path from "node:path"
 import { readFileSync } from "node:fs"
+import { routeNovelArgs } from "../packages/opencode/src/cli/novel-args.ts"
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..")
 const entry = path.join(root, "packages", "opencode", "src", "index.ts")
@@ -22,7 +23,10 @@ Usage:
   novel review <proposal-id>    show a stale-safe proposal diff
   novel commit <proposal-id>    commit an explicitly confirmed proposal
   novel state [--init]          inspect or initialize typed story state
-  novel login [provider]        add a provider credential (for example, deepseek)
+  novel login chatgpt           sign in with a ChatGPT subscription in the browser
+  novel login chatgpt --device-code
+                                sign in on a headless or remote machine
+  novel login [provider]        add another provider credential
   novel providers login         configure an AI provider credential
   novel providers list          show configured credentials
   novel models [provider]       list available models
@@ -38,18 +42,7 @@ if (first === "--version" || first === "-v") {
   process.exit(0)
 }
 
-const writerCommands = new Set(["chat", "init", "run", "review", "commit", "state"])
-const passthroughCommands = new Set(["providers", "auth", "models", "completion"])
-let args
-if (first === "login") {
-  const provider = input[1]
-  args =
-    provider && !provider.startsWith("-")
-      ? ["providers", "login", "--provider", provider, ...input.slice(2)]
-      : ["providers", "login", ...input.slice(1)]
-} else if (first && passthroughCommands.has(first)) args = input
-else if (first && writerCommands.has(first)) args = ["writer", ...input]
-else args = ["writer", "chat", ...input]
+const args = routeNovelArgs(input)
 
 const child = spawn(process.execPath, ["run", "--conditions=browser", entry, ...args], {
   cwd: process.cwd(),

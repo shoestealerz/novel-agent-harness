@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test"
 import path from "node:path"
+import { routeNovelArgs } from "../../src/cli/novel-args"
 
 const root = path.resolve(import.meta.dir, "../../../../")
 const bin = path.join(root, "bin", "novel.mjs")
@@ -13,6 +14,7 @@ describe("novel command shim", () => {
     const help = run("--help")
     expect(help.exitCode).toBe(0)
     expect(help.stdout.toString()).toContain("novel [prompt]")
+    expect(help.stdout.toString()).toContain("novel login chatgpt")
     expect(help.stdout.toString()).toContain("novel providers login")
 
     const version = run("--version")
@@ -28,5 +30,41 @@ describe("novel command shim", () => {
     const providers = run("providers", "--help")
     expect(providers.exitCode).toBe(0)
     expect(providers.stdout.toString() + providers.stderr.toString()).toContain("opencode providers")
+  })
+
+  test("routes ChatGPT subscription login through OpenAI OAuth", () => {
+    expect(routeNovelArgs(["login", "chatgpt"])).toEqual([
+      "providers",
+      "login",
+      "--provider",
+      "openai",
+      "--method",
+      "ChatGPT Pro/Plus (browser)",
+    ])
+    expect(routeNovelArgs(["login", "chatgpt", "--device-code"])).toEqual([
+      "providers",
+      "login",
+      "--provider",
+      "openai",
+      "--method",
+      "ChatGPT Pro/Plus (headless)",
+    ])
+    expect(routeNovelArgs(["login", "chatgpt", "--headless"])).toEqual([
+      "providers",
+      "login",
+      "--provider",
+      "openai",
+      "--method",
+      "ChatGPT Pro/Plus (headless)",
+    ])
+  })
+
+  test("preserves generic provider login routing", () => {
+    expect(routeNovelArgs(["login", "deepseek"])).toEqual([
+      "providers",
+      "login",
+      "--provider",
+      "deepseek",
+    ])
   })
 })
