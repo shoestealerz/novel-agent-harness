@@ -1,10 +1,10 @@
 {
   "formatVersion": 1,
-  "revision": 5,
-  "status": "frozen-before-authoritative-output-acceptance",
-  "frozenAt": "2026-07-16T21:35:30.7454318Z",
-  "supersedesRevision": 4,
-  "reason": "Revision 5 aligns this track with authoritative run freeze revision 7's zero-call scoring correction. Suite 0.3.5 changes only suiteVersion from 0.3.4; all other task fields are identical. It does not change task selection, pair identities, left/right placement, targets, model behavior, context policy, rating criteria, thresholds, or assembly rules.",
+  "revision": 6,
+  "status": "frozen-for-one-cell-execution-recovery",
+  "frozenAt": "2026-07-16T23:46:53.6443810Z",
+  "supersedesRevision": 5,
+  "reason": "A3-HR-SUPPLEMENT-001 was declared failed and hash-sealed before any response content was inspected. It completed 80 of 81 cells; stock OpenCode emitted no completed text event for saltglass-dev-plan-004-orra-discloses-day4 trial zero. Revision 6 permits one exact-resume recovery call for that response-less execution failure. It byte-preserves all 80 successful cells and does not change task selection, pair identities, left/right placement, targets, model behavior, prompts, context policy, rating criteria, thresholds, or assembly rules.",
   "candidateCommit": "4e53b3086a060d392d6d352358d81d59ebff7405",
   "evaluationCommit": "f198a710cbf990b5db5d0c6490a51afac4b935af",
   "authoritativeRunFreezeRevision": 7,
@@ -35,6 +35,17 @@
     "rule": "Execute the 27 development and validation tasks as a separate one-trial full-context run across all three targets. Deterministically assemble those records with trial-zero outputs for the 21 sealed review tasks from the accepted primary run. Do not alter or select responses by score or content.",
     "reusedCells": 63,
     "newProviderCalls": 81
+  },
+  "supplementalRecovery": {
+    "sourceAttempt": "A3-HR-SUPPLEMENT-001",
+    "sourceRunId": "2026-07-16T23-03-38-220Z-43912962",
+    "sourceRunSha256": "2c53f7a7f99b94c962d9dca778141cad0b48432145f0a0a2114de8708b1a1f7d",
+    "sourceFailureDeclarationSha256": "9bf9784b12485e41d23e0dc533a5dda9a11e1c56511cf35f6cab49ccb0a846d8",
+    "responseContentInspected": false,
+    "reuse": { "successfulCells": 80 },
+    "rerun": ["stock-opencode:saltglass-dev-plan-004-orra-discloses-day4:0"],
+    "newProviderCalls": 1,
+    "rule": "Exact resume must byte-preserve every successful response from A3-HR-SUPPLEMENT-001 and execute only its one response-less failed cell. It may not rerun a successful cell, change scoring or model-visible material, select an output by content or score, or receive another recovery attempt without a new public declaration."
   },
   "review": {
     "comparisons": 96,
