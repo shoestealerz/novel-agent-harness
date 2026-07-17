@@ -48,11 +48,14 @@ describe("writer CLI subprocess", () => {
 
         const first = yield* opencode.spawn(
           ["writer", "chat", "Explain the bell", "--model", testModelID, "--dir", home],
-          { stdin: "/session\n/exit\n", timeoutMs: 60_000 },
+          { stdin: "/models test\n/login claude\n/session\n/exit\n", timeoutMs: 60_000 },
         )
         opencode.expectExit(first, 0, "writer chat")
         expect(first.stdout).toContain("Novel Agent Harness — Bell House")
         expect(first.stdout).toContain("The bell rings once [ch01:p001].")
+        expect(first.stdout).toContain("Available test models:")
+        expect(first.stdout).toContain("test/test-model")
+        expect(first.stdout).toContain("Use /login chatgpt or /login chatgpt --device-code.")
         const sessionID = first.stdout.match(/Session:\s+(ses_[A-Za-z0-9]+)/)?.[1]
         expect(sessionID).toBeTruthy()
 

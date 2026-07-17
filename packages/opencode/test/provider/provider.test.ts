@@ -121,6 +121,20 @@ it.instance("provider loaded from env variable", () =>
   }),
 )
 
+it.instance("reload discovers credentials added during an interactive session", () =>
+  Effect.gen(function* () {
+    yield* remove("ANTHROPIC_API_KEY")
+    const provider = yield* Provider.Service
+    expect((yield* provider.list())[ProviderV2.ID.anthropic]).toBeUndefined()
+
+    yield* set("ANTHROPIC_API_KEY", "interactive-test-key")
+    expect((yield* provider.list())[ProviderV2.ID.anthropic]).toBeUndefined()
+
+    yield* provider.reload()
+    expect((yield* provider.list())[ProviderV2.ID.anthropic]).toBeDefined()
+  }),
+)
+
 it.instance(
   "provider loaded from config with apiKey option",
   Effect.gen(function* () {

@@ -1,6 +1,11 @@
 import { describe, expect, test } from "bun:test"
-import { chapterMappingsFromTrackedPaths, contextSpecFromArgs, parseChapterArgs, writerProgressLine } from "@/cli/cmd/writer"
-import { parseWriterChatInput } from "@/cli/cmd/writer-chat"
+import {
+  chapterMappingsFromTrackedPaths,
+  contextSpecFromArgs,
+  parseChapterArgs,
+  writerProgressLine,
+} from "@/cli/cmd/writer"
+import { parseWriterChatInput, parseWriterChatLogin } from "@/cli/cmd/writer-chat"
 
 describe("writer CLI", () => {
   test("leaves context selection to the Writer session when no explicit packet is supplied", () => {
@@ -102,5 +107,14 @@ describe("writer CLI", () => {
       argument: "sha256:abc",
     })
     expect(parseWriterChatInput("   ")).toEqual({ type: "empty" })
+  })
+
+  test("parses in-conversation ChatGPT browser and device login", () => {
+    expect(parseWriterChatLogin("")).toEqual({ device: false })
+    expect(parseWriterChatLogin("chatgpt")).toEqual({ device: false })
+    expect(parseWriterChatLogin("CHATGPT --device-code")).toEqual({ device: true })
+    expect(parseWriterChatLogin("--headless")).toEqual({ device: true })
+    expect(parseWriterChatLogin("claude")).toBeUndefined()
+    expect(parseWriterChatLogin("chatgpt --unknown")).toBeUndefined()
   })
 })
