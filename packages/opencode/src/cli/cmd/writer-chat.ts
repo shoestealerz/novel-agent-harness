@@ -12,11 +12,14 @@ import { realpath } from "node:fs/promises"
 import path from "node:path"
 import { promisify } from "node:util"
 import type { Argv } from "yargs"
+import { ProviderV2 } from "@opencode-ai/core/provider"
 import { Provider } from "@/provider/provider"
+import { ProviderAuth } from "@/provider/auth"
 import { SessionID } from "@/session/schema"
 import { Session } from "@/session/session"
 import { WriterSession } from "@/writer/session"
 import { effectCmd, fail } from "../effect-cmd"
+import { chatGPTLoginMethod } from "../novel-args"
 
 const execute = promisify(execFile)
 const jobs = ["explain", "diagnose", "plan", "revise"] as const
@@ -36,6 +39,14 @@ export function parseWriterChatInput(value: string): ParsedInput {
     name: text.slice(1, index < 0 ? undefined : index).toLowerCase(),
     argument: index < 0 ? "" : text.slice(index + 1).trim(),
   }
+}
+
+export function parseWriterChatLogin(argument: string) {
+  const parts = argument.toLowerCase().split(/\s+/).filter(Boolean)
+  const provider = parts[0]?.startsWith("--") ? undefined : parts.shift()
+  if (provider && provider !== "chatgpt") return
+  if (parts.some((part) => part !== "--device-code" && part !== "--headless")) return
+  return { device: parts.some((part) => part === "--device-code" || part === "--headless") }
 }
 
 export const WriterChatCommand = effectCmd({
@@ -108,7 +119,8 @@ export const WriterChatCommand = effectCmd({
     writeLine(`Workspace: ${root}`)
     writeLine(`Session:   ${session.id}`)
     writeLine(`Model:     ${modelLabel(model, session.model)}`)
-    writeLine("Type /help for commands. Manuscript changes remain proposals until /approve.")
+    writeLine("Type /help for commands. Use /login chatgpt to connect a subscription here.")
+    writeLine("Manuscript changes remain proposals until /approve.")
     writeLine("")
 
     try {
@@ -126,6 +138,53 @@ export const WriterChatCommand = effectCmd({
           }
           if (command === "session") {
             writeLine(`Session: ${session.id}`)
+            continue
+          }
+          if (command === "login") {
+            const login = parseWriterChatLogin(input.argument)
+            if (!login) {
+              writeLine("Use /login chatgpt or /login chatgpt --device-code.")
+              continue
+            }
+            const loggedIn = yield* Effect.exit(loginChatGPT(login.device))
+            if (Exit.isFailure(loggedIn)) {
+              writeLine(`ChatGPT login failed: ${formatCause(loggedIn.cause)}`)
+              continue
+            }
+            writeLine("ChatGPT subscription connected.")
+            printModels("openai", loggedIn.value)
+            const selected = yield* Effect.promise(() =>
+              reader.read("Model to use (paste an ID above, or press Enter to choose later): "),
+            )
+            if (selected === undefined) break
+            if (!selected.trim()) continue
+            const normalized = selected.includes("/") ? selected.trim() : `openai/${selected.trim()}`
+            if (!loggedIn.value.includes(normalized)) {
+              writeLine(`Unavailable ChatGPT model: ${normalized}. Use /models openai to list the account catalog.`)
+              continue
+            }
+            const parsed = Provider.parseModel(normalized)
+            const savedModel = { id: parsed.modelID, providerID: parsed.providerID, variant: "default" }
+            yield* sessions.setAgentModel({
+              sessionID: session.id,
+              agent: "writer",
+              model: savedModel,
+              time: Date.now(),
+            })
+            session = { ...session, model: savedModel }
+            model = parsed
+            variant = undefined
+            writeLine(`Model: ${normalized}`)
+            continue
+          }
+          if (command === "models") {
+            const providerID = input.argument || "openai"
+            const listed = yield* Effect.exit(providerModels(providerID))
+            if (Exit.isFailure(listed)) {
+              writeLine(`Unable to list ${providerID} models: ${formatCause(listed.cause)}`)
+              continue
+            }
+            printModels(providerID, listed.value)
             continue
           }
           if (command === "status") {
@@ -155,7 +214,7 @@ export const WriterChatCommand = effectCmd({
           if (command === "model") {
             if (!input.argument) {
               writeLine(`Model: ${modelLabel(model, session.model)}`)
-              writeLine("Set one with /model provider/model. Configure credentials with `novel providers login`.")
+              writeLine("Set one with /model provider/model. Connect ChatGPT with /login chatgpt.")
               continue
             }
             const parsed = Provider.parseModel(input.argument)
@@ -286,7 +345,7 @@ export const WriterChatCommand = effectCmd({
         )
         if (Exit.isFailure(result)) {
           writeLine(`writer> ${formatCause(result.cause)}`)
-          writeLine("Check the model and credentials with `novel models` and `novel providers list`.")
+          writeLine("Check /models and /model, or connect a subscription with /login chatgpt.")
           continue
         }
         const output = result.value
@@ -313,6 +372,10 @@ export const WriterChatCommand = effectCmd({
 
 function printHelp() {
   writeLine("/status              workspace, model, job, Git, and pending proposal")
+  writeLine("/login chatgpt       connect a ChatGPT subscription without leaving this conversation")
+  writeLine("/login chatgpt --device-code")
+  writeLine("                     connect from a headless or remote terminal")
+  writeLine("/models [PROVIDER]   list available model IDs (defaults to openai)")
   writeLine("/job auto|JOB        route automatically or force explain, diagnose, plan, revise")
   writeLine("/model [PROVIDER/ID] show or change the model for later prompts")
   writeLine("/review [ID]         render the latest or named immutable proposal diff")
@@ -321,6 +384,49 @@ function printHelp() {
   writeLine("/new                 start a new conversation in this novel")
   writeLine("/session             print the resumable session ID")
   writeLine("/exit                save and leave the Writer agent")
+}
+
+function loginChatGPT(device: boolean) {
+  return Effect.gen(function* () {
+    const providerID = ProviderV2.ID.make("openai")
+    const auth = yield* ProviderAuth.Service
+    const methods = (yield* auth.methods())[providerID] ?? []
+    const label = chatGPTLoginMethod(device)
+    const method = methods.findIndex((item) => item.label === label)
+    if (method < 0) return yield* Effect.fail(new Error(`ChatGPT login method is unavailable: ${label}`))
+
+    const authorization = yield* auth.authorize({ providerID, method })
+    if (!authorization) return yield* Effect.fail(new Error(`ChatGPT login method is not OAuth: ${label}`))
+    writeLine(`Open: ${authorization.url}`)
+    if (authorization.instructions) writeLine(authorization.instructions)
+    writeLine("writer> waiting for ChatGPT authorization…")
+    yield* auth.callback({ providerID, method })
+
+    const provider = yield* Provider.Service
+    yield* provider.reload()
+    return yield* providerModels("openai")
+  })
+}
+
+function providerModels(value: string) {
+  return Effect.gen(function* () {
+    const providerID = ProviderV2.ID.make(value)
+    const provider = yield* Provider.Service
+    const info = (yield* provider.list())[providerID]
+    if (!info) return yield* Effect.fail(new Error(`Provider not found: ${value}`))
+    return Object.keys(info.models)
+      .sort((a, b) => a.localeCompare(b))
+      .map((modelID) => `${providerID}/${modelID}`)
+  })
+}
+
+function printModels(providerID: string, models: string[]) {
+  writeLine(`Available ${providerID} models:`)
+  if (!models.length) {
+    writeLine("  none")
+    return
+  }
+  for (const model of models) writeLine(`  ${model}`)
 }
 
 function writeLine(value: string) {

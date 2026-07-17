@@ -89,6 +89,8 @@ novel --model openai/MODEL_ID
 
 `novel login chatgpt` selects ChatGPT subscription authentication directly; it does not ask for an API key. On a remote machine where the browser cannot return to the CLI, use `novel login chatgpt --device-code`, open the displayed OpenAI URL on any device, and enter the one-time code. After login, `novel models openai` prints the models available to that account; use one of those exact IDs with `--model` or `/model`.
 
+The same setup is available without leaving an active Writer conversation. Enter `/login chatgpt`; the harness displays the OpenAI authorization URL, waits for completion, reloads the provider catalog, lists the subscription's available models, and asks which model to attach to the current durable session. Use `/login chatgpt --device-code` in a remote terminal. No manuscript request is sent while login is in progress.
+
 This path uses the user's ChatGPT plan allowance and its current Codex usage limits. It is distinct from OpenAI Platform API-key billing. The retained credential service stores the OAuth credential outside the novel repository and refreshes it automatically. Signing out is explicit:
 
 ```bash
@@ -109,6 +111,10 @@ Inside the session, write normal requests or use:
 
 ```text
 /status              workspace, model, job, Git, and pending proposal
+/login chatgpt       connect a ChatGPT subscription in this conversation
+/login chatgpt --device-code
+                     connect from a headless or remote terminal
+/models [PROVIDER]   list available model IDs; defaults to openai
 /job auto|JOB        automatic routing or explain, diagnose, plan, revise
 /model PROVIDER/ID   change the model for later prompts
 /review [ID]         render the latest or named immutable proposal diff
