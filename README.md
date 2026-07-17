@@ -53,7 +53,7 @@ novel --help
 
 `bun run install:cli` uses Bun's global link mechanism, so the command continues to use this checked-out, locked source tree. Run it again if the checkout is moved. The proposal-only Writer path does not require inherited desktop/native lifecycle scripts. Full monorepo development and the inherited OpenCode surfaces use `bun install --frozen-lockfile`; on Windows that also requires Visual Studio Build Tools with the C++ workload. Node.js 22 or newer is needed for benchmark and full monorepo development commands, but not for the `novel` launcher itself.
 
-Provider credentials are read by the retained OpenCode model layer. Keep keys in its provider configuration or the current process environment; never add them to a novel repository. Manuscript passages and Writer session context are sent to the provider selected by the author.
+Provider credentials are read by the retained OpenCode model layer. ChatGPT Plus and Pro subscribers can use the supported browser or device-code login without creating an OpenAI API key. Keep all credentials in the provider configuration or current process environment; never add them to a novel repository. Manuscript passages and Writer session context are sent to the provider selected by the author.
 
 For package development:
 
@@ -79,11 +79,29 @@ novel init
 git add novel.json manuscript
 git commit -m "Initialize Novel Agent workspace"
 
-# One-time credential setup; choose a provider interactively or name it.
-novel login deepseek
-novel models deepseek
+# One-time ChatGPT Plus/Pro setup. This opens OpenAI's sign-in page.
+novel login chatgpt
+novel models openai
 
 # Open the Writer agent in the current novel.
+novel --model openai/MODEL_ID
+```
+
+`novel login chatgpt` selects ChatGPT subscription authentication directly; it does not ask for an API key. On a remote machine where the browser cannot return to the CLI, use `novel login chatgpt --device-code`, open the displayed OpenAI URL on any device, and enter the one-time code. After login, `novel models openai` prints the models available to that account; use one of those exact IDs with `--model` or `/model`.
+
+This path uses the user's ChatGPT plan allowance and its current Codex usage limits. It is distinct from OpenAI Platform API-key billing. The retained credential service stores the OAuth credential outside the novel repository and refreshes it automatically. Signing out is explicit:
+
+```bash
+novel providers logout openai
+```
+
+OpenAI documents ChatGPT subscription authentication for Codex clients and browser/device-code login for embedded app-server clients in its [authentication guide](https://developers.openai.com/codex/auth) and [Codex app-server reference](https://developers.openai.com/codex/app-server). Novel Agent Harness never asks the author to copy ChatGPT browser cookies or tokens. As with every remote provider, the selected manuscript context is transmitted to OpenAI under the policies of the account and workspace used to sign in.
+
+API-key providers remain available when desired. For example:
+
+```bash
+novel login deepseek
+novel models deepseek
 novel --model deepseek/deepseek-v4-pro
 ```
 
@@ -103,7 +121,7 @@ Inside the session, write normal requests or use:
 
 Resume with `novel --continue` or the exact command printed at exit, `novel --session ses_...`. A normal writing request can never bypass proposal review: scoped Revise produces an immutable artifact, and `/approve` is the only interactive path to the existing author-confirmed commit transaction.
 
-Provider credentials are stored by the retained OpenCode credential service outside the novel repository. Environment variables such as `DEEPSEEK_API_KEY` also remain supported. Manuscript passages and Writer session context are sent to the provider selected by the author.
+Provider credentials are stored by the retained OpenCode credential service outside the novel repository. ChatGPT OAuth and environment variables such as `DEEPSEEK_API_KEY` remain supported. Manuscript passages and Writer session context are sent to the provider selected by the author.
 
 ### Headless and automation workflow
 

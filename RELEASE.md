@@ -12,6 +12,7 @@ Do not run the alpha release workflow until all of these are true:
 - Production comparisons pass: no candidate mean-score regression, zero candidate deterministic safety failures, and no safety-failure increase.
 - Restart recovery, stale-proposal rejection, model-configuration failure, author-only confirmation, Git scope, rollback, and receipt tests pass.
 - The isolated `bun run verify:cli-install` check proves that the globally linked `novel` command launches on both Linux and Windows.
+- ChatGPT subscription releases preserve direct browser and device-code routing, retain API-key login as a separate choice, pass the recorded OpenAI OAuth tool loop, and receive one manual live smoke check without committing credentials or response content.
 - The lifecycle-script-free source quick start succeeds in a fresh clone without relying on an unrelated globally installed Writer build; full native development requirements are documented separately.
 - Security, contribution, data-handling, known-limitations, and OpenCode attribution documents match the release.
 - No API keys, private manuscripts, hidden benchmark answers, or unlicensed corpus text are present in Git history or release artifacts.
@@ -23,6 +24,7 @@ The release operator selects `dev` and runs the `alpha-release` workflow with th
 - Supported jobs are Explain, Diagnose, Plan, and scoped Revise.
 - Revise creates an immutable proposal; only an explicit author action can commit it.
 - Installation is from source. A stable standalone binary and package-manager distribution are not yet provided.
+- ChatGPT subscription access is bounded by the user's current Codex plan limits and available model catalog; it is not OpenAI Platform API credit.
 - The interactive terminal and headless workflows are public; the web application remains a separate private project.
 - Generate, Synchronize, Brainstorm, and Translate are not silently mapped onto the four MVP jobs.
 - Hierarchical semantic retrieval, verbose writer memory, and broad automatic critics remain experimental or rejected based on the recorded evaluations.
